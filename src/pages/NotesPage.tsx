@@ -6,6 +6,7 @@ import {
   GridIcon,
   ListIcon,
   PinIcon,
+  FolderIcon,
 } from '../components/icons'
 import { NoteCard } from '../components/notes/NoteCard'
 import { NoteEditor } from '../components/notes/NoteEditor'
