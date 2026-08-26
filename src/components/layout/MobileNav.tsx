@@ -6,10 +6,15 @@ import {
   CheckCircleIcon,
   NotesIcon,
   HeartIcon,
+  MenuIcon,
 } from '../icons'
 import { cn } from '../../lib/utils'
 
-export const MobileNav: React.FC = () => {
+export interface MobileNavProps {
+  onOpenMenu?: () => void
+}
+
+export const MobileNav: React.FC<MobileNavProps> = ({ onOpenMenu }) => {
   const navItems = [
     { to: '/today', label: 'Today', icon: SunIcon },
     { to: '/tasks', label: 'Tasks', icon: CheckCircleIcon },
@@ -19,19 +24,19 @@ export const MobileNav: React.FC = () => {
 
   return (
     <nav
-      className="md:hidden fixed bottom-4 left-4 right-4 z-40 select-none"
+      className="md:hidden fixed bottom-3 left-3 right-3 z-40 select-none"
       style={{
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
     >
-      <div className="liquid-tabbar flex items-center justify-around py-2 px-2 shadow-2xl">
+      <div className="liquid-tabbar flex items-center justify-around py-1.5 px-1.5 shadow-2xl">
         {navItems.map((item) => {
           const Icon = item.icon
           return (
             <NavLink
               key={item.to}
               to={item.to}
-              className="relative flex flex-col items-center justify-center py-1.5 px-3 min-w-[64px] rounded-2xl transition-all duration-200"
+              className="relative flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] rounded-2xl transition-all duration-200"
             >
               {({ isActive }) => (
                 <>
@@ -49,7 +54,7 @@ export const MobileNav: React.FC = () => {
                   )}
 
                   <Icon
-                    size={20}
+                    size={19}
                     className={cn(
                       'relative z-10 transition-all duration-200',
                       isActive ? 'text-lavender-accent scale-110' : 'text-ink-muted'
@@ -68,6 +73,19 @@ export const MobileNav: React.FC = () => {
             </NavLink>
           )
         })}
+
+        {/* 5th Tab: Menu (Opens Sidebar on Mobile) */}
+        <button
+          type="button"
+          onClick={onOpenMenu}
+          className="relative flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] rounded-2xl text-ink-muted hover:text-ink transition-colors"
+          title="Open Menu & Folders"
+        >
+          <MenuIcon size={19} className="relative z-10" />
+          <span className="relative z-10 text-[10px] font-bold mt-0.5 tracking-tight">
+            Menu
+          </span>
+        </button>
       </div>
     </nav>
   )

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { LoginPage } from './pages/LoginPage'
 import { TodayPage } from './pages/TodayPage'
@@ -7,6 +7,9 @@ import { NotesPage } from './pages/NotesPage'
 import { RecycleBinPage } from './pages/RecycleBinPage'
 import { Sidebar } from './components/layout/Sidebar'
 import { MobileNav } from './components/layout/MobileNav'
+import { ThemeToggle } from './components/layout/ThemeToggle'
+import { CoupleAvatar } from './components/common/CoupleAvatar'
+import { MenuIcon } from './components/icons'
 import { TaskDetailSheet } from './components/tasks/TaskDetailSheet'
 import { NoteEditor } from './components/notes/NoteEditor'
 import { useAuthStore } from './stores/authStore'
@@ -15,7 +18,9 @@ import { useNoteStore } from './stores/noteStore'
 import { supabase, isSupabaseConfigured } from './lib/supabaseClient'
 
 export const App: React.FC = () => {
-  const { session, loading, initializeAuth } = useAuthStore()
+  const { session, loading, initializeAuth, authorizedUser } = useAuthStore()
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
+
   const fetchTasks = useTaskStore((s) => s.fetchTasks)
   const fetchNotes = useNoteStore((s) => s.fetchNotes)
   const receiveRealtimeTask = useTaskStore((s) => s.receiveRealtimeTask)
@@ -101,12 +106,47 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen max-w-[1600px] mx-auto w-full relative">
-      {/* Sidebar (Desktop) */}
-      <Sidebar />
+    <div className="flex flex-col md:flex-row min-h-screen max-w-[1600px] mx-auto w-full relative">
+      {/* Mobile Top App Bar */}
+      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-2.5 bg-surface/90 backdrop-blur-xl border-b border-glass-border shadow-xs">
+        <div className="flex items-center gap-2.5">
+          <img
+            src="./logo.svg"
+            alt="Two-Do"
+            className="w-7 h-7 drop-shadow-sm"
+          />
+          <span className="font-extrabold text-base text-ink tracking-tight">Two-Do</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {authorizedUser && (
+            <CoupleAvatar
+              userId={authorizedUser.id}
+              displayName={authorizedUser.display_name}
+              size={24}
+              showOnlineBadge={true}
+            />
+          )}
+          <ThemeToggle size="sm" />
+          <button
+            type="button"
+            onClick={() => setIsMobileSidebarOpen(true)}
+            className="p-1.5 rounded-xl text-ink-muted hover:text-ink hover:bg-surface-elevated transition-colors border border-glass-border-subtle"
+            title="Open Menu"
+          >
+            <MenuIcon size={18} />
+          </button>
+        </div>
+      </header>
+
+      {/* Sidebar (Responsive drawer on mobile, floating column on desktop) */}
+      <Sidebar
+        isOpen={isMobileSidebarOpen}
+        onClose={() => setIsMobileSidebarOpen(false)}
+      />
 
       {/* Main Workspace View */}
-      <main className="flex-1 p-4 sm:p-6 md:p-8 mb-20 md:mb-4 overflow-y-auto max-w-full">
+      <main className="flex-1 p-3.5 sm:p-6 md:p-8 mb-24 md:mb-4 overflow-y-auto max-w-full">
         <Routes>
           <Route path="/" element={<Navigate to="/today" replace />} />
           <Route path="/today" element={<TodayPage />} />
@@ -122,8 +162,8 @@ export const App: React.FC = () => {
         </Routes>
       </main>
 
-      {/* Mobile Navigation */}
-      <MobileNav />
+      {/* Mobile Bottom Navigation */}
+      <MobileNav onOpenMenu={() => setIsMobileSidebarOpen(true)} />
 
       {/* Global Modals & Slide-Overs */}
       <TaskDetailSheet />
