@@ -85,11 +85,16 @@ export const RecycleBinPage: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('notes')}
+          style={
+            activeTab === 'notes'
+              ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
+              : { color: 'var(--color-ink-muted)' }
+          }
           className={cn(
             'flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all',
             activeTab === 'notes'
-              ? 'bg-lavender-accent text-white shadow-xs border border-lavender-accent'
-              : 'text-ink-muted hover:text-ink'
+              ? 'shadow-xs border border-white/20'
+              : 'hover:text-ink hover:bg-surface'
           )}
         >
           <NotesIcon size={14} />
@@ -99,11 +104,16 @@ export const RecycleBinPage: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('tasks')}
+          style={
+            activeTab === 'tasks'
+              ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
+              : { color: 'var(--color-ink-muted)' }
+          }
           className={cn(
             'flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all',
             activeTab === 'tasks'
-              ? 'bg-lavender-accent text-white shadow-xs border border-lavender-accent'
-              : 'text-ink-muted hover:text-ink'
+              ? 'shadow-xs border border-white/20'
+              : 'hover:text-ink hover:bg-surface'
           )}
         >
           <CheckCircleIcon size={14} />

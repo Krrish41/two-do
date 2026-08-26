@@ -124,10 +124,15 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                             setSortDirection('asc')
                           }
                         }}
+                        style={
+                          isSelected
+                            ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
+                            : { color: 'var(--color-ink)' }
+                        }
                         className={cn(
                           'p-2.5 rounded-xl text-xs font-bold transition-all border text-center flex items-center justify-center gap-1',
                           isSelected
-                            ? 'bg-lavender-accent text-white border-lavender-accent shadow-xs'
+                            ? 'border-white/20 shadow-xs'
                             : 'bg-surface text-ink border-glass-border hover:bg-surface-elevated'
                         )}
                       >
@@ -163,10 +168,15 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                         key={p.label}
                         type="button"
                         onClick={() => setPriorityFilter(p.val)}
+                        style={
+                          isSelected
+                            ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
+                            : { color: 'var(--color-ink)' }
+                        }
                         className={cn(
                           'p-2 rounded-xl text-xs font-bold transition-all border text-center',
                           isSelected
-                            ? 'bg-lavender-accent text-white border-lavender-accent shadow-xs'
+                            ? 'border-white/20 shadow-xs'
                             : 'bg-surface text-ink border-glass-border hover:bg-surface-elevated'
                         )}
                       >
@@ -198,10 +208,15 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                           key={d.val}
                           type="button"
                           onClick={() => setDueDateFilter(d.val)}
+                          style={
+                            isSelected
+                              ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
+                              : { color: 'var(--color-ink)' }
+                          }
                           className={cn(
                             'p-2 rounded-xl text-xs font-bold transition-all border text-center',
                             isSelected
-                              ? 'bg-lavender-accent text-white border-lavender-accent shadow-xs'
+                              ? 'border-white/20 shadow-xs'
                               : 'bg-surface text-ink border-glass-border hover:bg-surface-elevated'
                           )}
                         >
@@ -224,10 +239,15 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                     <button
                       type="button"
                       onClick={() => setFolderFilter(null)}
+                      style={
+                        folderFilter === null
+                          ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
+                          : { color: 'var(--color-ink)' }
+                      }
                       className={cn(
                         'px-3 py-1.5 rounded-xl text-xs font-bold transition-all border',
                         folderFilter === null
-                          ? 'bg-lavender-accent text-white border-lavender-accent shadow-xs'
+                          ? 'border-white/20 shadow-xs'
                           : 'bg-surface text-ink border-glass-border hover:bg-surface-elevated'
                       )}
                     >
@@ -240,10 +260,15 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                           key={f.id}
                           type="button"
                           onClick={() => setFolderFilter(f.id)}
+                          style={
+                            isSelected
+                              ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
+                              : { color: 'var(--color-ink)' }
+                          }
                           className={cn(
                             'px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5',
                             isSelected
-                              ? 'bg-lavender-accent text-white border-lavender-accent shadow-xs'
+                              ? 'border-white/20 shadow-xs'
                               : 'bg-surface text-ink border-glass-border hover:bg-surface-elevated'
                           )}
                         >

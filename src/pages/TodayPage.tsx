@@ -137,21 +137,29 @@ export const TodayPage: React.FC = () => {
                   { val: 1, label: 'P1' },
                   { val: 2, label: 'P2' },
                   { val: 3, label: 'P3' },
-                ].map((p) => (
-                  <button
-                    key={p.val}
-                    type="button"
-                    onClick={() => setSelectedPriority(p.val)}
-                    className={cn(
-                      'px-2.5 py-1 rounded-lg font-bold transition-all text-xs border',
-                      selectedPriority === p.val
-                        ? 'bg-lavender-accent text-white border-lavender-accent shadow-xs'
-                        : 'bg-surface text-ink border-transparent hover:bg-surface-elevated'
-                    )}
-                  >
-                    {p.label}
-                  </button>
-                ))}
+                ].map((p) => {
+                  const isSelected = selectedPriority === p.val
+                  return (
+                    <button
+                      key={p.val}
+                      type="button"
+                      onClick={() => setSelectedPriority(p.val)}
+                      style={
+                        isSelected
+                          ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
+                          : { color: 'var(--color-ink)' }
+                      }
+                      className={cn(
+                        'px-2.5 py-1 rounded-lg font-extrabold transition-all text-xs border',
+                        isSelected
+                          ? 'border-white/20 shadow-xs'
+                          : 'bg-surface border-transparent hover:bg-surface-elevated text-ink'
+                      )}
+                    >
+                      {p.label}
+                    </button>
+                  )
+                })}
               </div>
             </div>
 

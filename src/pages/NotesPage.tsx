@@ -93,11 +93,16 @@ export const NotesPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setViewMode('grid')}
+              style={
+                viewMode === 'grid'
+                  ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
+                  : { color: 'var(--color-ink-muted)' }
+              }
               className={cn(
                 'p-2 rounded-xl transition-all',
                 viewMode === 'grid'
-                  ? 'bg-lavender-accent text-white shadow-xs'
-                  : 'text-ink-muted hover:text-ink'
+                  ? 'shadow-xs border border-white/20'
+                  : 'hover:text-ink'
               )}
               title="Grid View"
             >
@@ -106,11 +111,16 @@ export const NotesPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setViewMode('list')}
+              style={
+                viewMode === 'list'
+                  ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
+                  : { color: 'var(--color-ink-muted)' }
+              }
               className={cn(
                 'p-2 rounded-xl transition-all',
                 viewMode === 'list'
-                  ? 'bg-lavender-accent text-white shadow-xs'
-                  : 'text-ink-muted hover:text-ink'
+                  ? 'shadow-xs border border-white/20'
+                  : 'hover:text-ink'
               )}
               title="List View"
             >
@@ -129,47 +139,42 @@ export const NotesPage: React.FC = () => {
       <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Creator Tabs with Mascot Avatars */}
         <div className="flex items-center gap-1.5 p-1 rounded-2xl glass-panel-subtle border border-glass-border">
-          <button
-            onClick={() => setCreatorFilter('all')}
-            className={cn(
-              'px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all',
-              creatorFilter === 'all'
-                ? 'bg-surface-elevated text-ink shadow-sm border border-glass-border'
-                : 'text-ink-muted hover:text-ink'
-            )}
-          >
-            All
-          </button>
-
-          {authorizedUser && (
-            <button
-              onClick={() => setCreatorFilter('mine')}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all',
-                creatorFilter === 'mine'
-                  ? 'bg-surface-elevated text-ink shadow-sm border border-glass-border'
-                  : 'text-ink-muted hover:text-ink'
-              )}
-            >
-              <CoupleAvatar userId={authorizedUser.id} displayName={authorizedUser.display_name} size={16} />
-              <span>{authorizedUser.display_name}</span>
-            </button>
-          )}
-
-          {partnerUser && (
-            <button
-              onClick={() => setCreatorFilter('partner')}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all',
-                creatorFilter === 'partner'
-                  ? 'bg-surface-elevated text-ink shadow-sm border border-glass-border'
-                  : 'text-ink-muted hover:text-ink'
-              )}
-            >
-              <CoupleAvatar userId={partnerUser.id} displayName={partnerUser.display_name} size={16} />
-              <span>{partnerUser.display_name}</span>
-            </button>
-          )}
+          {[
+            { key: 'all', label: 'All' },
+            {
+              key: 'mine',
+              label: authorizedUser?.display_name || 'Me',
+              avatar: authorizedUser ? <CoupleAvatar userId={authorizedUser.id} displayName={authorizedUser.display_name} size={16} /> : null,
+            },
+            {
+              key: 'partner',
+              label: partnerUser?.display_name || 'Partner',
+              avatar: partnerUser ? <CoupleAvatar userId={partnerUser.id} displayName={partnerUser.display_name} size={16} /> : null,
+            },
+          ].map((tab) => {
+            const isSelected = creatorFilter === tab.key
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setCreatorFilter(tab.key as any)}
+                style={
+                  isSelected
+                    ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
+                    : { color: 'var(--color-ink-muted)' }
+                }
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all',
+                  isSelected
+                    ? 'shadow-xs border border-white/20'
+                    : 'hover:text-ink'
+                )}
+              >
+                {tab.avatar}
+                <span>{tab.label}</span>
+              </button>
+            )
+          })}
         </div>
 
         {/* Search */}
@@ -190,10 +195,15 @@ export const NotesPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setSelectedFolderId(null)}
+            style={
+              selectedFolderId === null
+                ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
+                : {}
+            }
             className={cn(
               'px-3 py-1.5 rounded-xl text-xs font-bold transition-all border whitespace-nowrap',
               selectedFolderId === null
-                ? 'bg-lavender-accent text-white border-lavender-accent shadow-xs'
+                ? 'border-white/20 shadow-xs'
                 : 'bg-surface text-ink-muted hover:text-ink border-glass-border hover:bg-surface-elevated'
             )}
           >
@@ -206,10 +216,15 @@ export const NotesPage: React.FC = () => {
                 key={folder.id}
                 type="button"
                 onClick={() => setSelectedFolderId(isSelected ? null : folder.id)}
+                style={
+                  isSelected
+                    ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
+                    : {}
+                }
                 className={cn(
                   'px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 whitespace-nowrap',
                   isSelected
-                    ? 'bg-lavender-accent text-white border-lavender-accent shadow-xs'
+                    ? 'border-white/20 shadow-xs'
                     : 'bg-surface text-ink-muted hover:text-ink border-glass-border hover:bg-surface-elevated'
                 )}
               >
