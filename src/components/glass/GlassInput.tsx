@@ -14,7 +14,10 @@ export const GlassInput = forwardRef<HTMLInputElement, GlassInputProps>(
       <div className={cn('w-full flex flex-col gap-1', containerClassName)}>
         <div className="relative flex items-center w-full">
           {icon && (
-            <div className="absolute left-3.5 flex items-center pointer-events-none text-ink-muted flex-shrink-0">
+            <div
+              style={{ color: 'var(--color-ink-muted)' }}
+              className="absolute left-3.5 flex items-center pointer-events-none text-ink-muted flex-shrink-0"
+            >
               {icon}
             </div>
           )}

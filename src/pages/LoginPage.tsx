@@ -136,7 +136,7 @@ export const LoginPage: React.FC = () => {
                 placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                icon={<MailIcon size={16} />}
+                icon={<MailIcon size={18} />}
                 required
                 autoComplete="email"
               />
@@ -151,7 +151,7 @@ export const LoginPage: React.FC = () => {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                icon={<LockIcon size={16} />}
+                icon={<LockIcon size={18} />}
                 required
                 autoComplete="current-password"
               />
