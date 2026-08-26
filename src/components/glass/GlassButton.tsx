@@ -19,35 +19,35 @@ export const GlassButton: React.FC<GlassButtonProps> = ({
   ...props
 }) => {
   const sizeClasses = {
-    sm: 'px-3 py-1.5 text-xs rounded-xl font-medium gap-1.5',
-    md: 'px-4 py-2.5 text-sm rounded-2xl font-medium gap-2',
-    lg: 'px-6 py-3 text-base rounded-2xl font-semibold gap-2.5',
+    sm: 'px-3 py-1.5 text-xs rounded-xl font-semibold gap-1.5',
+    md: 'px-4 py-2.5 text-sm rounded-2xl font-semibold gap-2',
+    lg: 'px-6 py-3 text-base rounded-2xl font-bold gap-2.5',
     icon: 'p-2.5 text-sm rounded-2xl flex items-center justify-center',
   }[size]
 
   const variantClasses = {
     primary:
-      'bg-lavender-600/90 hover:bg-lavender-600 text-white shadow-md shadow-lavender-600/20 backdrop-blur-md border border-white/30',
+      'bg-lavender-accent text-white shadow-md hover:brightness-110 active:brightness-95 border border-white/20',
     secondary:
-      'bg-white/60 hover:bg-white/80 text-ink shadow-sm border border-white/60 backdrop-blur-md',
+      'bg-surface-elevated hover:bg-surface text-ink shadow-sm border border-glass-border backdrop-blur-md',
     ghost:
-      'bg-transparent hover:bg-white/40 text-ink/80 hover:text-ink border border-transparent hover:border-white/30',
+      'bg-transparent hover:bg-surface text-ink/80 hover:text-ink border border-transparent hover:border-glass-border-subtle',
     danger:
-      'bg-rose-500/80 hover:bg-rose-500 text-white shadow-sm border border-white/20 backdrop-blur-md',
+      'bg-rose-500 hover:bg-rose-600 text-white shadow-sm border border-white/20 backdrop-blur-md',
     blossom:
-      'bg-blossom-400/90 hover:bg-blossom-600 text-white shadow-sm border border-white/30 backdrop-blur-md',
+      'bg-blossom-accent text-white shadow-sm hover:brightness-110 border border-white/20 backdrop-blur-md',
     skyblue:
-      'bg-skyblue-600/90 hover:bg-skyblue-600 text-white shadow-sm border border-white/30 backdrop-blur-md',
+      'bg-skyblue-accent text-white shadow-sm hover:brightness-110 border border-white/20 backdrop-blur-md',
   }[variant]
 
   return (
     <motion.button
       whileHover={disabled || loading ? {} : { scale: 1.02, y: -1 }}
       whileTap={disabled || loading ? {} : { scale: 0.98 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+      transition={{ type: 'spring', stiffness: 320, damping: 24 }}
       disabled={disabled || loading}
       className={cn(
-        'inline-flex items-center justify-center transition-colors select-none disabled:opacity-50 disabled:cursor-not-allowed',
+        'inline-flex items-center justify-center transition-all select-none disabled:opacity-50 disabled:cursor-not-allowed',
         sizeClasses,
         variantClasses,
         className
@@ -55,7 +55,7 @@ export const GlassButton: React.FC<GlassButtonProps> = ({
       {...props}
     >
       {loading ? (
-        <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+        <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-1.5" />
       ) : null}
       {children}
     </motion.button>

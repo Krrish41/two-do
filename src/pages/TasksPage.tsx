@@ -5,7 +5,6 @@ import {
   Plus,
   Search,
   Flag,
-  UserCheck,
   Calendar,
   CheckCheck,
   Flame,
@@ -35,7 +34,6 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
 
   const authorizedUser = useAuthStore((s) => s.authorizedUser)
   const partnerUser = useAuthStore((s) => s.partnerUser)
-  const allUsers = useAuthStore((s) => s.allUsers)
   const folders = useNoteStore((s) => s.folders)
 
   const sortField = useFilterSortStore((s) => s.sortField)
@@ -43,18 +41,20 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
   const priorityFilter = useFilterSortStore((s) => s.priorityFilter)
   const dueDateFilter = useFilterSortStore((s) => s.dueDateFilter)
 
+  // Resolve the actual Bucket List UUID from loaded folders list
+  const bucketListFolder = folders.find(
+    (f) => f.slug === 'bucket-list' || (f.is_system && f.name === 'Bucket List')
+  )
+  const bucketListFolderId = bucketListFolder?.id || null
+
   const [newTaskTitle, setNewTaskTitle] = useState('')
   const [selectedPriority, setSelectedPriority] = useState<number>(viewType === 'important' ? 3 : 0)
   const [selectedDueDate, setSelectedDueDate] = useState<string>('')
-  const [selectedRecurrence, setSelectedRecurrence] = useState<string>('')
-  const [selectedAssignee, setSelectedAssignee] = useState<string | null>(authorizedUser?.id || null)
   const [selectedFolder, setSelectedFolder] = useState<string | null>(
-    viewType === 'bucket-list'
-      ? 'folder-bucket-list'
-      : folderId || null
+    viewType === 'bucket-list' ? bucketListFolderId : folderId || null
   )
 
-  const [assigneeFilter, setAssigneeFilter] = useState<'all' | 'mine' | 'partner'>('all')
+  const [creatorFilter, setCreatorFilter] = useState<'all' | 'mine' | 'partner'>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [showCompleted, setShowCompleted] = useState(true)
 
@@ -68,7 +68,10 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
       if (viewType === 'important' && task.priority < 2) return false
       if (viewType === 'completed' && !task.is_completed) return false
       if (viewType === 'bucket-list') {
-        const isBucket = task.folder_id === 'folder-bucket-list' || task.title.toLowerCase().includes('bucket')
+        const isBucket =
+          (bucketListFolderId && task.folder_id === bucketListFolderId) ||
+          task.folder_id === 'folder-bucket-list' ||
+          task.title.toLowerCase().includes('bucket')
         if (!isBucket) return false
       }
       if (viewType === 'folder' && folderId && task.folder_id !== folderId) return false
@@ -81,9 +84,9 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
         if (!matchesTitle && !matchesNotes) return false
       }
 
-      // Assignee filter
-      if (assigneeFilter === 'mine' && task.assigned_to !== authorizedUser?.id) return false
-      if (assigneeFilter === 'partner' && task.assigned_to !== partnerUser?.id) return false
+      // Creator filter
+      if (creatorFilter === 'mine' && task.created_by !== authorizedUser?.id) return false
+      if (creatorFilter === 'partner' && task.created_by !== partnerUser?.id) return false
 
       // Drawer Priority Filter
       if (priorityFilter !== null && task.priority !== priorityFilter) return false
@@ -112,7 +115,6 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
       } else if (sortField === 'created_at') {
         comp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       } else {
-        // default position or updated_at
         comp = a.position - b.position
       }
       return sortDirection === 'asc' ? comp : -comp
@@ -123,8 +125,9 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
     rootTasks,
     viewType,
     folderId,
+    bucketListFolderId,
     searchQuery,
-    assigneeFilter,
+    creatorFilter,
     priorityFilter,
     dueDateFilter,
     authorizedUser,
@@ -148,22 +151,19 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
 
     const effectiveFolder =
       viewType === 'bucket-list'
-        ? 'folder-bucket-list'
+        ? bucketListFolderId
         : folderId || selectedFolder || null
 
     await addTask({
       title: newTaskTitle.trim(),
       priority: viewType === 'important' && selectedPriority < 2 ? 3 : selectedPriority,
       due_date: selectedDueDate || null,
-      recurrence_rule: selectedRecurrence || null,
-      assigned_to: selectedAssignee || authorizedUser?.id,
       folder_id: effectiveFolder,
     })
 
     setNewTaskTitle('')
     if (viewType !== 'important') setSelectedPriority(0)
     setSelectedDueDate('')
-    setSelectedRecurrence('')
   }
 
   const getHeaderInfo = () => {
@@ -186,11 +186,11 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
         }
       case 'bucket-list':
         return {
-          badge: 'Dreams & Goals',
+          badge: 'Bucket List',
           icon: Heart,
           color: 'text-blossom-accent',
           title: 'Bucket List',
-          subtitle: 'Adventures, shared goals, and things you want to do together.',
+          subtitle: 'Things we wanna do together 💕',
         }
       case 'folder':
         return {
@@ -239,7 +239,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
         </div>
       </div>
 
-      {/* Quick Add Task (Hidden on pure completed view) */}
+      {/* Quick Add Task */}
       {viewType !== 'completed' && (
         <GlassCard variant="default" className="p-4 shadow-glass">
           <form onSubmit={handleCreateTask} className="flex flex-col gap-3">
@@ -249,7 +249,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
                 type="text"
                 placeholder={
                   viewType === 'bucket-list'
-                    ? 'Add a new bucket list dream...'
+                    ? 'Add a new dream to the list...'
                     : 'Add a new task...'
                 }
                 value={newTaskTitle}
@@ -289,31 +289,6 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
                   ))}
                 </div>
 
-                {/* Assignee Chips */}
-                <div className="flex items-center gap-1 bg-surface p-1 rounded-xl border border-glass-border-subtle">
-                  <UserCheck className="w-3 h-3 text-ink-muted ml-1" />
-                  {allUsers.map((u) => {
-                    const isSel = (selectedAssignee || authorizedUser?.id) === u.id
-                    return (
-                      <button
-                        key={u.id}
-                        type="button"
-                        onClick={() => setSelectedAssignee(u.id)}
-                        className={cn(
-                          'px-2 py-0.5 rounded-lg font-semibold transition-all text-[11px] flex items-center gap-1',
-                          isSel ? 'bg-surface-elevated text-ink shadow-xs font-bold' : 'text-ink-muted hover:text-ink'
-                        )}
-                      >
-                        <span
-                          className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: u.accent_color }}
-                        />
-                        <span>{u.display_name}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-
                 {/* Due Date Input */}
                 <div className="flex items-center gap-1 bg-surface px-2 py-1 rounded-xl border border-glass-border-subtle">
                   <Calendar className="w-3 h-3 text-ink-muted" />
@@ -349,20 +324,20 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
         </GlassCard>
       )}
 
-      {/* Toolbar: Assignee Filter Tabs + Filter & Sort Drawer */}
+      {/* Toolbar: Creator Filter Tabs + Filter & Sort Drawer */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-1.5 p-1 rounded-2xl glass-panel-subtle">
           {[
             { id: 'all', label: 'All' },
-            { id: 'mine', label: 'Mine' },
+            { id: 'mine', label: authorizedUser?.display_name || 'Mine' },
             { id: 'partner', label: partnerUser?.display_name || 'Partner' },
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setAssigneeFilter(tab.id as any)}
+              onClick={() => setCreatorFilter(tab.id as any)}
               className={cn(
                 'px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all',
-                assigneeFilter === tab.id
+                creatorFilter === tab.id
                   ? 'bg-surface-elevated text-ink shadow-sm'
                   : 'text-ink-muted hover:text-ink'
               )}
@@ -381,12 +356,16 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
           tasks={pendingTasks}
           emptyMessage={
             viewType === 'bucket-list'
-              ? 'No bucket list items yet'
+              ? 'No bucket list items yet 💕'
               : viewType === 'important'
               ? 'No high priority items pending'
               : 'No pending tasks'
           }
-          emptySubtext="Add new items using the field above or switch active filters."
+          emptySubtext={
+            viewType === 'bucket-list'
+              ? 'Add things you wanna do together using the box above.'
+              : 'Add new items using the field above or switch active filters.'
+          }
         />
       )}
 

@@ -71,8 +71,8 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
         className={cn(
           'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold glass-panel-subtle transition-all select-none',
           hasActiveFilters
-            ? 'bg-lavender-500/15 border-lavender-500 text-lavender-600 dark:text-lavender-300 ring-1 ring-lavender-500/20'
-            : 'text-ink/70 hover:text-ink hover:bg-surface'
+            ? 'bg-lavender-500/15 border-lavender-accent text-lavender-accent ring-1 ring-lavender-accent/30'
+            : 'text-ink-muted hover:text-ink hover:bg-surface'
         )}
       >
         <ArrowUpDown className="w-3.5 h-3.5" />
@@ -112,6 +112,7 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                 <div className="flex items-center gap-2">
                   {hasActiveFilters && (
                     <button
+                      type="button"
                       onClick={resetFilters}
                       className="text-xs text-ink-muted hover:text-ink flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-surface-subtle"
                     >
@@ -120,6 +121,7 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                     </button>
                   )}
                   <button
+                    type="button"
                     onClick={() => setIsDrawerOpen(false)}
                     className="p-1.5 rounded-xl hover:bg-surface text-ink-muted hover:text-ink"
                   >
@@ -147,7 +149,7 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                             'p-2.5 rounded-xl font-semibold border transition-all flex items-center justify-between text-left',
                             isSelected
                               ? 'bg-lavender-accent/15 border-lavender-accent text-lavender-accent ring-1 ring-lavender-accent/30'
-                              : 'glass-panel-subtle hover:bg-surface text-ink/70'
+                              : 'glass-panel-subtle hover:bg-surface text-ink-muted hover:text-ink'
                           )}
                         >
                           <span className="truncate">{opt.label}</span>
@@ -158,7 +160,7 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                                 e.stopPropagation()
                                 toggleSortDirection()
                               }}
-                              className="p-0.5 ml-1 rounded hover:bg-black/10"
+                              className="p-0.5 ml-1 rounded hover:bg-surface"
                             >
                               {sortDirection === 'asc' ? (
                                 <ArrowUp className="w-3 h-3" />
@@ -184,8 +186,8 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                       { val: null, label: 'All' },
                       { val: 0, label: 'None' },
                       { val: 1, label: 'Low (P1)' },
-                      { val: 2, label: 'Medium (P2)' },
-                      { val: 3, label: 'Urgent (P3)' },
+                      { val: 2, label: 'Med (P2)' },
+                      { val: 3, label: 'Urg (P3)' },
                     ].map((p) => {
                       const isSelected = priorityFilter === p.val
                       return (
@@ -197,7 +199,7 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                             'py-2 px-1 rounded-xl font-semibold border text-center transition-all text-[11px]',
                             isSelected
                               ? 'bg-lavender-accent text-white shadow-xs border-transparent'
-                              : 'glass-panel-subtle hover:bg-surface text-ink/70'
+                              : 'glass-panel-subtle hover:bg-surface text-ink-muted hover:text-ink'
                           )}
                         >
                           {p.label}
@@ -225,8 +227,8 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                             className={cn(
                               'p-2 rounded-xl font-semibold border text-center transition-all',
                               isSelected
-                                ? 'bg-skyblue-accent/20 border-skyblue-accent text-skyblue-600 dark:text-skyblue-300'
-                                : 'glass-panel-subtle hover:bg-surface text-ink/70'
+                                ? 'bg-skyblue-accent/20 border-skyblue-accent text-skyblue-accent'
+                                : 'glass-panel-subtle hover:bg-surface text-ink-muted hover:text-ink'
                             )}
                           >
                             {opt.label}

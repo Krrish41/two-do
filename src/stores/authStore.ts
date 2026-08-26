@@ -24,12 +24,12 @@ interface AuthState {
 const DEMO_USERS: AuthorizedUser[] = [
   {
     id: 'demo-user-1',
-    display_name: 'Member 1',
+    display_name: 'Dr. Bubs',
     accent_color: '#C4AEF0',
   },
   {
     id: 'demo-user-2',
-    display_name: 'Member 2',
+    display_name: 'Miss Mickey 🎀',
     accent_color: '#A7C7E7',
   },
 ]

@@ -68,6 +68,7 @@ const INITIAL_DEMO_FOLDERS: Folder[] = [
   {
     id: 'folder-bucket-list',
     name: 'Bucket List',
+    slug: 'bucket-list',
     parent_folder_id: null,
     color: '#E86FA0',
     icon: '💕',
@@ -78,6 +79,7 @@ const INITIAL_DEMO_FOLDERS: Folder[] = [
   {
     id: 'folder-work',
     name: 'Projects',
+    slug: null,
     parent_folder_id: null,
     color: '#9B7EDC',
     icon: '🚀',
@@ -88,6 +90,7 @@ const INITIAL_DEMO_FOLDERS: Folder[] = [
   {
     id: 'folder-personal',
     name: 'Personal & Ideas',
+    slug: null,
     parent_folder_id: null,
     color: '#6FA8DC',
     icon: '✨',
@@ -257,6 +260,11 @@ export const useNoteStore = create<NoteState>((set, get) => ({
 
     if (!isSupabaseConfigured) return newNote
 
+    const isUUID = (val: string | null | undefined) =>
+      Boolean(val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val))
+
+    const safeFolderId = isUUID(newNote.folder_id) ? newNote.folder_id : null
+
     try {
       const { data, error } = await supabase
         .from('notes')
@@ -265,7 +273,7 @@ export const useNoteStore = create<NoteState>((set, get) => ({
           title: newNote.title,
           content: newNote.content,
           color: newNote.color,
-          folder_id: newNote.folder_id,
+          folder_id: safeFolderId,
           is_pinned: newNote.is_pinned,
           deleted_at: null,
           created_by: newNote.created_by,
@@ -366,6 +374,7 @@ export const useNoteStore = create<NoteState>((set, get) => ({
     const newFolder: Folder = {
       id: crypto.randomUUID(),
       name: name.trim(),
+      slug: null,
       parent_folder_id: parentFolderId,
       color,
       icon,

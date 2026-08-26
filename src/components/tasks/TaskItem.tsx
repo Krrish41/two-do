@@ -54,13 +54,12 @@ export const TaskItem: React.FC<TaskItemProps> = ({
   const subtasks = allTasks.filter((t) => t.parent_task_id === task.id)
   const completedSubtasks = subtasks.filter((t) => t.is_completed).length
 
-  // Find assignee
-  const assignedUser = allUsers.find((u) => u.id === task.assigned_to)
+  // Find creator for read-only attribution
+  const creatorUser = allUsers.find((u) => u.id === task.created_by)
 
   const handleCheckboxClick = async (e: React.MouseEvent) => {
     e.stopPropagation()
     if (!task.is_completed && !hideCompletedDelay) {
-      // Animate completion state immediately
       setIsPendingComplete(true)
       setTimeout(async () => {
         await toggleComplete(task.id)
@@ -86,8 +85,8 @@ export const TaskItem: React.FC<TaskItemProps> = ({
         onClick={() => setSelectedTaskId(task.id)}
         className={cn(
           'group relative flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl glass-panel transition-all duration-200 cursor-pointer select-none',
-          isChecked && 'opacity-65 bg-white/35',
-          isDragging && 'shadow-2xl ring-2 ring-lavender-400 scale-[1.02]',
+          isChecked && 'opacity-65 bg-surface-subtle',
+          isDragging && 'shadow-2xl ring-2 ring-lavender-accent scale-[1.02]',
           isSubtask && 'ml-6 p-2.5 rounded-xl text-sm'
         )}
       >
@@ -97,7 +96,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
             {...attributes}
             {...listeners}
             onClick={(e) => e.stopPropagation()}
-            className="touch-none text-ink/20 hover:text-ink/60 transition-colors p-0.5 rounded cursor-grab active:cursor-grabbing focus:outline-none"
+            className="touch-none text-ink-subtle hover:text-ink transition-colors p-0.5 rounded cursor-grab active:cursor-grabbing focus:outline-none"
             aria-label="Drag task to reorder"
           >
             <GripVertical className="w-4 h-4" />
@@ -108,10 +107,10 @@ export const TaskItem: React.FC<TaskItemProps> = ({
         <button
           onClick={handleCheckboxClick}
           className={cn(
-            'relative flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center border transition-all duration-200 focus:outline-none',
+            'relative flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center transition-all duration-200 focus:outline-none checkbox-glass',
             isChecked
-              ? 'bg-lavender-600 border-lavender-600 text-white shadow-sm shadow-lavender-600/30'
-              : 'border-ink/30 bg-white/70 hover:border-lavender-600 hover:bg-white'
+              ? 'bg-lavender-accent border-lavender-accent text-white shadow-sm shadow-lavender-accent/30'
+              : 'bg-surface hover:border-lavender-accent'
           )}
           aria-label={isChecked ? 'Mark as incomplete' : 'Mark as complete'}
         >
@@ -134,8 +133,8 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           <div className="flex items-center gap-2">
             <span
               className={cn(
-                'font-medium text-sm sm:text-base text-ink break-words transition-all duration-200',
-                isChecked && 'line-through text-ink/40 font-normal'
+                'font-semibold text-sm sm:text-base text-ink break-words transition-all duration-200',
+                isChecked && 'line-through text-ink-muted font-normal'
               )}
             >
               {task.title}
@@ -146,15 +145,15 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           {/* Subtext and Meta Chips */}
           <div className="flex flex-wrap items-center gap-2 mt-1">
             {task.is_my_day_date && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700 bg-amber-50/90 border border-amber-200/60 px-2 py-0.5 rounded-md">
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-md">
                 <Sun className="w-3 h-3 text-amber-500" />
                 My Day
               </span>
             )}
 
             {task.due_date && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-ink/60 bg-white/60 border border-black/5 px-2 py-0.5 rounded-md">
-                <Calendar className="w-3 h-3 text-ink/40" />
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-ink-muted bg-surface border border-glass-border-subtle px-2 py-0.5 rounded-md">
+                <Calendar className="w-3 h-3 text-ink-subtle" />
                 {formatDate(task.due_date)}
               </span>
             )}
@@ -162,26 +161,26 @@ export const TaskItem: React.FC<TaskItemProps> = ({
             <RecurrenceIcon rule={task.recurrence_rule} />
 
             {subtasks.length > 0 && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-ink/60 bg-white/60 border border-black/5 px-2 py-0.5 rounded-md">
-                <ListTree className="w-3 h-3 text-ink/40" />
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-ink-muted bg-surface border border-glass-border-subtle px-2 py-0.5 rounded-md">
+                <ListTree className="w-3 h-3 text-ink-subtle" />
                 {completedSubtasks}/{subtasks.length}
+              </span>
+            )}
+
+            {/* Read-only Attribution Pill */}
+            {creatorUser && (
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-medium text-ink-muted bg-surface/80 px-2 py-0.5 rounded-full border border-glass-border-subtle">
+                <span
+                  className="w-2 h-2 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: creatorUser.accent_color || '#B8A9E8' }}
+                />
+                <span>Added by {creatorUser.display_name}</span>
               </span>
             )}
           </div>
         </div>
 
-        {/* Assignee Avatar Pill */}
-        {assignedUser && (
-          <div
-            className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold text-white shadow-xs border border-white/60"
-            style={{ backgroundColor: assignedUser.accent_color || '#B8A9E8' }}
-            title={`Assigned to ${assignedUser.display_name}`}
-          >
-            {assignedUser.display_name.charAt(0).toUpperCase()}
-          </div>
-        )}
-
-        <ChevronRight className="w-4 h-4 text-ink/20 group-hover:text-ink/60 group-hover:translate-x-0.5 transition-all" />
+        <ChevronRight className="w-4 h-4 text-ink-subtle group-hover:text-ink group-hover:translate-x-0.5 transition-all" />
       </motion.div>
     </AnimatePresence>
   )
