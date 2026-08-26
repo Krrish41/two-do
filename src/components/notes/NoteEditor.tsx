@@ -229,10 +229,13 @@ export const NoteEditor: React.FC = () => {
             <div className="flex flex-wrap items-center gap-1 p-1.5 rounded-2xl bg-surface-elevated border border-glass-border shadow-xs">
               <button
                 type="button"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => editor.chain().focus().toggleBold().run()}
                 className={cn(
-                  'p-1.5 rounded-lg text-ink-muted hover:text-ink transition-colors',
-                  editor.isActive('bold') && 'bg-ink/10 text-ink font-bold'
+                  'p-1.5 rounded-lg transition-all',
+                  editor.isActive('bold')
+                    ? 'bg-lavender-accent text-white shadow-xs font-bold'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface'
                 )}
                 title="Bold"
               >
@@ -240,10 +243,13 @@ export const NoteEditor: React.FC = () => {
               </button>
               <button
                 type="button"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => editor.chain().focus().toggleItalic().run()}
                 className={cn(
-                  'p-1.5 rounded-lg text-ink-muted hover:text-ink transition-colors',
-                  editor.isActive('italic') && 'bg-ink/10 text-ink'
+                  'p-1.5 rounded-lg transition-all',
+                  editor.isActive('italic')
+                    ? 'bg-lavender-accent text-white shadow-xs'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface'
                 )}
                 title="Italic"
               >
@@ -251,10 +257,13 @@ export const NoteEditor: React.FC = () => {
               </button>
               <button
                 type="button"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => editor.chain().focus().toggleStrike().run()}
                 className={cn(
-                  'p-1.5 rounded-lg text-ink-muted hover:text-ink transition-colors',
-                  editor.isActive('strike') && 'bg-ink/10 text-ink'
+                  'p-1.5 rounded-lg transition-all',
+                  editor.isActive('strike')
+                    ? 'bg-lavender-accent text-white shadow-xs'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface'
                 )}
                 title="Strikethrough"
               >
@@ -262,10 +271,13 @@ export const NoteEditor: React.FC = () => {
               </button>
               <button
                 type="button"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => editor.chain().focus().toggleHighlight().run()}
                 className={cn(
-                  'p-1.5 rounded-lg text-ink-muted hover:text-ink transition-colors',
-                  editor.isActive('highlight') && 'bg-amber-400/30 text-ink font-bold'
+                  'p-1.5 rounded-lg transition-all',
+                  editor.isActive('highlight')
+                    ? 'bg-amber-400 text-slate-900 shadow-xs font-bold'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface'
                 )}
                 title="Highlight"
               >
@@ -276,10 +288,13 @@ export const NoteEditor: React.FC = () => {
 
               <button
                 type="button"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
                 className={cn(
-                  'p-1.5 rounded-lg text-ink-muted hover:text-ink transition-colors',
-                  editor.isActive('heading', { level: 1 }) && 'bg-ink/10 text-ink font-bold'
+                  'p-1.5 rounded-lg transition-all',
+                  editor.isActive('heading', { level: 1 })
+                    ? 'bg-lavender-accent text-white shadow-xs font-bold'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface'
                 )}
                 title="Heading 1"
               >
@@ -287,10 +302,13 @@ export const NoteEditor: React.FC = () => {
               </button>
               <button
                 type="button"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
                 className={cn(
-                  'p-1.5 rounded-lg text-ink-muted hover:text-ink transition-colors',
-                  editor.isActive('heading', { level: 2 }) && 'bg-ink/10 text-ink font-bold'
+                  'p-1.5 rounded-lg transition-all',
+                  editor.isActive('heading', { level: 2 })
+                    ? 'bg-lavender-accent text-white shadow-xs font-bold'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface'
                 )}
                 title="Heading 2"
               >
@@ -301,10 +319,13 @@ export const NoteEditor: React.FC = () => {
 
               <button
                 type="button"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => editor.chain().focus().toggleBulletList().run()}
                 className={cn(
-                  'p-1.5 rounded-lg text-ink-muted hover:text-ink transition-colors',
-                  editor.isActive('bulletList') && 'bg-ink/10 text-ink'
+                  'p-1.5 rounded-lg transition-all',
+                  editor.isActive('bulletList')
+                    ? 'bg-lavender-accent text-white shadow-xs'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface'
                 )}
                 title="Bullet List"
               >
@@ -312,10 +333,13 @@ export const NoteEditor: React.FC = () => {
               </button>
               <button
                 type="button"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => editor.chain().focus().toggleOrderedList().run()}
                 className={cn(
-                  'p-1.5 rounded-lg text-ink-muted hover:text-ink transition-colors',
-                  editor.isActive('orderedList') && 'bg-ink/10 text-ink'
+                  'p-1.5 rounded-lg transition-all',
+                  editor.isActive('orderedList')
+                    ? 'bg-lavender-accent text-white shadow-xs'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface'
                 )}
                 title="Numbered List"
               >
@@ -323,10 +347,13 @@ export const NoteEditor: React.FC = () => {
               </button>
               <button
                 type="button"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => editor.chain().focus().toggleTaskList().run()}
                 className={cn(
-                  'p-1.5 rounded-lg text-ink-muted hover:text-ink transition-colors',
-                  editor.isActive('taskList') && 'bg-ink/10 text-ink'
+                  'p-1.5 rounded-lg transition-all',
+                  editor.isActive('taskList')
+                    ? 'bg-lavender-accent text-white shadow-xs'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface'
                 )}
                 title="Task List"
               >
@@ -337,10 +364,13 @@ export const NoteEditor: React.FC = () => {
 
               <button
                 type="button"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => editor.chain().focus().toggleBlockquote().run()}
                 className={cn(
-                  'p-1.5 rounded-lg text-ink-muted hover:text-ink transition-colors',
-                  editor.isActive('blockquote') && 'bg-ink/10 text-ink'
+                  'p-1.5 rounded-lg transition-all',
+                  editor.isActive('blockquote')
+                    ? 'bg-lavender-accent text-white shadow-xs'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface'
                 )}
                 title="Quote"
               >
@@ -348,10 +378,13 @@ export const NoteEditor: React.FC = () => {
               </button>
               <button
                 type="button"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => editor.chain().focus().toggleCodeBlock().run()}
                 className={cn(
-                  'p-1.5 rounded-lg text-ink-muted hover:text-ink transition-colors',
-                  editor.isActive('codeBlock') && 'bg-ink/10 text-ink'
+                  'p-1.5 rounded-lg transition-all',
+                  editor.isActive('codeBlock')
+                    ? 'bg-lavender-accent text-white shadow-xs'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface'
                 )}
                 title="Code Block"
               >
@@ -362,6 +395,7 @@ export const NoteEditor: React.FC = () => {
 
               <button
                 type="button"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => editor.chain().focus().undo().run()}
                 disabled={!editor.can().undo()}
                 className="p-1.5 rounded-lg text-ink-subtle hover:text-ink disabled:opacity-30 transition-colors"
@@ -371,6 +405,7 @@ export const NoteEditor: React.FC = () => {
               </button>
               <button
                 type="button"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => editor.chain().focus().redo().run()}
                 disabled={!editor.can().redo()}
                 className="p-1.5 rounded-lg text-ink-subtle hover:text-ink disabled:opacity-30 transition-colors"
