@@ -366,27 +366,29 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
 
       {/* Toolbar: Creator Filter Tabs with Mascot Avatars + Filter & Sort Drawer */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 p-1 rounded-2xl glass-panel-subtle border border-glass-border">
+        <div className="flex items-center gap-1 p-1 rounded-2xl glass-panel-subtle border border-glass-border max-w-full overflow-x-auto scrollbar-none">
           <button
+            type="button"
             onClick={() => setCreatorFilter('all')}
             className={cn(
-              'px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all',
+              'h-8 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center whitespace-nowrap select-none border',
               creatorFilter === 'all'
-                ? 'bg-surface-elevated text-ink shadow-sm border border-glass-border'
-                : 'text-ink-muted hover:text-ink'
+                ? 'bg-surface-elevated text-ink shadow-xs border-glass-border'
+                : 'text-ink-muted hover:text-ink border-transparent'
             )}
           >
-            All
+            All Tasks
           </button>
 
           {authorizedUser && (
             <button
+              type="button"
               onClick={() => setCreatorFilter('mine')}
               className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all',
+                'h-8 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap select-none border',
                 creatorFilter === 'mine'
-                  ? 'bg-surface-elevated text-ink shadow-sm border border-glass-border'
-                  : 'text-ink-muted hover:text-ink'
+                  ? 'bg-surface-elevated text-ink shadow-xs border-glass-border'
+                  : 'text-ink-muted hover:text-ink border-transparent'
               )}
             >
               <CoupleAvatar userId={authorizedUser.id} displayName={authorizedUser.display_name} size={16} />
@@ -396,12 +398,13 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
 
           {partnerUser && (
             <button
+              type="button"
               onClick={() => setCreatorFilter('partner')}
               className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all',
+                'h-8 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap select-none border',
                 creatorFilter === 'partner'
-                  ? 'bg-surface-elevated text-ink shadow-sm border border-glass-border'
-                  : 'text-ink-muted hover:text-ink'
+                  ? 'bg-surface-elevated text-ink shadow-xs border-glass-border'
+                  : 'text-ink-muted hover:text-ink border-transparent'
               )}
             >
               <CoupleAvatar userId={partnerUser.id} displayName={partnerUser.display_name} size={16} />

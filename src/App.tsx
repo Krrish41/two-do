@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { LoginPage } from './pages/LoginPage'
 import { TodayPage } from './pages/TodayPage'
 import { TasksPage } from './pages/TasksPage'
@@ -9,7 +9,9 @@ import { Sidebar } from './components/layout/Sidebar'
 import { MobileNav } from './components/layout/MobileNav'
 import { ThemeToggle } from './components/layout/ThemeToggle'
 import { CoupleAvatar } from './components/common/CoupleAvatar'
-import { MenuIcon } from './components/icons'
+import { MenuIcon, TrashIcon, LogOutIcon } from './components/icons'
+import { GlassModal } from './components/glass/GlassModal'
+import { GlassConfirmDialog } from './components/glass/GlassConfirmDialog'
 import { TaskDetailSheet } from './components/tasks/TaskDetailSheet'
 import { NoteEditor } from './components/notes/NoteEditor'
 import { useAuthStore } from './stores/authStore'
@@ -19,7 +21,11 @@ import { supabase, isSupabaseConfigured } from './lib/supabaseClient'
 
 export const App: React.FC = () => {
   const { session, loading, initializeAuth, authorizedUser } = useAuthStore()
+  const signOut = useAuthStore((s) => s.signOut)
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false)
+  const navigate = useNavigate()
 
   const fetchTasks = useTaskStore((s) => s.fetchTasks)
   const fetchNotes = useNoteStore((s) => s.fetchNotes)
@@ -84,6 +90,11 @@ export const App: React.FC = () => {
     }
   }, [session, receiveRealtimeTask, receiveRealtimeNote, receiveRealtimeFolder])
 
+  const handleSignOut = async () => {
+    await signOut()
+    navigate('/login')
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
@@ -120,12 +131,19 @@ export const App: React.FC = () => {
 
         <div className="flex items-center gap-2">
           {authorizedUser && (
-            <CoupleAvatar
-              userId={authorizedUser.id}
-              displayName={authorizedUser.display_name}
-              size={24}
-              showOnlineBadge={true}
-            />
+            <button
+              type="button"
+              onClick={() => setIsProfileModalOpen(true)}
+              className="flex items-center p-0.5 rounded-full hover:ring-2 hover:ring-lavender-accent transition-all"
+              title="Open Profile & Settings"
+            >
+              <CoupleAvatar
+                userId={authorizedUser.id}
+                displayName={authorizedUser.display_name}
+                size={26}
+                showOnlineBadge={true}
+              />
+            </button>
           )}
           <ThemeToggle size="sm" />
           <button
@@ -138,6 +156,81 @@ export const App: React.FC = () => {
           </button>
         </div>
       </header>
+
+      {/* Mobile Profile & Quick Settings Modal */}
+      <GlassModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        title="Profile & Settings"
+        maxWidth="sm"
+      >
+        <div className="flex flex-col gap-4">
+          {authorizedUser && (
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-surface border border-glass-border">
+              <CoupleAvatar
+                userId={authorizedUser.id}
+                displayName={authorizedUser.display_name}
+                size={42}
+                showOnlineBadge={true}
+              />
+              <div className="flex flex-col min-w-0">
+                <span className="font-bold text-sm text-ink truncate">
+                  {authorizedUser.display_name}
+                </span>
+                <span className="text-xs text-ink-muted truncate">
+                  {authorizedUser.email}
+                </span>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Online in Shared Space
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setIsProfileModalOpen(false)
+                navigate('/recycle-bin')
+              }}
+              className="flex items-center justify-between p-3 rounded-2xl bg-surface hover:bg-surface-elevated border border-glass-border text-ink font-semibold text-xs transition-colors"
+            >
+              <div className="flex items-center gap-2.5">
+                <TrashIcon size={16} className="text-ink-subtle" />
+                <span>Recycle Bin (Trash)</span>
+              </div>
+              <span className="text-ink-muted">→</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsProfileModalOpen(false)
+                setIsLogoutConfirmOpen(true)
+              }}
+              className="flex items-center justify-between p-3 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 text-rose-600 dark:text-rose-400 font-bold text-xs transition-colors"
+            >
+              <div className="flex items-center gap-2.5">
+                <LogOutIcon size={16} />
+                <span>Sign Out / Log Out</span>
+              </div>
+            </button>
+          </div>
+        </div>
+      </GlassModal>
+
+      {/* Logout Confirmation Dialog */}
+      <GlassConfirmDialog
+        isOpen={isLogoutConfirmOpen}
+        onClose={() => setIsLogoutConfirmOpen(false)}
+        onConfirm={handleSignOut}
+        title="Sign Out"
+        message="Are you sure you want to sign out of your shared workspace?"
+        confirmText="Sign Out"
+        confirmVariant="danger"
+      />
 
       {/* Sidebar (Responsive drawer on mobile, floating column on desktop) */}
       <Sidebar
