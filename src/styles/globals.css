@@ -10,6 +10,14 @@
     min-height: 100vh;
     color: #2B2340;
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    transition: background 0.5s ease, color 0.3s ease;
+  }
+
+  html.dark body {
+    background: linear-gradient(-45deg, #0D0914, #101726, #1C0F24, #141124);
+    background-size: 400% 400%;
+    animation: meshShift 18s ease infinite;
+    color: #F5F2FC;
   }
 }
 
@@ -36,6 +44,13 @@
                 inset 0 1px 0 0 rgba(255, 255, 255, 0.4);
   }
 
+  html.dark .glass-panel {
+    background: rgba(28, 22, 46, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+  }
+
   .glass-panel-subtle {
     background: rgba(255, 255, 255, 0.40);
     backdrop-filter: blur(16px) saturate(160%);
@@ -43,6 +58,13 @@
     border: 1px solid rgba(255, 255, 255, 0.30);
     box-shadow: 0 4px 20px 0 rgba(80, 60, 130, 0.08),
                 inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+  }
+
+  html.dark .glass-panel-subtle {
+    background: rgba(35, 28, 56, 0.50);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
   }
 
   .glass-panel-elevated {
@@ -55,6 +77,13 @@
                 inset 0 1px 0 0 rgba(255, 255, 255, 0.6);
   }
 
+  html.dark .glass-panel-elevated {
+    background: rgba(26, 20, 42, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 16px 48px 0 rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  }
+
   .glass-input {
     background: rgba(255, 255, 255, 0.50);
     backdrop-filter: blur(12px);
@@ -64,11 +93,25 @@
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
+  html.dark .glass-input {
+    background: rgba(35, 28, 56, 0.60);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    color: #F5F2FC;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
   .glass-input:focus {
     background: rgba(255, 255, 255, 0.85);
     border-color: rgba(155, 126, 220, 0.6);
     box-shadow: 0 0 0 3px rgba(196, 174, 240, 0.25),
                 inset 0 1px 2px rgba(80, 60, 130, 0.05);
+  }
+
+  html.dark .glass-input:focus {
+    background: rgba(45, 36, 72, 0.85);
+    border-color: rgba(196, 174, 240, 0.6);
+    box-shadow: 0 0 0 3px rgba(155, 126, 220, 0.35),
+                inset 0 1px 2px rgba(0, 0, 0, 0.3);
   }
 }
 
@@ -84,8 +127,14 @@
   background: rgba(155, 126, 220, 0.25);
   border-radius: 9999px;
 }
+html.dark ::-webkit-scrollbar-thumb {
+  background: rgba(196, 174, 240, 0.20);
+}
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(155, 126, 220, 0.45);
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(196, 174, 240, 0.40);
 }
 
 /* Tiptap Rich Text Editor Styling */
@@ -99,6 +148,9 @@
   float: left;
   height: 0;
   pointer-events: none;
+}
+html.dark .tiptap p.is-editor-empty:first-child::before {
+  color: rgba(245, 242, 252, 0.4);
 }
 .tiptap ul[data-type="taskList"] {
   list-style: none;
