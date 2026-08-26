@@ -7,22 +7,22 @@
   --color-bg-mesh-1: #EDF3FE;
   --color-bg-mesh-2: #FDF0F6;
   --color-bg-mesh-3: #E7DEF8;
-  --color-glass-surface: rgba(255, 255, 255, 0.72);
-  --color-glass-subtle: rgba(255, 255, 255, 0.50);
-  --color-glass-elevated: rgba(255, 255, 255, 0.94);
-  --color-glass-border: rgba(215, 205, 235, 0.70);
-  --color-glass-border-subtle: rgba(215, 205, 235, 0.45);
-  --color-glass-input: rgba(255, 255, 255, 0.75);
+  --color-glass-surface: rgba(255, 255, 255, 0.85);
+  --color-glass-subtle: rgba(255, 255, 255, 0.60);
+  --color-glass-elevated: rgba(255, 255, 255, 0.96);
+  --color-glass-border: rgba(180, 165, 215, 0.75);
+  --color-glass-border-subtle: rgba(180, 165, 215, 0.45);
+  --color-glass-input: rgba(255, 255, 255, 0.85);
   --color-glass-input-focus: #FFFFFF;
-  --color-checkbox-border: #52466D;
-  --color-ink: #1F1832;
-  --color-ink-muted: #52466D;
-  --color-ink-subtle: #70648C;
-  --color-lavender-accent: #7048C8;
-  --color-skyblue-accent: #2A7BC6;
-  --color-blossom-accent: #C72D6D;
-  --color-mint-accent: #1B8554;
-  --color-amber-accent: #B45309;
+  --color-checkbox-border: #4E4268;
+  --color-ink: #1A1428;
+  --color-ink-muted: #4E4268;
+  --color-ink-subtle: #6B5E88;
+  --color-lavender-accent: #683CB8;
+  --color-skyblue-accent: #1B6CB5;
+  --color-blossom-accent: #BD2062;
+  --color-mint-accent: #137A47;
+  --color-amber-accent: #A14500;
 }
 
 :root[data-theme="dark"] {
@@ -32,19 +32,19 @@
   --color-bg-mesh-3: #181226;
   --color-glass-surface: rgba(255, 255, 255, 0.08);
   --color-glass-subtle: rgba(255, 255, 255, 0.05);
-  --color-glass-elevated: rgba(28, 22, 44, 0.92);
-  --color-glass-border: rgba(255, 255, 255, 0.16);
+  --color-glass-elevated: rgba(30, 24, 48, 0.94);
+  --color-glass-border: rgba(255, 255, 255, 0.18);
   --color-glass-border-subtle: rgba(255, 255, 255, 0.10);
   --color-glass-input: rgba(255, 255, 255, 0.08);
   --color-glass-input-focus: rgba(255, 255, 255, 0.16);
-  --color-checkbox-border: rgba(255, 255, 255, 0.45);
-  --color-ink: #F5F2FA;
-  --color-ink-muted: #B3A8CC;
-  --color-ink-subtle: #85799E;
-  --color-lavender-accent: #BBA0F8;
-  --color-skyblue-accent: #99CAFC;
-  --color-blossom-accent: #F7A3C8;
-  --color-mint-accent: #5ED99E;
+  --color-checkbox-border: rgba(255, 255, 255, 0.50);
+  --color-ink: #F8F6FC;
+  --color-ink-muted: #CBC2E3;
+  --color-ink-subtle: #988BAF;
+  --color-lavender-accent: #B89BF8;
+  --color-skyblue-accent: #93C5FD;
+  --color-blossom-accent: #F472B6;
+  --color-mint-accent: #34D399;
   --color-amber-accent: #FBBF24;
 }
 
@@ -67,7 +67,7 @@
     min-height: 100vh;
     color: var(--color-ink);
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    transition: background-color 0.4s ease, color 0.3s ease;
+    transition: background-color 0.3s ease, color 0.2s ease;
   }
 
   input, select, textarea {
@@ -98,8 +98,8 @@
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid var(--color-glass-border);
     border-radius: 1.5rem;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.06),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.50);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.55);
   }
 
   :root[data-theme="dark"] .glass-panel {
@@ -128,7 +128,7 @@
     border: 1px solid var(--color-glass-border);
     border-radius: 1.5rem;
     box-shadow: 0 16px 48px 0 rgba(0, 0, 0, 0.12),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.60);
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.65);
   }
 
   :root[data-theme="dark"] .glass-panel-elevated {
@@ -142,31 +142,31 @@
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--color-glass-border);
     color: var(--color-ink);
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .glass-input:focus {
     background: var(--color-glass-input-focus);
     border-color: var(--color-lavender-accent);
-    box-shadow: 0 0 0 3px rgba(112, 72, 200, 0.25),
-                inset 0 1px 2px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 0 0 3px rgba(104, 60, 184, 0.25),
+                inset 0 1px 2px rgba(0, 0, 0, 0.04);
   }
 
   /* iOS 26 Liquid Glass Bottom Bar */
   .liquid-tabbar {
     backdrop-filter: blur(24px) saturate(180%);
     -webkit-backdrop-filter: blur(24px) saturate(180%);
-    background: rgba(255, 255, 255, 0.75);
-    border: 1px solid rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.80);
+    border: 1px solid rgba(255, 255, 255, 0.70);
     border-radius: 28px;
     box-shadow: 0 8px 32px rgba(60, 40, 110, 0.16),
-                inset 0 1px 0 rgba(255, 255, 255, 0.7);
+                inset 0 1px 0 rgba(255, 255, 255, 0.75);
   }
 
   :root[data-theme="dark"] .liquid-tabbar {
-    background: rgba(28, 22, 44, 0.70);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(30, 24, 48, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.16);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.50),
                 inset 0 1px 0 rgba(255, 255, 255, 0.15);
   }
@@ -179,7 +179,7 @@
   /* Drag and drop visible drop indicator placeholder box */
   .dnd-drop-placeholder {
     border: 2px dashed var(--color-lavender-accent);
-    background: rgba(112, 72, 200, 0.08);
+    background: rgba(104, 60, 184, 0.10);
     border-radius: 1rem;
     min-height: 60px;
     transition: all 0.2s ease;

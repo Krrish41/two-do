@@ -54,11 +54,6 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden select-none">
-      {/* Floating Theme Switcher Top-Right Screen Corner */}
-      <div className="absolute top-5 right-5 z-20">
-        <ThemeToggle size="md" />
-      </div>
-
       {/* Floating Animated Dreamy Blurred Orbs for Depth */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <motion.div
@@ -98,8 +93,8 @@ export const LoginPage: React.FC = () => {
         className="w-full max-w-md relative z-10"
       >
         <GlassCard variant="elevated" className="relative p-8 sm:p-10 shadow-2xl border border-glass-border">
-          {/* Card Top-Right Theme Toggle */}
-          <div className="absolute top-5 right-5">
+          {/* Single, Clean Theme Toggle at Card Top-Right */}
+          <div className="absolute top-5 right-5 z-20">
             <ThemeToggle size="sm" />
           </div>
 
@@ -165,26 +160,26 @@ export const LoginPage: React.FC = () => {
             {/* High-Contrast Gradient Solid Call-To-Action Button */}
             <motion.button
               type="submit"
-              whileHover={{ scale: isFormValid && !loading ? 1.02 : 1 }}
-              whileTap={{ scale: isFormValid && !loading ? 0.98 : 1 }}
-              disabled={loading || !isFormValid}
+              whileHover={isFormValid && !loading ? { scale: 1.02, y: -1 } : {}}
+              whileTap={isFormValid && !loading ? { scale: 0.98 } : {}}
+              disabled={loading}
               className={cn(
-                'w-full mt-3 py-3.5 px-6 rounded-2xl font-extrabold text-sm sm:text-base text-white tracking-wide select-none',
-                'bg-gradient-to-r from-lavender-accent to-skyblue-accent shadow-lg shadow-lavender-accent/30 transition-all duration-200',
-                'hover:brightness-110 active:brightness-95',
-                (!isFormValid || loading) && 'opacity-50 cursor-not-allowed shadow-none hover:brightness-100'
+                'w-full mt-3 py-3.5 px-6 rounded-2xl font-extrabold text-sm sm:text-base text-white tracking-wide select-none flex items-center justify-center gap-2 transition-all duration-200 border',
+                isFormValid
+                  ? 'bg-gradient-to-r from-lavender-accent to-skyblue-accent border-white/20 shadow-lg shadow-lavender-accent/30 hover:brightness-110'
+                  : 'bg-lavender-accent/80 border-lavender-accent/40 shadow-sm opacity-85 hover:opacity-100'
               )}
             >
               {loading ? (
-                <div className="flex items-center justify-center gap-2">
+                <>
                   <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
                   <span>Signing In...</span>
-                </div>
+                </>
               ) : (
-                <div className="flex items-center justify-center gap-2">
+                <>
                   <span>Open Workspace</span>
                   <ChevronRightIcon size={18} />
-                </div>
+                </>
               )}
             </motion.button>
           </form>

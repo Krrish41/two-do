@@ -14,28 +14,28 @@ export const GlassInput = forwardRef<HTMLInputElement, GlassInputProps>(
       <div className={cn('w-full flex flex-col gap-1', containerClassName)}>
         <div className="relative flex items-center w-full">
           {icon && (
-            <div className="absolute left-3.5 flex items-center pointer-events-none text-ink/50">
+            <div className="absolute left-3.5 flex items-center pointer-events-none text-ink-muted flex-shrink-0">
               {icon}
             </div>
           )}
           <input
             ref={ref}
             className={cn(
-              'w-full glass-input text-ink placeholder:text-ink/40 text-sm rounded-2xl px-4 py-2.5 outline-none',
+              'w-full glass-input text-ink font-medium placeholder:text-ink-muted/75 text-sm rounded-2xl px-4 py-2.5 outline-none transition-all',
               icon && 'pl-10',
               rightIcon && 'pr-10',
-              error && 'border-rose-400 focus:border-rose-500 focus:ring-rose-200',
+              error && 'border-rose-500 focus:border-rose-600 focus:ring-rose-200',
               className
             )}
             {...props}
           />
           {rightIcon && (
-            <div className="absolute right-3.5 flex items-center text-ink/50">
+            <div className="absolute right-3.5 flex items-center text-ink-muted flex-shrink-0">
               {rightIcon}
             </div>
           )}
         </div>
-        {error && <span className="text-xs text-rose-500 font-medium px-2">{error}</span>}
+        {error && <span className="text-xs text-rose-600 dark:text-rose-400 font-bold px-2">{error}</span>}
       </div>
     )
   }
