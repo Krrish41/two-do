@@ -19,15 +19,18 @@ import {
   Code,
   Undo,
   Redo,
-  Pin,
-  Trash2,
-  Folder as FolderIcon,
-  User,
 } from 'lucide-react'
+import {
+  PinIcon,
+  TrashIcon,
+  FolderIcon,
+} from '../icons'
 import { GlassModal } from '../glass/GlassModal'
+import { GlassDropdown } from '../glass/GlassDropdown'
 import { GlassConfirmDialog } from '../glass/GlassConfirmDialog'
 import { ColorSwatchPicker } from './ColorSwatchPicker'
 import { TagPicker } from './TagPicker'
+import { CoupleAvatar } from '../common/CoupleAvatar'
 import { useNoteStore, NOTE_COLOR_PRESETS } from '../../stores/noteStore'
 import { useAuthStore } from '../../stores/authStore'
 import { useThemeStore } from '../../stores/themeStore'
@@ -63,7 +66,6 @@ export const NoteEditor: React.FC = () => {
         placeholder: 'Write thoughts, meeting notes, lists, or plans (use #tags)...',
       }),
     ],
-    // justified: Tiptap JSON document structure from Database.Json
     content: (currentNote?.content as any) || '',
     onUpdate: ({ editor }) => {
       if (currentNote) {
@@ -74,7 +76,7 @@ export const NoteEditor: React.FC = () => {
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose-base focus:outline-none min-h-[220px] max-h-[500px] overflow-y-auto px-1 text-ink',
+        class: 'prose prose-sm sm:prose-base focus:outline-none min-h-[220px] max-h-[500px] overflow-y-auto px-1 text-ink font-normal',
       },
     },
   })
@@ -85,7 +87,6 @@ export const NoteEditor: React.FC = () => {
       const currentJSON = JSON.stringify(editor.getJSON())
       const noteJSON = JSON.stringify(currentNote.content)
       if (currentJSON !== noteJSON) {
-        // justified: Tiptap JSON document structure from Database.Json
         editor.commands.setContent((currentNote.content as any) || '')
       }
     }
@@ -97,6 +98,17 @@ export const NoteEditor: React.FC = () => {
   const bgColor = isDark
     ? preset?.darkBg || 'rgba(255,255,255,0.08)'
     : currentNote.color || '#F4F2EF'
+
+  // Exclude system folders (Bucket List) so it is not repeated in dropdowns (Section 6)
+  const assignableFolders = folders.filter((f) => !f.is_system && f.slug !== 'bucket-list')
+  const folderDropdownOptions = [
+    { value: '', label: 'No Folder', icon: <FolderIcon size={14} className="text-ink-muted" /> },
+    ...assignableFolders.map((f) => ({
+      value: f.id,
+      label: f.name,
+      icon: <span>{f.icon || '📁'}</span>,
+    })),
+  ]
 
   return (
     <>
@@ -135,7 +147,7 @@ export const NoteEditor: React.FC = () => {
                 )}
                 title={currentNote.is_pinned ? 'Unpin note' : 'Pin note'}
               >
-                <Pin className={cn('w-4 h-4', currentNote.is_pinned && 'fill-current')} />
+                <PinIcon size={16} className={cn(currentNote.is_pinned && 'fill-current')} />
               </button>
 
               <button
@@ -144,39 +156,27 @@ export const NoteEditor: React.FC = () => {
                 className="p-2 rounded-xl text-ink-muted hover:text-rose-500 hover:bg-rose-500/15 transition-all"
                 title="Move to Recycle Bin"
               >
-                <Trash2 className="w-4 h-4" />
+                <TrashIcon size={16} />
               </button>
             </div>
           </div>
 
-          {/* Folder & Color Palette Settings */}
+          {/* Folder & Color Palette Settings with Custom GlassDropdown */}
           <div className="flex flex-wrap items-center justify-between gap-3 bg-surface p-2.5 rounded-2xl border border-glass-border">
-            <div className="flex items-center gap-2">
-              <FolderIcon className="w-3.5 h-3.5 text-ink-muted" />
-              <select
+            <div className="w-48">
+              <GlassDropdown
+                options={folderDropdownOptions}
                 value={currentNote.folder_id || ''}
-                onChange={(e) =>
-                  updateNote(currentNote.id, { folder_id: e.target.value || null })
-                }
-                className="bg-transparent text-xs font-semibold text-ink outline-none cursor-pointer"
-              >
-                <option value="">No Folder</option>
-                {folders.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.icon || '📁'} {f.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => updateNote(currentNote.id, { folder_id: val || null })}
+                placeholder="No Folder"
+                size="sm"
+              />
             </div>
 
-            {/* Read-Only Creator Attribution in Note Editor */}
+            {/* Read-Only Creator Mascot Attribution in Note Editor */}
             {creatorUser && (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-surface-subtle text-xs font-medium text-ink-muted">
-                <User className="w-3 h-3 text-lavender-accent" />
-                <span
-                  className="w-2 h-2 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: creatorUser.accent_color || '#B8A9E8' }}
-                />
+              <div className="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-surface-subtle text-xs font-semibold text-ink border border-glass-border">
+                <CoupleAvatar userId={creatorUser.id} displayName={creatorUser.display_name} size={16} />
                 <span>Added by {creatorUser.display_name}</span>
               </div>
             )}

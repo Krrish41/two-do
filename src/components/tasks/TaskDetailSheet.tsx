@@ -17,20 +17,22 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import {
-  Sun,
-  Calendar,
-  Repeat,
-  Trash2,
-  Plus,
-  Check,
-  Flag,
-  X,
-  Folder as FolderIcon,
-  GripVertical,
-  User,
-} from 'lucide-react'
+  SunIcon,
+  RepeatIcon,
+  TrashIcon,
+  PlusIcon,
+  CheckIcon,
+  FlagIcon,
+  CloseIcon,
+  FolderIcon,
+  GripIcon,
+  CalendarIcon,
+} from '../icons'
 import { GlassButton } from '../glass/GlassButton'
+import { GlassDropdown } from '../glass/GlassDropdown'
+import { GlassDatePicker } from '../glass/GlassDatePicker'
 import { GlassConfirmDialog } from '../glass/GlassConfirmDialog'
+import { CoupleAvatar } from '../common/CoupleAvatar'
 import { useTaskStore } from '../../stores/taskStore'
 import { useAuthStore } from '../../stores/authStore'
 import { useNoteStore } from '../../stores/noteStore'
@@ -64,7 +66,7 @@ const SortableSubtaskItem: React.FC<{
       ref={setNodeRef}
       style={style}
       className={cn(
-        'group flex items-center gap-2 p-2 rounded-xl bg-surface hover:bg-surface-elevated transition-all text-xs border border-glass-border-subtle',
+        'group flex items-center gap-2 p-2 rounded-xl bg-surface hover:bg-surface-elevated transition-all text-xs border border-glass-border',
         isDragging && 'shadow-lg ring-1 ring-lavender-accent'
       )}
     >
@@ -73,7 +75,7 @@ const SortableSubtaskItem: React.FC<{
         {...listeners}
         className="touch-none p-0.5 text-ink-subtle hover:text-ink cursor-grab active:cursor-grabbing"
       >
-        <GripVertical className="w-3.5 h-3.5" />
+        <GripIcon size={14} />
       </button>
 
       <button
@@ -86,7 +88,7 @@ const SortableSubtaskItem: React.FC<{
             : 'bg-surface hover:border-lavender-accent'
         )}
       >
-        {subtask.is_completed && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+        {subtask.is_completed && <CheckIcon size={10} className="stroke-[3]" />}
       </button>
 
       <input
@@ -94,7 +96,7 @@ const SortableSubtaskItem: React.FC<{
         value={subtask.title}
         onChange={(e) => onUpdate(subtask.id, e.target.value)}
         className={cn(
-          'flex-1 bg-transparent text-ink outline-none font-medium',
+          'flex-1 bg-transparent text-ink outline-none font-semibold',
           subtask.is_completed && 'line-through text-ink-muted'
         )}
       />
@@ -104,7 +106,7 @@ const SortableSubtaskItem: React.FC<{
         onClick={() => onDelete(subtask.id)}
         className="opacity-0 group-hover:opacity-100 p-1 text-ink-muted hover:text-rose-500 transition-opacity"
       >
-        <Trash2 className="w-3.5 h-3.5" />
+        <TrashIcon size={14} />
       </button>
     </div>
   )
@@ -117,7 +119,7 @@ export const TaskDetailSheet: React.FC = () => {
   const updateTask = useTaskStore((s) => s.updateTask)
   const toggleComplete = useTaskStore((s) => s.toggleComplete)
   const toggleMyDay = useTaskStore((s) => s.toggleMyDay)
-  const deleteTask = useTaskStore((s) => s.deleteTask)
+  const softDeleteTask = useTaskStore((s) => s.softDeleteTask)
   const addTask = useTaskStore((s) => s.addTask)
   const reorderSubtasks = useTaskStore((s) => s.reorderSubtasks)
 
@@ -133,13 +135,13 @@ export const TaskDetailSheet: React.FC = () => {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   )
 
-  const currentTask = tasks.find((t) => t.id === selectedTaskId)
+  const currentTask = tasks.find((t) => t.id === selectedTaskId && t.deleted_at === null)
   if (!currentTask) return null
 
   const creatorUser = allUsers.find((u) => u.id === currentTask.created_by)
 
   const subtasks = tasks
-    .filter((t) => t.parent_task_id === currentTask.id)
+    .filter((t) => t.parent_task_id === currentTask.id && t.deleted_at === null)
     .sort((a, b) => a.position - b.position)
 
   const handleAddSubtask = async (e: React.FormEvent) => {
@@ -162,6 +164,25 @@ export const TaskDetailSheet: React.FC = () => {
   }
 
   const isTodayTask = Boolean(currentTask.is_my_day_date)
+
+  // Filter out system folders (Bucket List) so it is not repeated in dropdowns (Section 6)
+  const assignableFolders = folders.filter((f) => !f.is_system && f.slug !== 'bucket-list')
+
+  const folderOptions = [
+    { value: '', label: 'No Folder', icon: <FolderIcon size={14} className="text-ink-muted" /> },
+    ...assignableFolders.map((f) => ({
+      value: f.id,
+      label: f.name,
+      icon: <span>{f.icon || '📁'}</span>,
+    })),
+  ]
+
+  const recurrenceOptions = [
+    { value: '', label: 'Never' },
+    { value: 'DAILY', label: 'Daily' },
+    { value: 'WEEKLY', label: 'Weekly' },
+    { value: 'MONTHLY', label: 'Monthly' },
+  ]
 
   return (
     <>
@@ -201,7 +222,7 @@ export const TaskDetailSheet: React.FC = () => {
                     onClick={() => setSelectedTaskId(null)}
                     className="p-1.5 rounded-xl hover:bg-surface text-ink-muted hover:text-ink transition-colors"
                   >
-                    <X className="w-5 h-5" />
+                    <CloseIcon size={18} />
                   </button>
                 </div>
 
@@ -217,7 +238,7 @@ export const TaskDetailSheet: React.FC = () => {
                         : 'bg-surface hover:border-lavender-accent'
                     )}
                   >
-                    {currentTask.is_completed && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                    {currentTask.is_completed && <CheckIcon size={14} className="stroke-[3]" />}
                   </button>
 
                   <input
@@ -225,111 +246,98 @@ export const TaskDetailSheet: React.FC = () => {
                     value={currentTask.title}
                     onChange={(e) => updateTask(currentTask.id, { title: e.target.value })}
                     className={cn(
-                      'w-full bg-transparent font-semibold text-base sm:text-lg text-ink focus:outline-none placeholder:text-ink-muted',
+                      'w-full bg-transparent font-bold text-base sm:text-lg text-ink focus:outline-none placeholder:text-ink-muted',
                       currentTask.is_completed && 'line-through text-ink-muted'
                     )}
                     placeholder="Task title..."
                   />
                 </div>
 
-                {/* Quick Action Pills: My Day & Due Date */}
+                {/* Quick Action: Today Focus & Custom Glass Date Picker */}
                 <div className="grid grid-cols-2 gap-2.5">
                   <button
                     type="button"
                     onClick={() => toggleMyDay(currentTask.id)}
                     className={cn(
-                      'flex items-center gap-2.5 p-3 rounded-2xl border text-xs font-medium transition-all shadow-xs text-left',
+                      'flex items-center gap-2.5 p-3 rounded-2xl border text-xs font-semibold transition-all shadow-xs text-left',
                       isTodayTask
-                        ? 'bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-300'
-                        : 'glass-panel-subtle hover:bg-surface text-ink/80'
+                        ? 'bg-amber-500/15 border-amber-500/30 text-amber-700 dark:text-amber-300'
+                        : 'glass-panel-subtle hover:bg-surface text-ink'
                     )}
                   >
-                    <Sun className={cn('w-4 h-4', isTodayTask ? 'text-amber-500' : 'text-ink-muted')} />
+                    <SunIcon size={18} className={cn(isTodayTask ? 'text-amber-500' : 'text-ink-muted')} />
                     <div>
-                      <div className="font-bold">{isTodayTask ? 'In My Day' : 'Add to My Day'}</div>
-                      <div className="text-[10px] text-ink-muted">Today's focus</div>
+                      <div className="font-bold">{isTodayTask ? 'In Today' : 'Add to Today'}</div>
+                      <div className="text-[10px] text-ink-muted font-normal">Today's focus</div>
                     </div>
                   </button>
 
-                  <div className="p-3 rounded-2xl border glass-panel-subtle flex flex-col justify-center text-xs">
-                    <div className="flex items-center gap-1.5 text-ink-muted mb-1 font-medium">
-                      <Calendar className="w-3.5 h-3.5" />
+                  <div className="p-3 rounded-2xl border glass-panel-subtle flex flex-col justify-center gap-1.5 text-xs">
+                    <div className="flex items-center gap-1.5 text-ink-muted font-bold">
+                      <CalendarIcon size={14} />
                       <span>Due Date</span>
                     </div>
-                    <input
-                      type="date"
-                      value={currentTask.due_date || ''}
-                      onChange={(e) => updateTask(currentTask.id, { due_date: e.target.value || null })}
-                      className="bg-transparent text-xs font-semibold text-ink outline-none cursor-pointer"
+                    <GlassDatePicker
+                      value={currentTask.due_date}
+                      onChange={(d) => updateTask(currentTask.id, { due_date: d })}
+                      size="sm"
                     />
                   </div>
                 </div>
 
-                {/* Folder & Recurrence Assignment */}
+                {/* Folder Picker & Recurrence with Custom GlassDropdown */}
                 <div className="grid grid-cols-2 gap-2.5">
-                  {/* Folder / Project Selector */}
+                  {/* Folder / Project Custom Dropdown */}
                   <div className="p-3 rounded-2xl glass-panel-subtle flex flex-col gap-1.5 text-xs">
-                    <label className="font-semibold text-ink-muted flex items-center gap-1">
-                      <FolderIcon className="w-3.5 h-3.5 text-lavender-accent" />
+                    <label className="font-bold text-ink-muted flex items-center gap-1">
+                      <FolderIcon size={14} className="text-lavender-accent" />
                       Folder / Project
                     </label>
-                    <select
+                    <GlassDropdown
+                      options={folderOptions}
                       value={currentTask.folder_id || ''}
-                      onChange={(e) => updateTask(currentTask.id, { folder_id: e.target.value || null })}
-                      className="bg-transparent text-xs font-semibold text-ink outline-none cursor-pointer"
-                    >
-                      <option value="">No Folder</option>
-                      {folders.map((f) => (
-                        <option key={f.id} value={f.id}>
-                          {f.icon || '📁'} {f.name}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(val) => updateTask(currentTask.id, { folder_id: val || null })}
+                      placeholder="No Folder"
+                    />
                   </div>
 
-                  {/* Recurrence Rule */}
+                  {/* Recurrence Custom Dropdown */}
                   <div className="p-3 rounded-2xl glass-panel-subtle flex flex-col gap-1.5 text-xs">
-                    <label className="font-semibold text-ink-muted flex items-center gap-1">
-                      <Repeat className="w-3.5 h-3.5 text-lavender-accent" />
+                    <label className="font-bold text-ink-muted flex items-center gap-1">
+                      <RepeatIcon size={14} className="text-lavender-accent" />
                       Repeat
                     </label>
-                    <select
+                    <GlassDropdown
+                      options={recurrenceOptions}
                       value={currentTask.recurrence_rule || ''}
-                      onChange={(e) =>
-                        updateTask(currentTask.id, { recurrence_rule: e.target.value || null })
-                      }
-                      className="bg-transparent text-xs font-semibold text-ink outline-none cursor-pointer"
-                    >
-                      <option value="">Never</option>
-                      <option value="DAILY">Daily</option>
-                      <option value="WEEKLY">Weekly</option>
-                      <option value="MONTHLY">Monthly</option>
-                    </select>
+                      onChange={(val) => updateTask(currentTask.id, { recurrence_rule: val || null })}
+                      placeholder="Never"
+                    />
                   </div>
                 </div>
 
-                {/* Priority Selector */}
+                {/* Priority Selector with High Contrast Glass Buttons */}
                 <div className="p-3.5 rounded-2xl glass-panel-subtle flex flex-col gap-2">
-                  <label className="text-xs font-semibold text-ink-muted flex items-center gap-1.5">
-                    <Flag className="w-3.5 h-3.5 text-lavender-accent" />
+                  <label className="text-xs font-bold text-ink-muted flex items-center gap-1.5">
+                    <FlagIcon size={14} className="text-lavender-accent" />
                     Priority Level
                   </label>
                   <div className="grid grid-cols-4 gap-1.5">
                     {[
-                      { val: 0, label: 'P0' },
-                      { val: 1, label: 'P1' },
-                      { val: 2, label: 'P2' },
-                      { val: 3, label: 'P3' },
+                      { val: 0, label: 'P0 - None' },
+                      { val: 1, label: 'P1 - Low' },
+                      { val: 2, label: 'P2 - Med' },
+                      { val: 3, label: 'P3 - Urg' },
                     ].map((p) => (
                       <button
                         key={p.val}
                         type="button"
                         onClick={() => updateTask(currentTask.id, { priority: p.val })}
                         className={cn(
-                          'py-1.5 rounded-xl text-xs font-bold transition-all text-center',
+                          'py-2 px-1 rounded-xl text-xs font-bold transition-all text-center border',
                           currentTask.priority === p.val
-                            ? 'bg-lavender-accent text-white shadow-xs'
-                            : 'bg-surface text-ink/70 hover:bg-surface-elevated'
+                            ? 'bg-lavender-accent text-white shadow-xs border-lavender-accent'
+                            : 'bg-surface text-ink border-glass-border hover:bg-surface-elevated'
                         )}
                       >
                         {p.label}
@@ -338,18 +346,12 @@ export const TaskDetailSheet: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Read-Only Creator Attribution */}
+                {/* Read-Only Creator Mascot Attribution */}
                 {creatorUser && (
                   <div className="p-3 rounded-2xl glass-panel-subtle flex items-center justify-between text-xs">
-                    <span className="text-ink-muted font-medium flex items-center gap-1.5">
-                      <User className="w-3.5 h-3.5 text-lavender-accent" />
-                      Created By
-                    </span>
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-surface border border-glass-border-subtle font-semibold text-ink">
-                      <span
-                        className="w-2 h-2 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: creatorUser.accent_color || '#B8A9E8' }}
-                      />
+                    <span className="text-ink-muted font-bold">Created By</span>
+                    <div className="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-surface border border-glass-border font-bold text-ink">
+                      <CoupleAvatar userId={creatorUser.id} displayName={creatorUser.display_name} size={20} />
                       <span>{creatorUser.display_name}</span>
                     </div>
                   </div>
@@ -386,10 +388,10 @@ export const TaskDetailSheet: React.FC = () => {
                       placeholder="Add a subtask..."
                       value={newSubtaskTitle}
                       onChange={(e) => setNewSubtaskTitle(e.target.value)}
-                      className="w-full glass-input rounded-xl px-3 py-1.5 text-xs text-ink outline-none placeholder:text-ink-muted"
+                      className="w-full glass-input rounded-xl px-3 py-1.5 text-xs text-ink outline-none placeholder:text-ink-muted font-medium"
                     />
                     <GlassButton type="submit" size="sm" variant="secondary">
-                      <Plus className="w-3.5 h-3.5" />
+                      <PlusIcon size={14} />
                     </GlassButton>
                   </form>
                 </div>
@@ -404,19 +406,19 @@ export const TaskDetailSheet: React.FC = () => {
                     onChange={(e) => updateTask(currentTask.id, { notes: e.target.value || null })}
                     placeholder="Add detailed task notes or links..."
                     rows={3}
-                    className="w-full glass-input rounded-xl p-3 text-xs sm:text-sm text-ink outline-none placeholder:text-ink-muted resize-none"
+                    className="w-full glass-input rounded-xl p-3 text-xs sm:text-sm text-ink outline-none placeholder:text-ink-muted resize-none font-normal leading-relaxed"
                   />
                 </div>
               </div>
 
-              {/* Footer Delete Button */}
+              {/* Footer Soft Delete Button */}
               <div className="pt-4 border-t border-glass-border-subtle flex justify-end">
                 <GlassButton
                   variant="danger"
                   size="sm"
                   onClick={() => setIsDeleteDialogOpen(true)}
                 >
-                  <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                  <TrashIcon size={14} className="mr-1.5" />
                   Delete Task
                 </GlassButton>
               </div>
@@ -429,12 +431,12 @@ export const TaskDetailSheet: React.FC = () => {
       <GlassConfirmDialog
         isOpen={isDeleteDialogOpen}
         title="Delete Task?"
-        description="Are you sure you want to delete this task and all its subtasks? This action cannot be undone."
-        confirmText="Delete Task"
+        description="Are you sure you want to move this task and all its subtasks to the Recycle Bin?"
+        confirmText="Move to Bin"
         variant="danger"
         onConfirm={() => {
           setIsDeleteDialogOpen(false)
-          deleteTask(currentTask.id)
+          softDeleteTask(currentTask.id)
         }}
         onCancel={() => setIsDeleteDialogOpen(false)}
       />
@@ -442,12 +444,12 @@ export const TaskDetailSheet: React.FC = () => {
       <GlassConfirmDialog
         isOpen={Boolean(subtaskToDelete)}
         title="Delete Subtask?"
-        description="Are you sure you want to delete this subtask?"
+        description="Are you sure you want to move this subtask to the Recycle Bin?"
         confirmText="Delete"
         variant="danger"
         onConfirm={() => {
           if (subtaskToDelete) {
-            deleteTask(subtaskToDelete)
+            softDeleteTask(subtaskToDelete)
             setSubtaskToDelete(null)
           }
         }}

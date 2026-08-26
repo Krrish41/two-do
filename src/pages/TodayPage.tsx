@@ -1,17 +1,17 @@
 import React, { useState, useMemo } from 'react'
 import {
-  Sun,
-  Plus,
-  Sparkles,
-  Calendar,
-  Flag,
-  CheckCircle2,
-} from 'lucide-react'
+  SunIcon,
+  PlusIcon,
+  SparklesIcon,
+  CheckCheckIcon,
+} from '../components/icons'
 import { TaskList } from '../components/tasks/TaskList'
 import { GlassCard } from '../components/glass/GlassCard'
 import { GlassButton } from '../components/glass/GlassButton'
+import { CoupleAvatar } from '../components/common/CoupleAvatar'
 import { useTaskStore } from '../stores/taskStore'
 import { useAuthStore } from '../stores/authStore'
+import { cn } from '../lib/utils'
 
 export const TodayPage: React.FC = () => {
   const tasks = useTaskStore((s) => s.tasks)
@@ -25,9 +25,10 @@ export const TodayPage: React.FC = () => {
 
   const todayStr = new Date().toISOString().split('T')[0]
 
-  // Filter tasks that belong to "My Day"
-  const myDayTasks = useMemo(() => {
+  // Filter tasks that belong to "Today" (excluding deleted)
+  const todayTasks = useMemo(() => {
     return tasks.filter((t) => {
+      if (t.deleted_at !== null) return false
       if (t.parent_task_id) return false
       const isToday = t.is_my_day_date === todayStr || t.due_date === todayStr
       if (!isToday) return false
@@ -39,18 +40,18 @@ export const TodayPage: React.FC = () => {
     })
   }, [tasks, todayStr, creatorFilter, authorizedUser, partnerUser])
 
-  const pendingTasks = useMemo(() => myDayTasks.filter((t) => !t.is_completed), [myDayTasks])
-  const completedTasks = useMemo(() => myDayTasks.filter((t) => t.is_completed), [myDayTasks])
+  const pendingTasks = useMemo(() => todayTasks.filter((t) => !t.is_completed), [todayTasks])
+  const completedTasks = useMemo(() => todayTasks.filter((t) => t.is_completed), [todayTasks])
 
   // Suggested backlog tasks for today
   const suggestedTasks = useMemo(() => {
     return tasks
-      .filter((t) => !t.is_completed && !t.parent_task_id && !t.is_my_day_date && t.due_date !== todayStr)
+      .filter((t) => t.deleted_at === null && !t.is_completed && !t.parent_task_id && !t.is_my_day_date && t.due_date !== todayStr)
       .slice(0, 3)
   }, [tasks, todayStr])
 
   const completionPercent =
-    myDayTasks.length > 0 ? Math.round((completedTasks.length / myDayTasks.length) * 100) : 0
+    todayTasks.length > 0 ? Math.round((completedTasks.length / todayTasks.length) * 100) : 0
 
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -79,18 +80,18 @@ export const TodayPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-amber-500 font-bold text-xs uppercase tracking-wider mb-1">
-            <Sun className="w-4 h-4" />
+            <SunIcon size={16} />
             <span>Daily Focus</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">
-            My Day
+            Today
           </h1>
           <p className="text-xs sm:text-sm text-ink-muted mt-0.5">{currentDateFormatted}</p>
         </div>
 
         {/* Daily Progress Gauge */}
-        {myDayTasks.length > 0 && (
-          <div className="flex items-center gap-3 glass-panel-subtle p-3 rounded-2xl">
+        {todayTasks.length > 0 && (
+          <div className="flex items-center gap-3 glass-panel-subtle p-3 rounded-2xl border border-glass-border">
             <div className="flex flex-col text-right">
               <div className="flex items-center justify-between text-xs font-bold text-ink mb-1">
                 <span>Daily Completion</span>
@@ -104,34 +105,33 @@ export const TodayPage: React.FC = () => {
               </div>
             </div>
             <div className="w-9 h-9 rounded-xl bg-lavender-accent/15 flex items-center justify-center text-lavender-accent">
-              <Sparkles className="w-4 h-4" />
+              <SparklesIcon size={18} />
             </div>
           </div>
         )}
       </div>
 
       {/* Quick Add Form */}
-      <GlassCard variant="default" className="p-4 shadow-glass">
+      <GlassCard variant="default" className="p-4 shadow-glass border border-glass-border">
         <form onSubmit={handleCreateTask} className="flex flex-col gap-3">
           <div className="flex items-center gap-3">
-            <Plus className="w-5 h-5 text-amber-500 flex-shrink-0" />
+            <PlusIcon size={20} className="text-amber-500 flex-shrink-0" />
             <input
               type="text"
               placeholder="What do you want to accomplish today?"
               value={newTaskTitle}
               onChange={(e) => setNewTaskTitle(e.target.value)}
-              className="w-full bg-transparent text-sm sm:text-base font-medium text-ink placeholder:text-ink-muted outline-none"
+              className="w-full bg-transparent text-sm sm:text-base font-semibold text-ink placeholder:text-ink-muted outline-none"
             />
             <GlassButton type="submit" size="sm" variant="primary" disabled={!newTaskTitle.trim()}>
               Add to Today
             </GlassButton>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-glass-border-subtle text-xs">
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-2.5 border-t border-glass-border-subtle text-xs">
             <div className="flex items-center gap-2">
-              {/* Priority Selector */}
-              <div className="flex items-center gap-1 bg-surface p-1 rounded-xl border border-glass-border-subtle">
-                <Flag className="w-3 h-3 text-ink-muted ml-1" />
+              {/* High Contrast Priority Selector */}
+              <div className="flex items-center gap-1 bg-surface p-1 rounded-xl border border-glass-border">
                 {[
                   { val: 0, label: 'P0' },
                   { val: 1, label: 'P1' },
@@ -142,11 +142,12 @@ export const TodayPage: React.FC = () => {
                     key={p.val}
                     type="button"
                     onClick={() => setSelectedPriority(p.val)}
-                    className={`px-2 py-0.5 rounded-lg font-bold transition-all text-[11px] ${
+                    className={cn(
+                      'px-2.5 py-1 rounded-lg font-bold transition-all text-xs border',
                       selectedPriority === p.val
-                        ? 'bg-lavender-accent text-white shadow-xs'
-                        : 'text-ink-muted hover:text-ink'
-                    }`}
+                        ? 'bg-lavender-accent text-white border-lavender-accent shadow-xs'
+                        : 'bg-surface text-ink border-transparent hover:bg-surface-elevated'
+                    )}
                   >
                     {p.label}
                   </button>
@@ -154,33 +155,57 @@ export const TodayPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="text-[11px] text-ink-subtle flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
-              <span>Automatically set to today</span>
+            <div className="text-xs font-semibold text-ink-muted flex items-center gap-1.5">
+              <SunIcon size={14} className="text-amber-500" />
+              <span>Automatically scheduled for today</span>
             </div>
           </div>
         </form>
       </GlassCard>
 
-      {/* Filter Tabs by Nickname */}
-      <div className="flex items-center gap-1.5 p-1 rounded-2xl glass-panel-subtle w-fit">
-        {[
-          { id: 'all', label: 'All My Day' },
-          { id: 'mine', label: authorizedUser?.display_name || 'Mine' },
-          { id: 'partner', label: partnerUser?.display_name || 'Partner' },
-        ].map((tab) => (
+      {/* Filter Tabs with Nicknames & Mascot Avatars */}
+      <div className="flex items-center gap-1.5 p-1 rounded-2xl glass-panel-subtle w-fit border border-glass-border">
+        <button
+          onClick={() => setCreatorFilter('all')}
+          className={cn(
+            'px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all',
+            creatorFilter === 'all'
+              ? 'bg-surface-elevated text-ink shadow-sm border border-glass-border'
+              : 'text-ink-muted hover:text-ink'
+          )}
+        >
+          All Tasks
+        </button>
+
+        {authorizedUser && (
           <button
-            key={tab.id}
-            onClick={() => setCreatorFilter(tab.id as any)}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              creatorFilter === tab.id
-                ? 'bg-surface-elevated text-ink shadow-sm'
+            onClick={() => setCreatorFilter('mine')}
+            className={cn(
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all',
+              creatorFilter === 'mine'
+                ? 'bg-surface-elevated text-ink shadow-sm border border-glass-border'
                 : 'text-ink-muted hover:text-ink'
-            }`}
+            )}
           >
-            {tab.label}
+            <CoupleAvatar userId={authorizedUser.id} displayName={authorizedUser.display_name} size={16} />
+            <span>{authorizedUser.display_name}</span>
           </button>
-        ))}
+        )}
+
+        {partnerUser && (
+          <button
+            onClick={() => setCreatorFilter('partner')}
+            className={cn(
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all',
+              creatorFilter === 'partner'
+                ? 'bg-surface-elevated text-ink shadow-sm border border-glass-border'
+                : 'text-ink-muted hover:text-ink'
+            )}
+          >
+            <CoupleAvatar userId={partnerUser.id} displayName={partnerUser.display_name} size={16} />
+            <span>{partnerUser.display_name}</span>
+          </button>
+        )}
       </div>
 
       {/* Pending Tasks Section */}
@@ -192,10 +217,10 @@ export const TodayPage: React.FC = () => {
 
       {/* Suggested from Backlog */}
       {suggestedTasks.length > 0 && pendingTasks.length < 4 && (
-        <div className="mt-2 p-4 rounded-3xl glass-panel-subtle flex flex-col gap-3">
+        <div className="mt-2 p-4 rounded-3xl glass-panel-subtle flex flex-col gap-3 border border-glass-border">
           <div className="flex items-center justify-between">
             <div className="text-xs font-bold text-ink-muted uppercase tracking-wider flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-lavender-accent" />
+              <SparklesIcon size={14} className="text-lavender-accent" />
               <span>Suggestions from Backlog</span>
             </div>
           </div>
@@ -204,9 +229,9 @@ export const TodayPage: React.FC = () => {
             {suggestedTasks.map((t) => (
               <div
                 key={t.id}
-                className="flex items-center justify-between p-2.5 rounded-2xl bg-surface border border-glass-border-subtle text-xs"
+                className="flex items-center justify-between p-2.5 rounded-2xl bg-surface border border-glass-border text-xs"
               >
-                <span className="font-medium text-ink truncate pr-2">{t.title}</span>
+                <span className="font-semibold text-ink truncate pr-2">{t.title}</span>
                 <button
                   type="button"
                   onClick={() =>
@@ -214,7 +239,7 @@ export const TodayPage: React.FC = () => {
                       is_my_day_date: todayStr,
                     })
                   }
-                  className="px-2 py-0.5 rounded-lg bg-lavender-accent/20 hover:bg-lavender-accent text-lavender-600 hover:text-white dark:text-lavender-300 font-bold transition-colors flex-shrink-0"
+                  className="px-2 py-0.5 rounded-lg bg-lavender-accent/15 hover:bg-lavender-accent text-lavender-accent hover:text-white font-bold transition-colors flex-shrink-0"
                 >
                   + Today
                 </button>
@@ -228,7 +253,7 @@ export const TodayPage: React.FC = () => {
       {completedTasks.length > 0 && (
         <div className="mt-4 pt-4 border-t border-glass-border-subtle flex flex-col gap-3">
           <div className="flex items-center gap-2 text-xs font-bold text-emerald-500">
-            <CheckCircle2 className="w-4 h-4" />
+            <CheckCheckIcon size={16} />
             <span>Completed Today ({completedTasks.length})</span>
           </div>
           <TaskList tasks={completedTasks} />

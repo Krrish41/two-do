@@ -3,7 +3,7 @@ import { supabase, isSupabaseConfigured } from '../lib/supabaseClient'
 import type { Task } from '../lib/database.types'
 import { useAuthStore } from './authStore'
 
-export type TaskFilter = 'all' | 'my-day' | 'important' | 'completed' | 'bucket-list' | 'assigned-to-me' | 'assigned-to-partner'
+export type TaskFilter = 'all' | 'today' | 'important' | 'completed' | 'bucket-list' | 'assigned-to-me' | 'assigned-to-partner'
 
 interface TaskState {
   tasks: Task[]
@@ -30,6 +30,10 @@ interface TaskState {
   toggleComplete: (id: string) => Promise<void>
   toggleMyDay: (id: string) => Promise<void>
   deleteTask: (id: string) => Promise<void>
+  softDeleteTask: (id: string) => Promise<void>
+  restoreTask: (id: string) => Promise<void>
+  deleteForeverTask: (id: string) => Promise<void>
+  emptyTasksRecycleBin: () => Promise<void>
   reorderTasks: (activeId: string, overId: string) => Promise<void>
   reorderSubtasks: (parentId: string, activeId: string, overId: string) => Promise<void>
   setSelectedTaskId: (id: string | null) => void
@@ -59,6 +63,7 @@ const INITIAL_DEMO_TASKS: Task[] = [
     position: 100,
     created_by: 'demo-user-1',
     assigned_to: 'demo-user-1',
+    deleted_at: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
@@ -77,6 +82,7 @@ const INITIAL_DEMO_TASKS: Task[] = [
     position: 200,
     created_by: 'demo-user-2',
     assigned_to: 'demo-user-2',
+    deleted_at: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
@@ -95,24 +101,7 @@ const INITIAL_DEMO_TASKS: Task[] = [
     position: 300,
     created_by: 'demo-user-1',
     assigned_to: null,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 'demo-task-4',
-    title: 'Design Apple Glassy components with spring motion',
-    notes: 'Custom blur, lavender/skyblue/blossom palette tokens.',
-    parent_task_id: null,
-    folder_id: 'folder-work',
-    due_date: null,
-    is_my_day_date: null,
-    priority: 1,
-    is_completed: true,
-    completed_at: new Date().toISOString(),
-    recurrence_rule: null,
-    position: 400,
-    created_by: 'demo-user-1',
-    assigned_to: 'demo-user-2',
+    deleted_at: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
@@ -120,9 +109,9 @@ const INITIAL_DEMO_TASKS: Task[] = [
 
 export const useTaskStore = create<TaskState>((set, get) => ({
   tasks: [],
-  loading: false,
+  loading: true,
   selectedTaskId: null,
-  filter: 'my-day',
+  filter: 'all',
   selectedFolderId: null,
   searchQuery: '',
 
@@ -147,9 +136,14 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       if (error) throw error
 
       if (data) {
-        set({ tasks: data })
+        set({
+          tasks: data.map((t: any) => ({
+            ...t,
+            deleted_at: t.deleted_at ?? null,
+          })),
+        })
       }
-    } catch (err: unknown) {
+    } catch (err) {
       console.error('Failed to fetch tasks:', err)
     } finally {
       set({ loading: false })
@@ -159,16 +153,19 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   addTask: async (params) => {
     const authUser = useAuthStore.getState().authorizedUser
     const currentTasks = get().tasks
+    const newPosition = currentTasks.length > 0 ? Math.min(...currentTasks.map((t) => t.position)) - 100 : 100
 
-    const minPosition = currentTasks.length > 0 ? Math.min(...currentTasks.map((t) => t.position)) : 0
-    const newPosition = minPosition - 100
+    const isUUID = (val: string | null | undefined) =>
+      Boolean(val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val))
+
+    const safeFolderId: string | null = isUUID(params.folder_id) ? (params.folder_id as string) : null
 
     const newTask: Task = {
       id: crypto.randomUUID(),
       title: params.title.trim(),
       notes: params.notes || null,
       parent_task_id: params.parent_task_id || null,
-      folder_id: params.folder_id || get().selectedFolderId || null,
+      folder_id: safeFolderId,
       due_date: params.due_date || null,
       is_my_day_date: params.is_my_day_date || null,
       priority: params.priority ?? 0,
@@ -178,6 +175,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       position: newPosition,
       created_by: authUser?.id || null,
       assigned_to: params.assigned_to || authUser?.id || null,
+      deleted_at: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }
@@ -188,11 +186,6 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       return newTask
     }
 
-    const isUUID = (val: string | null | undefined) =>
-      Boolean(val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val))
-
-    const safeFolderId = isUUID(newTask.folder_id) ? newTask.folder_id : null
-
     try {
       const { data, error } = await supabase
         .from('tasks')
@@ -201,7 +194,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
           title: newTask.title,
           notes: newTask.notes,
           parent_task_id: newTask.parent_task_id,
-          folder_id: safeFolderId,
+          folder_id: newTask.folder_id,
           due_date: newTask.due_date,
           is_my_day_date: newTask.is_my_day_date,
           priority: newTask.priority,
@@ -211,6 +204,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
           position: newTask.position,
           created_by: newTask.created_by,
           assigned_to: newTask.assigned_to,
+          deleted_at: null,
         })
         .select()
         .single()
@@ -234,9 +228,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
 
   updateTask: async (id, updates) => {
     const prevTasks = get().tasks
-    const updated = prevTasks.map((t) =>
-      t.id === id ? { ...t, ...updates, updated_at: new Date().toISOString() } : t
-    )
+    const updated = prevTasks.map((t) => (t.id === id ? { ...t, ...updates, updated_at: new Date().toISOString() } : t))
 
     set({ tasks: updated })
 
@@ -276,20 +268,87 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     })
   },
 
-  deleteTask: async (id) => {
-    const prevTasks = get().tasks
+  // Soft delete task and all its subtasks
+  softDeleteTask: async (id) => {
+    const nowIso = new Date().toISOString()
+    const allCurrent = get().tasks
+
+    // Find all IDs to soft-delete (parent + subtasks)
+    const targetIds = [id, ...allCurrent.filter((t) => t.parent_task_id === id).map((t) => t.id)]
+
     set({
-      tasks: prevTasks.filter((t) => t.id !== id && t.parent_task_id !== id),
+      tasks: allCurrent.map((t) => (targetIds.includes(t.id) ? { ...t, deleted_at: nowIso } : t)),
       selectedTaskId: get().selectedTaskId === id ? null : get().selectedTaskId,
     })
 
     if (!isSupabaseConfigured) return
 
     try {
-      const { error } = await supabase.from('tasks').delete().eq('id', id)
+      for (const targetId of targetIds) {
+        await supabase.from('tasks').update({ deleted_at: nowIso }).eq('id', targetId)
+      }
+    } catch (err) {
+      console.error('Failed to soft delete task:', err)
+    }
+  },
+
+  deleteTask: async (id) => {
+    await get().softDeleteTask(id)
+  },
+
+  // Restore task and all its subtasks
+  restoreTask: async (id) => {
+    const allCurrent = get().tasks
+    const targetIds = [id, ...allCurrent.filter((t) => t.parent_task_id === id).map((t) => t.id)]
+
+    set({
+      tasks: allCurrent.map((t) => (targetIds.includes(t.id) ? { ...t, deleted_at: null } : t)),
+    })
+
+    if (!isSupabaseConfigured) return
+
+    try {
+      for (const targetId of targetIds) {
+        await supabase.from('tasks').update({ deleted_at: null }).eq('id', targetId)
+      }
+    } catch (err) {
+      console.error('Failed to restore task:', err)
+    }
+  },
+
+  // Permanently delete task
+  deleteForeverTask: async (id) => {
+    const prevTasks = get().tasks
+    const targetIds = [id, ...prevTasks.filter((t) => t.parent_task_id === id).map((t) => t.id)]
+
+    set({
+      tasks: prevTasks.filter((t) => !targetIds.includes(t.id)),
+      selectedTaskId: get().selectedTaskId === id ? null : get().selectedTaskId,
+    })
+
+    if (!isSupabaseConfigured) return
+
+    try {
+      const { error } = await supabase.from('tasks').delete().in('id', targetIds)
       if (error) throw error
     } catch (err) {
-      console.error('Failed to delete task:', err)
+      console.error('Failed to permanently delete task:', err)
+      set({ tasks: prevTasks })
+    }
+  },
+
+  // Empty all deleted tasks in bin
+  emptyTasksRecycleBin: async () => {
+    const prevTasks = get().tasks
+    set({ tasks: prevTasks.filter((t) => t.deleted_at === null) })
+
+    if (!isSupabaseConfigured) return
+
+    try {
+      const { error } = await supabase.from('tasks').delete().not('deleted_at', 'is', null)
+      if (error) throw error
+    } catch (err) {
+      console.error('Failed to empty tasks recycle bin:', err)
       set({ tasks: prevTasks })
     }
   },

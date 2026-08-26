@@ -112,6 +112,7 @@ export interface Database {
           position: number
           created_by: string | null
           assigned_to: string | null
+          deleted_at: string | null
           created_at: string
           updated_at: string
         }
@@ -130,6 +131,7 @@ export interface Database {
           position?: number
           created_by?: string | null
           assigned_to?: string | null
+          deleted_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -148,6 +150,7 @@ export interface Database {
           position?: number
           created_by?: string | null
           assigned_to?: string | null
+          deleted_at?: string | null
           created_at?: string
           updated_at?: string
         }

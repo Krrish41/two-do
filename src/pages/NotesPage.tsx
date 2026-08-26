@@ -1,207 +1,240 @@
-import React, { useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import {
-  StickyNote,
-  Plus,
-  Search,
-  LayoutGrid,
-  List,
-  Pin,
-} from 'lucide-react'
+  NotesIcon,
+  PlusIcon,
+  SearchIcon,
+  GridIcon,
+  ListIcon,
+  PinIcon,
+} from '../components/icons'
 import { NoteCard } from '../components/notes/NoteCard'
-import { TagPillBar } from '../components/notes/TagPillBar'
-import { FilterSortDrawer } from '../components/common/FilterSortDrawer'
+import { NoteEditor } from '../components/notes/NoteEditor'
 import { GlassInput } from '../components/glass/GlassInput'
 import { GlassButton } from '../components/glass/GlassButton'
+import { CoupleAvatar } from '../components/common/CoupleAvatar'
 import { useNoteStore } from '../stores/noteStore'
-import { useFilterSortStore } from '../stores/filterSortStore'
+import { useAuthStore } from '../stores/authStore'
 import { cn } from '../lib/utils'
 
 export const NotesPage: React.FC = () => {
   const notes = useNoteStore((s) => s.notes)
-  const addNote = useNoteStore((s) => s.addNote)
   const folders = useNoteStore((s) => s.folders)
-  const selectedFolderId = useNoteStore((s) => s.selectedFolderId)
-  const selectedTagIds = useNoteStore((s) => s.selectedTagIds)
   const noteTags = useNoteStore((s) => s.noteTags)
-  const searchQuery = useNoteStore((s) => s.searchQuery)
-  const setSearchQuery = useNoteStore((s) => s.setSearchQuery)
-  const viewMode = useNoteStore((s) => s.viewMode)
-  const setViewMode = useNoteStore((s) => s.setViewMode)
+  const addNote = useNoteStore((s) => s.addNote)
+  const setSelectedNoteId = useNoteStore((s) => s.setSelectedNoteId)
 
-  const sortField = useFilterSortStore((s) => s.sortField)
-  const sortDirection = useFilterSortStore((s) => s.sortDirection)
+  const authorizedUser = useAuthStore((s) => s.authorizedUser)
+  const partnerUser = useAuthStore((s) => s.partnerUser)
 
-  const activeFolder = folders.find((f) => f.id === selectedFolderId)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedTagId] = useState<string | null>(null)
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null)
+  const [creatorFilter, setCreatorFilter] = useState<'all' | 'mine' | 'partner'>('all')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
-  // Filter & Sort active (non-deleted) notes
-  const activeNotes = useMemo(() => {
-    return notes.filter((n) => n.deleted_at === null)
-  }, [notes])
+  const assignableFolders = folders.filter((f) => !f.is_system && f.slug !== 'bucket-list')
 
-  const filteredAndSortedNotes = useMemo(() => {
-    let result = activeNotes.filter((note) => {
-      // Folder filter
-      if (selectedFolderId && note.folder_id !== selectedFolderId) {
-        return false
-      }
+  const filteredNotes = useMemo(() => {
+    return notes.filter((n) => {
+      if (n.deleted_at !== null) return false
 
-      // Tag filter (multi-select, AND logic)
-      if (selectedTagIds.length > 0) {
-        const attachedTagIds = noteTags.filter((nt) => nt.note_id === note.id).map((nt) => nt.tag_id)
-        const hasAllSelectedTags = selectedTagIds.every((id) => attachedTagIds.includes(id))
-        if (!hasAllSelectedTags) return false
-      }
-
-      // Search query
       if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase()
-        const matchTitle = note.title.toLowerCase().includes(q)
-        const matchContent = JSON.stringify(note.content).toLowerCase().includes(q)
-        if (!matchTitle && !matchContent) return false
+        const query = searchQuery.toLowerCase()
+        const matchesTitle = n.title.toLowerCase().includes(query)
+        const matchesContent = JSON.stringify(n.content).toLowerCase().includes(query)
+        if (!matchesTitle && !matchesContent) return false
       }
+
+      if (selectedFolderId && n.folder_id !== selectedFolderId) return false
+
+      if (selectedTagId) {
+        const hasTag = noteTags.some((nt) => nt.note_id === n.id && nt.tag_id === selectedTagId)
+        if (!hasTag) return false
+      }
+
+      if (creatorFilter === 'mine' && n.created_by !== authorizedUser?.id) return false
+      if (creatorFilter === 'partner' && n.created_by !== partnerUser?.id) return false
 
       return true
     })
+  }, [notes, searchQuery, selectedFolderId, selectedTagId, creatorFilter, authorizedUser, partnerUser, noteTags])
 
-    // Sort
-    result.sort((a, b) => {
-      let comparison = 0
-      if (sortField === 'title') {
-        comparison = a.title.localeCompare(b.title)
-      } else if (sortField === 'created_at') {
-        comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-      } else {
-        comparison = new Date(a.updated_at || a.created_at).getTime() - new Date(b.updated_at || b.created_at).getTime()
-      }
-      return sortDirection === 'asc' ? comparison : -comparison
-    })
-
-    return result
-  }, [activeNotes, selectedFolderId, selectedTagIds, noteTags, searchQuery, sortField, sortDirection])
-
-  const pinnedNotes = useMemo(
-    () => filteredAndSortedNotes.filter((n) => n.is_pinned),
-    [filteredAndSortedNotes]
-  )
-  const unpinnedNotes = useMemo(
-    () => filteredAndSortedNotes.filter((n) => !n.is_pinned),
-    [filteredAndSortedNotes]
-  )
+  const pinnedNotes = useMemo(() => filteredNotes.filter((n) => n.is_pinned), [filteredNotes])
+  const otherNotes = useMemo(() => filteredNotes.filter((n) => !n.is_pinned), [filteredNotes])
 
   const handleCreateNote = async () => {
-    await addNote({
+    const newNote = await addNote({
       title: 'Untitled Note',
       folder_id: selectedFolderId,
     })
+    if (newNote) {
+      setSelectedNoteId(newNote.id)
+    }
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-6xl mx-auto pb-12">
-      {/* Header */}
+    <div className="flex flex-col gap-6 max-w-5xl mx-auto pb-12">
+      {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-skyblue-accent font-bold text-xs uppercase tracking-wider mb-1">
-            <StickyNote className="w-4 h-4" />
-            <span>Notes & Memos</span>
+            <NotesIcon size={16} />
+            <span>Shared Workspace</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">
-            {activeFolder ? `${activeFolder.icon || '📁'} ${activeFolder.name}` : 'Shared Notebook'}
-          </h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">Notes</h1>
           <p className="text-xs sm:text-sm text-ink-muted mt-0.5">
-            Rich-text memos, lists, brainstorming, and hashtag-organized thoughts.
+            Rich-text documents, meeting notes, recipes, and ideas.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <div className="w-full sm:w-60">
-            <GlassInput
-              type="text"
-              placeholder="Search notes or #tags..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              icon={<Search className="w-4 h-4" />}
-            />
-          </div>
-
-          <GlassButton onClick={handleCreateNote} variant="primary" size="md" className="flex-shrink-0">
-            <Plus className="w-4 h-4 mr-1" />
-            New Note
-          </GlassButton>
-        </div>
-      </div>
-
-      {/* Toolbar: Tag Pill Bar + Dual View Toggle + Filter/Sort Drawer */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-2.5 rounded-2xl glass-panel-subtle">
-        <div className="flex-1 min-w-0">
-          <TagPillBar />
-        </div>
-
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <FilterSortDrawer showDueDateFilter={false} />
-
-          {/* Dual View Mode Toggle */}
-          <div className="flex items-center gap-1 bg-surface p-1 rounded-xl border border-glass-border-subtle">
+        <div className="flex items-center gap-3">
+          {/* View Mode Toggle */}
+          <div className="flex items-center gap-1 p-1 rounded-2xl glass-panel-subtle border border-glass-border">
             <button
               type="button"
               onClick={() => setViewMode('grid')}
               className={cn(
-                'p-1.5 rounded-lg transition-all',
+                'p-2 rounded-xl transition-all',
                 viewMode === 'grid'
                   ? 'bg-lavender-accent text-white shadow-xs'
                   : 'text-ink-muted hover:text-ink'
               )}
-              title="Masonry Grid View"
+              title="Grid View"
             >
-              <LayoutGrid className="w-3.5 h-3.5" />
+              <GridIcon size={16} />
             </button>
             <button
               type="button"
               onClick={() => setViewMode('list')}
               className={cn(
-                'p-1.5 rounded-lg transition-all',
+                'p-2 rounded-xl transition-all',
                 viewMode === 'list'
                   ? 'bg-lavender-accent text-white shadow-xs'
                   : 'text-ink-muted hover:text-ink'
               )}
               title="List View"
             >
-              <List className="w-3.5 h-3.5" />
+              <ListIcon size={16} />
             </button>
           </div>
+
+          <GlassButton variant="primary" size="md" onClick={handleCreateNote}>
+            <PlusIcon size={18} className="mr-1.5" />
+            New Note
+          </GlassButton>
         </div>
       </div>
 
-      {/* Empty State */}
-      {filteredAndSortedNotes.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
-          <div className="w-16 h-16 rounded-full glass-panel-subtle flex items-center justify-center mb-4 text-skyblue-accent">
-            <StickyNote className="w-8 h-8 opacity-60" />
-          </div>
-          <h3 className="text-base font-semibold text-ink">No notes found</h3>
-          <p className="text-xs sm:text-sm text-ink-muted mt-1 max-w-sm">
-            Create your first pastel glass note or adjust your active tag filters.
-          </p>
-          <GlassButton onClick={handleCreateNote} variant="secondary" size="sm" className="mt-4">
-            <Plus className="w-3.5 h-3.5 mr-1" />
-            Create Note
-          </GlassButton>
+      {/* Filter and Search Toolbar */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* Creator Tabs with Mascot Avatars */}
+        <div className="flex items-center gap-1.5 p-1 rounded-2xl glass-panel-subtle border border-glass-border">
+          <button
+            onClick={() => setCreatorFilter('all')}
+            className={cn(
+              'px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all',
+              creatorFilter === 'all'
+                ? 'bg-surface-elevated text-ink shadow-sm border border-glass-border'
+                : 'text-ink-muted hover:text-ink'
+            )}
+          >
+            All
+          </button>
+
+          {authorizedUser && (
+            <button
+              onClick={() => setCreatorFilter('mine')}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all',
+                creatorFilter === 'mine'
+                  ? 'bg-surface-elevated text-ink shadow-sm border border-glass-border'
+                  : 'text-ink-muted hover:text-ink'
+              )}
+            >
+              <CoupleAvatar userId={authorizedUser.id} displayName={authorizedUser.display_name} size={16} />
+              <span>{authorizedUser.display_name}</span>
+            </button>
+          )}
+
+          {partnerUser && (
+            <button
+              onClick={() => setCreatorFilter('partner')}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all',
+                creatorFilter === 'partner'
+                  ? 'bg-surface-elevated text-ink shadow-sm border border-glass-border'
+                  : 'text-ink-muted hover:text-ink'
+              )}
+            >
+              <CoupleAvatar userId={partnerUser.id} displayName={partnerUser.display_name} size={16} />
+              <span>{partnerUser.display_name}</span>
+            </button>
+          )}
+        </div>
+
+        {/* Search */}
+        <div className="w-full sm:w-64">
+          <GlassInput
+            type="text"
+            placeholder="Search notes or #tags..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            icon={<SearchIcon size={16} />}
+          />
+        </div>
+      </div>
+
+      {/* Folder Chips */}
+      {assignableFolders.length > 0 && (
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+          <button
+            type="button"
+            onClick={() => setSelectedFolderId(null)}
+            className={cn(
+              'px-3 py-1.5 rounded-xl text-xs font-bold transition-all border whitespace-nowrap',
+              selectedFolderId === null
+                ? 'bg-lavender-accent text-white border-lavender-accent shadow-xs'
+                : 'bg-surface text-ink-muted hover:text-ink border-glass-border hover:bg-surface-elevated'
+            )}
+          >
+            All Notes
+          </button>
+          {assignableFolders.map((folder) => {
+            const isSelected = selectedFolderId === folder.id
+            return (
+              <button
+                key={folder.id}
+                type="button"
+                onClick={() => setSelectedFolderId(isSelected ? null : folder.id)}
+                className={cn(
+                  'px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 whitespace-nowrap',
+                  isSelected
+                    ? 'bg-lavender-accent text-white border-lavender-accent shadow-xs'
+                    : 'bg-surface text-ink-muted hover:text-ink border-glass-border hover:bg-surface-elevated'
+                )}
+              >
+                <span>{folder.icon || '📁'}</span>
+                <span>{folder.name}</span>
+              </button>
+            )
+          })}
         </div>
       )}
 
       {/* Pinned Notes Section */}
       {pinnedNotes.length > 0 && (
         <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-ink-muted uppercase tracking-wider">
-            <Pin className="w-3.5 h-3.5 fill-current text-lavender-accent" />
+          <div className="flex items-center gap-2 text-xs font-bold text-lavender-accent uppercase tracking-wider">
+            <PinIcon size={14} className="fill-current" />
             <span>Pinned ({pinnedNotes.length})</span>
           </div>
 
           <div
-            style={
+            className={cn(
               viewMode === 'grid'
-                ? { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1rem' }
-                : { display: 'flex', flexDirection: 'column', gap: '0.625rem' }
-            }
+                ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'
+                : 'flex flex-col gap-2.5'
+            )}
           >
             {pinnedNotes.map((note) => (
               <NoteCard key={note.id} note={note} viewMode={viewMode} />
@@ -210,28 +243,47 @@ export const NotesPage: React.FC = () => {
         </div>
       )}
 
-      {/* Unpinned Notes Section */}
-      {unpinnedNotes.length > 0 && (
-        <div className="flex flex-col gap-3">
-          {pinnedNotes.length > 0 && (
-            <div className="text-xs font-bold text-ink-muted uppercase tracking-wider">
-              Notes ({unpinnedNotes.length})
-            </div>
-          )}
+      {/* Main Notes List */}
+      <div className="flex flex-col gap-3">
+        {pinnedNotes.length > 0 && otherNotes.length > 0 && (
+          <div className="text-xs font-bold text-ink-muted uppercase tracking-wider pt-2">
+            <span>Other Notes ({otherNotes.length})</span>
+          </div>
+        )}
 
+        {filteredNotes.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 px-4 text-center select-none">
+            <div className="w-16 h-16 rounded-full glass-panel-subtle flex items-center justify-center mb-4 text-skyblue-accent shadow-sm">
+              <NotesIcon size={32} />
+            </div>
+            <h3 className="text-base font-bold text-ink">No notes found</h3>
+            <p className="text-xs sm:text-sm text-ink-muted mt-1 max-w-sm">
+              Create your first note to capture ideas, meeting notes, recipes, or thoughts together.
+            </p>
+            <div className="mt-4">
+              <GlassButton variant="primary" size="sm" onClick={handleCreateNote}>
+                <PlusIcon size={16} className="mr-1" />
+                Create Note
+              </GlassButton>
+            </div>
+          </div>
+        ) : (
           <div
-            style={
+            className={cn(
               viewMode === 'grid'
-                ? { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1rem' }
-                : { display: 'flex', flexDirection: 'column', gap: '0.625rem' }
-            }
+                ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'
+                : 'flex flex-col gap-2.5'
+            )}
           >
-            {unpinnedNotes.map((note) => (
+            {otherNotes.map((note) => (
               <NoteCard key={note.id} note={note} viewMode={viewMode} />
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
+
+      {/* Full Modal Rich-Text Note Editor */}
+      <NoteEditor />
     </div>
   )
 }

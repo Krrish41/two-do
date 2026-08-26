@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Pin, Trash2, RotateCcw } from 'lucide-react'
+import { PinIcon, TrashIcon, RestoreIcon } from '../icons'
 import type { Note } from '../../lib/database.types'
 import { useNoteStore, NOTE_COLOR_PRESETS } from '../../stores/noteStore'
 import { useAuthStore } from '../../stores/authStore'
 import { useThemeStore } from '../../stores/themeStore'
 import { GlassConfirmDialog } from '../glass/GlassConfirmDialog'
+import { CoupleAvatar } from '../common/CoupleAvatar'
 import { cn, formatDate } from '../../lib/utils'
 
 export interface NoteCardProps {
@@ -79,7 +80,7 @@ export const NoteCard: React.FC<NoteCardProps> = ({
         >
           <div className="flex items-center gap-3 min-w-0 flex-1">
             {note.is_pinned && (
-              <Pin className="w-3.5 h-3.5 fill-current text-lavender-accent flex-shrink-0" />
+              <PinIcon size={14} className="fill-current text-lavender-accent flex-shrink-0" />
             )}
 
             <div className="flex flex-col min-w-0 flex-1">
@@ -88,28 +89,25 @@ export const NoteCard: React.FC<NoteCardProps> = ({
                   {note.title || 'Untitled'}
                 </h4>
                 {folder && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-surface border border-glass-border-subtle flex-shrink-0">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-surface border border-glass-border flex-shrink-0">
                     <span>{folder.icon || '📁'}</span>
                     <span>{folder.name}</span>
                   </span>
                 )}
               </div>
 
-              <p className="text-xs text-ink-muted truncate mt-0.5">
+              <p className="text-xs text-ink-muted truncate mt-0.5 font-normal">
                 {textPreview || <span className="italic opacity-60">Empty note...</span>}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3 flex-shrink-0">
-            {/* Read-Only Creator Attribution */}
+            {/* Read-Only Creator Mascot Attribution */}
             {creatorUser && (
-              <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-medium text-ink-muted bg-surface/80 px-2 py-0.5 rounded-full border border-glass-border-subtle">
-                <span
-                  className="w-2 h-2 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: creatorUser.accent_color || '#B8A9E8' }}
-                />
-                <span>{creatorUser.display_name}</span>
+              <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-semibold text-ink bg-surface px-2.5 py-0.5 rounded-full border border-glass-border">
+                <CoupleAvatar userId={creatorUser.id} displayName={creatorUser.display_name} size={16} />
+                <span>Added by {creatorUser.display_name}</span>
               </span>
             )}
 
@@ -117,14 +115,14 @@ export const NoteCard: React.FC<NoteCardProps> = ({
               {attachedTags.slice(0, 2).map((tag) => (
                 <span
                   key={tag?.id}
-                  className="text-[10px] font-medium text-ink-muted bg-surface px-2 py-0.5 rounded-full border border-glass-border-subtle"
+                  className="text-[10px] font-semibold text-ink-muted bg-surface px-2 py-0.5 rounded-full border border-glass-border"
                 >
                   #{tag?.name}
                 </span>
               ))}
             </div>
 
-            <span className="text-[11px] text-ink-subtle">{formatDate(note.updated_at || note.created_at)}</span>
+            <span className="text-[11px] text-ink-subtle font-medium">{formatDate(note.updated_at || note.created_at)}</span>
 
             {isRecycleBin ? (
               <div className="flex items-center gap-1">
@@ -137,7 +135,7 @@ export const NoteCard: React.FC<NoteCardProps> = ({
                   className="p-1.5 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25"
                   title="Restore note"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
+                  <RestoreIcon size={14} />
                 </button>
                 <button
                   type="button"
@@ -148,7 +146,7 @@ export const NoteCard: React.FC<NoteCardProps> = ({
                   className="p-1.5 rounded-lg bg-rose-500/15 text-rose-600 dark:text-rose-400 hover:bg-rose-500/25"
                   title="Delete forever"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <TrashIcon size={14} />
                 </button>
               </div>
             ) : (
@@ -161,7 +159,7 @@ export const NoteCard: React.FC<NoteCardProps> = ({
                 className="opacity-0 group-hover:opacity-100 p-1 text-ink-muted hover:text-rose-500 transition-opacity"
                 title="Move to Recycle Bin"
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <TrashIcon size={14} />
               </button>
             )}
           </div>
@@ -217,7 +215,7 @@ export const NoteCard: React.FC<NoteCardProps> = ({
                 )}
                 title={note.is_pinned ? 'Unpin note' : 'Pin note'}
               >
-                <Pin className={cn('w-3.5 h-3.5', note.is_pinned && 'fill-current')} />
+                <PinIcon size={14} className={cn(note.is_pinned && 'fill-current')} />
               </button>
             )}
           </div>
@@ -232,33 +230,30 @@ export const NoteCard: React.FC<NoteCardProps> = ({
         <div className="mt-4 pt-3 border-t border-glass-border-subtle flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-1.5">
             {folder && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-surface border border-glass-border-subtle">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-surface border border-glass-border">
                 <span>{folder.icon || '📁'}</span>
                 <span>{folder.name}</span>
               </span>
             )}
 
             {creatorUser && (
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-medium text-ink-muted bg-surface/80 px-2 py-0.5 rounded-full border border-glass-border-subtle">
-                <span
-                  className="w-2 h-2 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: creatorUser.accent_color || '#B8A9E8' }}
-                />
-                <span>{creatorUser.display_name}</span>
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-ink bg-surface px-2 py-0.5 rounded-full border border-glass-border">
+                <CoupleAvatar userId={creatorUser.id} displayName={creatorUser.display_name} size={14} />
+                <span>Added by {creatorUser.display_name}</span>
               </span>
             )}
 
             {attachedTags.slice(0, 2).map((tag) => (
               <span
                 key={tag?.id}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-surface text-ink-muted border border-glass-border-subtle"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-surface text-ink-muted border border-glass-border"
               >
                 #{tag?.name}
               </span>
             ))}
           </div>
 
-          <div className="flex items-center gap-2 text-[10px] text-ink-subtle ml-auto">
+          <div className="flex items-center gap-2 text-[10px] text-ink-subtle ml-auto font-medium">
             <span>{formatDate(note.updated_at || note.created_at)}</span>
 
             {isRecycleBin && (
@@ -272,7 +267,7 @@ export const NoteCard: React.FC<NoteCardProps> = ({
                   className="p-1 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25"
                   title="Restore note"
                 >
-                  <RotateCcw className="w-3 h-3" />
+                  <RestoreIcon size={12} />
                 </button>
                 <button
                   type="button"
@@ -283,7 +278,7 @@ export const NoteCard: React.FC<NoteCardProps> = ({
                   className="p-1 rounded bg-rose-500/15 text-rose-600 dark:text-rose-400 hover:bg-rose-500/25"
                   title="Delete forever"
                 >
-                  <Trash2 className="w-3 h-3" />
+                  <TrashIcon size={12} />
                 </button>
               </div>
             )}
