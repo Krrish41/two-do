@@ -160,15 +160,18 @@ export const LoginPage: React.FC = () => {
             {/* High-Contrast Gradient Solid Call-To-Action Button */}
             <motion.button
               type="submit"
-              whileHover={isFormValid && !loading ? { scale: 1.02, y: -1 } : {}}
-              whileTap={isFormValid && !loading ? { scale: 0.98 } : {}}
+              whileHover={!loading ? { scale: 1.02, y: -1 } : {}}
+              whileTap={!loading ? { scale: 0.98 } : {}}
               disabled={loading}
               className={cn(
-                'w-full mt-3 py-3.5 px-6 rounded-2xl font-extrabold text-sm sm:text-base text-white tracking-wide select-none flex items-center justify-center gap-2 transition-all duration-200 border',
-                isFormValid
-                  ? 'bg-gradient-to-r from-lavender-accent to-skyblue-accent border-white/20 shadow-lg shadow-lavender-accent/30 hover:brightness-110'
-                  : 'bg-lavender-accent/80 border-lavender-accent/40 shadow-sm opacity-85 hover:opacity-100'
+                'w-full mt-3 py-3.5 px-6 rounded-2xl font-extrabold text-sm sm:text-base text-white tracking-wide select-none flex items-center justify-center gap-2 transition-all duration-200 border border-white/20 shadow-lg shadow-purple-900/20',
+                'bg-gradient-to-r from-[#683CB8] to-[#1B6CB5] hover:brightness-110 active:brightness-95',
+                !isFormValid && 'opacity-80'
               )}
+              style={{
+                background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)',
+                color: '#FFFFFF',
+              }}
             >
               {loading ? (
                 <>
