@@ -4,12 +4,14 @@ import type { Note, Folder, Tag, NoteTag, Json } from '../lib/database.types'
 import { useAuthStore } from './authStore'
 
 export const NOTE_COLOR_PRESETS = [
-  { id: 'lavender', hex: '#E4DBF7', name: 'Lavender', textClass: 'text-purple-900' },
-  { id: 'skyblue', hex: '#D6E8FF', name: 'Sky Blue', textClass: 'text-blue-900' },
-  { id: 'blossom', hex: '#FBDDEA', name: 'Blossom', textClass: 'text-pink-900' },
-  { id: 'mint', hex: '#DCF3E6', name: 'Soft Mint', textClass: 'text-emerald-900' },
-  { id: 'neutral', hex: '#F4F2EF', name: 'Alabaster', textClass: 'text-stone-900' },
+  { id: 'lavender', hex: '#E4DBF7', name: 'Lavender', textClass: 'text-purple-900', darkBg: 'rgba(196, 174, 240, 0.15)' },
+  { id: 'skyblue', hex: '#D6E8FF', name: 'Soft Blue', textClass: 'text-blue-900', darkBg: 'rgba(167, 199, 231, 0.15)' },
+  { id: 'blossom', hex: '#FBDDEA', name: 'Rose Pink', textClass: 'text-pink-900', darkBg: 'rgba(245, 169, 201, 0.15)' },
+  { id: 'mint', hex: '#D9F5E3', name: 'Mint Glow', textClass: 'text-emerald-900', darkBg: 'rgba(94, 217, 158, 0.15)' },
+  { id: 'clear', hex: 'rgba(255,255,255,0.4)', name: 'Glass Clear', textClass: 'text-ink', darkBg: 'rgba(255,255,255,0.07)' },
 ] as const
+
+export type NoteViewMode = 'grid' | 'list'
 
 interface NoteState {
   notes: Note[]
@@ -19,8 +21,9 @@ interface NoteState {
   loading: boolean
   selectedNoteId: string | null
   selectedFolderId: string | null
-  selectedTagId: string | null
+  selectedTagIds: string[]
   searchQuery: string
+  viewMode: NoteViewMode
 
   // Actions
   fetchNotes: () => Promise<void>
@@ -32,16 +35,23 @@ interface NoteState {
     is_pinned?: boolean
   }) => Promise<Note | null>
   updateNote: (id: string, updates: Partial<Note>) => Promise<void>
-  deleteNote: (id: string) => Promise<void>
+  softDeleteNote: (id: string) => Promise<void>
+  restoreNote: (id: string) => Promise<void>
+  deleteForeverNote: (id: string) => Promise<void>
+  emptyRecycleBin: () => Promise<void>
   togglePin: (id: string) => Promise<void>
-  createFolder: (name: string, parentFolderId?: string | null) => Promise<Folder | null>
+  createFolder: (name: string, icon?: string, color?: string, parentFolderId?: string | null) => Promise<Folder | null>
+  updateFolder: (id: string, updates: Partial<Folder>) => Promise<void>
   deleteFolder: (id: string) => Promise<void>
   createTag: (name: string, color?: string) => Promise<Tag | null>
   toggleNoteTag: (noteId: string, tagId: string) => Promise<void>
+  extractAndSyncTags: (noteId: string, plainText: string) => Promise<void>
   setSelectedNoteId: (id: string | null) => void
   setSelectedFolderId: (id: string | null) => void
-  setSelectedTagId: (id: string | null) => void
+  toggleTagFilter: (tagId: string) => void
+  clearTagFilters: () => void
   setSearchQuery: (query: string) => void
+  setViewMode: (mode: NoteViewMode) => void
   receiveRealtimeNote: (payload: {
     eventType: 'INSERT' | 'UPDATE' | 'DELETE'
     new: Note | null
@@ -54,17 +64,50 @@ interface NoteState {
   }) => void
 }
 
+const INITIAL_DEMO_FOLDERS: Folder[] = [
+  {
+    id: 'folder-bucket-list',
+    name: 'Bucket List',
+    parent_folder_id: null,
+    color: '#E86FA0',
+    icon: '💕',
+    is_system: true,
+    created_by: null,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'folder-work',
+    name: 'Projects',
+    parent_folder_id: null,
+    color: '#9B7EDC',
+    icon: '🚀',
+    is_system: false,
+    created_by: null,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'folder-personal',
+    name: 'Personal & Ideas',
+    parent_folder_id: null,
+    color: '#6FA8DC',
+    icon: '✨',
+    is_system: false,
+    created_by: null,
+    created_at: new Date().toISOString(),
+  },
+]
+
 const INITIAL_DEMO_NOTES: Note[] = [
   {
     id: 'demo-note-1',
-    title: 'Design Aesthetics & Glassmorphism Specs',
+    title: 'Two-Do v2 Features & Specs #roadmap #design',
     content: {
       type: 'doc',
       content: [
         {
           type: 'paragraph',
           content: [
-            { type: 'text', text: 'Welcome to Two-Do! This workspace is crafted with Apple Glassy aesthetics, subtle blur layers, and harmonious pastel tones.' },
+            { type: 'text', text: 'Welcome to Two-Do v2! Redesigned with custom CSS variable dark mode, multi-level color-coded folders, and pastel glass notes.' },
           ],
         },
         {
@@ -73,53 +116,46 @@ const INITIAL_DEMO_NOTES: Note[] = [
             {
               type: 'taskItem',
               attrs: { checked: true },
-              content: [{ type: 'paragraph', content: [{ type: 'text', text: '5 curated color presets' }] }],
+              content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Two-orb gradient logo rebrand' }] }],
             },
             {
               type: 'taskItem',
               attrs: { checked: true },
-              content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Rich-text formatting with Tiptap' }] }],
+              content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Soft-delete Recycle Bin with restore' }] }],
             },
             {
               type: 'taskItem',
-              attrs: { checked: false },
-              content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Realtime collaborative sync via Supabase' }] }],
+              attrs: { checked: true },
+              content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Auto hashtag extraction #tags' }] }],
             },
           ],
         },
       ],
     },
     color: '#E4DBF7',
-    folder_id: null,
+    folder_id: 'folder-work',
     is_pinned: true,
+    deleted_at: null,
     created_by: 'demo-user-1',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
   {
     id: 'demo-note-2',
-    title: 'Shared Project Ideas & Brainstorming',
+    title: 'Weekend Getaway & Stargazing #bucketlist',
     content: {
       type: 'doc',
       content: [
         {
-          type: 'heading',
-          attrs: { level: 3 },
-          content: [{ type: 'text', text: 'Next big features to explore together:' }],
-        },
-        {
-          type: 'bulletList',
-          content: [
-            { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Subtask deep hierarchies' }] }] },
-            { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Shared calendar and date views' }] }] },
-            { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Instant push notifications' }] }] },
-          ],
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'Cozy cabin trip with hot cocoa, telescope stargazing, and polaroid photos.' }],
         },
       ],
     },
     color: '#D6E8FF',
-    folder_id: null,
-    is_pinned: false,
+    folder_id: 'folder-bucket-list',
+    is_pinned: true,
+    deleted_at: null,
     created_by: 'demo-user-2',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -127,9 +163,15 @@ const INITIAL_DEMO_NOTES: Note[] = [
 ]
 
 const INITIAL_DEMO_TAGS: Tag[] = [
-  { id: 'tag-1', name: 'Work', color: '#A7C7E7' },
-  { id: 'tag-2', name: 'Personal', color: '#F5A9C9' },
-  { id: 'tag-3', name: 'Ideas', color: '#C4AEF0' },
+  { id: 'tag-1', name: 'roadmap', color: '#B79CF0' },
+  { id: 'tag-2', name: 'design', color: '#8FC1F0' },
+  { id: 'tag-3', name: 'bucketlist', color: '#F4A0C6' },
+]
+
+const INITIAL_DEMO_NOTE_TAGS: NoteTag[] = [
+  { note_id: 'demo-note-1', tag_id: 'tag-1' },
+  { note_id: 'demo-note-1', tag_id: 'tag-2' },
+  { note_id: 'demo-note-2', tag_id: 'tag-3' },
 ]
 
 export const useNoteStore = create<NoteState>((set, get) => ({
@@ -140,8 +182,9 @@ export const useNoteStore = create<NoteState>((set, get) => ({
   loading: false,
   selectedNoteId: null,
   selectedFolderId: null,
-  selectedTagId: null,
+  selectedTagIds: [],
   searchQuery: '',
+  viewMode: (typeof window !== 'undefined' ? (localStorage.getItem('two_do_note_view_mode') as NoteViewMode) : null) || 'grid',
 
   fetchNotes: async () => {
     set({ loading: true })
@@ -150,7 +193,9 @@ export const useNoteStore = create<NoteState>((set, get) => ({
       if (get().notes.length === 0) {
         set({
           notes: INITIAL_DEMO_NOTES,
+          folders: INITIAL_DEMO_FOLDERS,
           tags: INITIAL_DEMO_TAGS,
+          noteTags: INITIAL_DEMO_NOTE_TAGS,
           loading: false,
         })
       } else {
@@ -199,6 +244,7 @@ export const useNoteStore = create<NoteState>((set, get) => ({
       color: params?.color || NOTE_COLOR_PRESETS[0].hex,
       folder_id: params?.folder_id || get().selectedFolderId,
       is_pinned: params?.is_pinned || false,
+      deleted_at: null,
       created_by: authUser?.id || null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -221,6 +267,7 @@ export const useNoteStore = create<NoteState>((set, get) => ({
           color: newNote.color,
           folder_id: newNote.folder_id,
           is_pinned: newNote.is_pinned,
+          deleted_at: null,
           created_by: newNote.created_by,
         })
         .select()
@@ -262,7 +309,18 @@ export const useNoteStore = create<NoteState>((set, get) => ({
     }
   },
 
-  deleteNote: async (id) => {
+  softDeleteNote: async (id) => {
+    await get().updateNote(id, { deleted_at: new Date().toISOString() })
+    if (get().selectedNoteId === id) {
+      set({ selectedNoteId: null })
+    }
+  },
+
+  restoreNote: async (id) => {
+    await get().updateNote(id, { deleted_at: null })
+  },
+
+  deleteForeverNote: async (id) => {
     const prevNotes = get().notes
     set({
       notes: prevNotes.filter((n) => n.id !== id),
@@ -275,7 +333,24 @@ export const useNoteStore = create<NoteState>((set, get) => ({
       const { error } = await supabase.from('notes').delete().eq('id', id)
       if (error) throw error
     } catch (err) {
-      console.error('Failed to delete note:', err)
+      console.error('Failed to permanently delete note:', err)
+      set({ notes: prevNotes })
+    }
+  },
+
+  emptyRecycleBin: async () => {
+    const deletedNoteIds = get().notes.filter((n) => n.deleted_at !== null).map((n) => n.id)
+    if (deletedNoteIds.length === 0) return
+
+    const prevNotes = get().notes
+    set({ notes: prevNotes.filter((n) => n.deleted_at === null) })
+
+    if (!isSupabaseConfigured) return
+
+    try {
+      await supabase.from('notes').delete().in('id', deletedNoteIds)
+    } catch (err) {
+      console.error('Failed to empty recycle bin:', err)
       set({ notes: prevNotes })
     }
   },
@@ -286,12 +361,15 @@ export const useNoteStore = create<NoteState>((set, get) => ({
     await get().updateNote(id, { is_pinned: !note.is_pinned })
   },
 
-  createFolder: async (name, parentFolderId = null) => {
+  createFolder: async (name, icon = '📁', color = '#C4AEF0', parentFolderId = null) => {
     const authUser = useAuthStore.getState().authorizedUser
     const newFolder: Folder = {
       id: crypto.randomUUID(),
       name: name.trim(),
       parent_folder_id: parentFolderId,
+      color,
+      icon,
+      is_system: false,
       created_by: authUser?.id || null,
       created_at: new Date().toISOString(),
     }
@@ -307,6 +385,9 @@ export const useNoteStore = create<NoteState>((set, get) => ({
           id: newFolder.id,
           name: newFolder.name,
           parent_folder_id: newFolder.parent_folder_id,
+          color: newFolder.color,
+          icon: newFolder.icon,
+          is_system: false,
           created_by: newFolder.created_by,
         })
         .select()
@@ -325,7 +406,27 @@ export const useNoteStore = create<NoteState>((set, get) => ({
     return newFolder
   },
 
+  updateFolder: async (id, updates) => {
+    const folder = get().folders.find((f) => f.id === id)
+    if (folder?.is_system) return // Prevent editing system folders like Bucket List
+
+    set({
+      folders: get().folders.map((f) => (f.id === id ? { ...f, ...updates } : f)),
+    })
+
+    if (!isSupabaseConfigured) return
+
+    try {
+      await supabase.from('folders').update(updates).eq('id', id)
+    } catch (err) {
+      console.error('Failed to update folder:', err)
+    }
+  },
+
   deleteFolder: async (id) => {
+    const folder = get().folders.find((f) => f.id === id)
+    if (folder?.is_system) return // Prevent deleting system folders like Bucket List
+
     set({
       folders: get().folders.filter((f) => f.id !== id && f.parent_folder_id !== id),
       selectedFolderId: get().selectedFolderId === id ? null : get().selectedFolderId,
@@ -341,9 +442,13 @@ export const useNoteStore = create<NoteState>((set, get) => ({
   },
 
   createTag: async (name, color = '#A7C7E7') => {
+    const cleanName = name.trim().replace(/^#/, '').toLowerCase()
+    const existing = get().tags.find((t) => t.name.toLowerCase() === cleanName)
+    if (existing) return existing
+
     const newTag: Tag = {
       id: crypto.randomUUID(),
-      name: name.trim(),
+      name: cleanName,
       color,
     }
 
@@ -391,10 +496,42 @@ export const useNoteStore = create<NoteState>((set, get) => ({
     }
   },
 
+  // Auto-extract #hashtags from text and link them
+  extractAndSyncTags: async (noteId, plainText) => {
+    if (!plainText) return
+    const matches = plainText.match(/#([a-zA-Z0-9_-]+)/g)
+    if (!matches) return
+
+    const tagNames = [...new Set(matches.map((m) => m.slice(1).toLowerCase()))]
+    for (const tagName of tagNames) {
+      const tag = await get().createTag(tagName)
+      if (tag) {
+        const alreadyLinked = get().noteTags.some((nt) => nt.note_id === noteId && nt.tag_id === tag.id)
+        if (!alreadyLinked) {
+          await get().toggleNoteTag(noteId, tag.id)
+        }
+      }
+    }
+  },
+
   setSelectedNoteId: (id) => set({ selectedNoteId: id }),
   setSelectedFolderId: (id) => set({ selectedFolderId: id }),
-  setSelectedTagId: (id) => set({ selectedTagId: id }),
+  toggleTagFilter: (tagId) => {
+    const current = get().selectedTagIds
+    if (current.includes(tagId)) {
+      set({ selectedTagIds: current.filter((id) => id !== tagId) })
+    } else {
+      set({ selectedTagIds: [...current, tagId] })
+    }
+  },
+  clearTagFilters: () => set({ selectedTagIds: [] }),
   setSearchQuery: (query) => set({ searchQuery: query }),
+  setViewMode: (mode) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('two_do_note_view_mode', mode)
+    }
+    set({ viewMode: mode })
+  },
 
   receiveRealtimeNote: ({ eventType, new: newRecord, old: oldRecord }) => {
     const currentNotes = get().notes

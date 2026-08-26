@@ -3,7 +3,7 @@ import { supabase, isSupabaseConfigured } from '../lib/supabaseClient'
 import { useAuthStore } from '../stores/authStore'
 
 export function useAuth() {
-  const initialize = useAuthStore((s) => s.initialize)
+  const initializeAuth = useAuthStore((s) => s.initializeAuth)
   const user = useAuthStore((s) => s.user)
   const authorizedUser = useAuthStore((s) => s.authorizedUser)
   const partnerUser = useAuthStore((s) => s.partnerUser)
@@ -12,7 +12,7 @@ export function useAuth() {
   const isDemoMode = useAuthStore((s) => s.isDemoMode)
 
   useEffect(() => {
-    initialize()
+    initializeAuth()
 
     if (!isSupabaseConfigured) return
 
@@ -28,7 +28,7 @@ export function useAuth() {
     return () => {
       subscription.unsubscribe()
     }
-  }, [initialize])
+  }, [initializeAuth])
 
   return {
     user,

@@ -14,23 +14,22 @@ interface AuthState {
   isDemoMode: boolean
 
   // Actions
-  initialize: () => Promise<void>
+  initializeAuth: () => Promise<void>
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
   signOut: () => Promise<void>
   fetchAuthorizedUsers: () => Promise<void>
-  setDemoUser: (user: 'Krrish' | 'Gparashar') => void
+  setDemoUser: (index: 0 | 1) => void
 }
 
-// Fallback demo users for preview before entering real Supabase credentials
 const DEMO_USERS: AuthorizedUser[] = [
   {
     id: 'demo-user-1',
-    display_name: 'Krrish',
+    display_name: 'Member 1',
     accent_color: '#C4AEF0',
   },
   {
     id: 'demo-user-2',
-    display_name: 'Gparashar',
+    display_name: 'Member 2',
     accent_color: '#A7C7E7',
   },
 ]
@@ -45,14 +44,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   error: null,
   isDemoMode: false,
 
-  initialize: async () => {
+  initializeAuth: async () => {
     set({ loading: true, error: null })
 
     if (!isSupabaseConfigured) {
-      // In offline/demo mode, activate first demo user
       set({
         session: null,
-        user: { id: 'demo-user-1', email: 'krrish4173@gmail.com' } as unknown as User,
+        user: { id: 'demo-user-1', email: 'demo1@example.com' } as unknown as User,
         authorizedUser: DEMO_USERS[0],
         partnerUser: DEMO_USERS[1],
         allUsers: DEMO_USERS,
@@ -63,7 +61,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession()
       if (sessionError) throw sessionError
 
       if (session?.user) {
@@ -84,31 +85,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ loading: true, error: null })
 
     if (!isSupabaseConfigured) {
-      const lower = email.toLowerCase().trim()
-      if (lower === 'krrish4173@gmail.com' || lower.includes('krrish')) {
-        set({
-          user: { id: 'demo-user-1', email: 'krrish4173@gmail.com' } as unknown as User,
-          authorizedUser: DEMO_USERS[0],
-          partnerUser: DEMO_USERS[1],
-          allUsers: DEMO_USERS,
-          loading: false,
-          isDemoMode: true,
-        })
-        return { success: true }
-      } else if (lower === 'gparashar2504@gmail.com' || lower.includes('parashar')) {
-        set({
-          user: { id: 'demo-user-2', email: 'gparashar2504@gmail.com' } as unknown as User,
-          authorizedUser: DEMO_USERS[1],
-          partnerUser: DEMO_USERS[0],
-          allUsers: DEMO_USERS,
-          loading: false,
-          isDemoMode: true,
-        })
-        return { success: true }
-      } else {
-        set({ loading: false, error: 'Unauthorized: Only registered duo accounts are allowed.' })
-        return { success: false, error: 'Unauthorized: Only registered duo accounts are allowed.' }
-      }
+      set({
+        user: { id: 'demo-user-1', email: 'demo1@example.com' } as unknown as User,
+        authorizedUser: DEMO_USERS[0],
+        partnerUser: DEMO_USERS[1],
+        allUsers: DEMO_USERS,
+        loading: false,
+        isDemoMode: true,
+      })
+      return { success: true }
     }
 
     try {
@@ -118,37 +103,42 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       })
 
       if (error) {
-        set({ error: error.message, loading: false })
+        set({ loading: false, error: error.message })
         return { success: false, error: error.message }
       }
 
       if (data.session && data.user) {
         set({ session: data.session, user: data.user })
-        await get().fetchAuthorizedUsers()
 
-        // Verify if user is in authorized_users
-        const currentAuthorized = get().authorizedUser
-        if (!currentAuthorized) {
+        // Check if user is in authorized_users table
+        const { data: authUserData, error: authUserErr } = await supabase
+          .from('authorized_users')
+          .select('*')
+          .eq('id', data.user.id)
+          .single()
+
+        if (authUserErr || !authUserData) {
           await supabase.auth.signOut()
           set({
             session: null,
             user: null,
-            error: 'Access denied: Your account is not on the authorized allowlist.',
             loading: false,
+            error: 'Access denied: Account not in authorized allowlist.',
           })
           return { success: false, error: 'Access denied: Account not in authorized allowlist.' }
         }
 
-        set({ loading: false })
+        await get().fetchAuthorizedUsers()
         return { success: true }
       }
 
-      set({ loading: false })
-      return { success: false, error: 'Unknown authentication error.' }
+      return { success: false, error: 'Unknown authentication response' }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Sign in failed'
-      set({ error: message, loading: false })
+      set({ loading: false, error: message })
       return { success: false, error: message }
+    } finally {
+      set({ loading: false })
     }
   },
 
@@ -161,13 +151,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       user: null,
       authorizedUser: null,
       partnerUser: null,
-      error: null,
+      allUsers: [],
+      isDemoMode: false,
     })
   },
 
   fetchAuthorizedUsers: async () => {
+    const currentAuthId = get().user?.id
+
     if (!isSupabaseConfigured) {
-      set({ allUsers: DEMO_USERS })
+      set({ allUsers: DEMO_USERS, authorizedUser: DEMO_USERS[0], partnerUser: DEMO_USERS[1] })
       return
     }
 
@@ -176,34 +169,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (error) throw error
 
       if (data) {
-        const currentUserId = get().user?.id
-        const currentAuthorized = data.find((u) => u.id === currentUserId) || null
-        const partner = data.find((u) => u.id !== currentUserId) || null
-
+        const currentUser = data.find((u) => u.id === currentAuthId) || null
+        const partner = data.find((u) => u.id !== currentAuthId) || null
         set({
           allUsers: data,
-          authorizedUser: currentAuthorized,
+          authorizedUser: currentUser,
           partnerUser: partner,
         })
       }
-    } catch (err: unknown) {
-      console.error('Error fetching authorized users:', err)
+    } catch (err) {
+      console.error('Failed to fetch authorized users:', err)
     }
   },
 
-  setDemoUser: (user: 'Krrish' | 'Gparashar') => {
-    if (user === 'Krrish') {
-      set({
-        user: { id: 'demo-user-1', email: 'krrish4173@gmail.com' } as unknown as User,
-        authorizedUser: DEMO_USERS[0],
-        partnerUser: DEMO_USERS[1],
-      })
-    } else {
-      set({
-        user: { id: 'demo-user-2', email: 'gparashar2504@gmail.com' } as unknown as User,
-        authorizedUser: DEMO_USERS[1],
-        partnerUser: DEMO_USERS[0],
-      })
-    }
+  setDemoUser: (index) => {
+    const active = DEMO_USERS[index]
+    const other = DEMO_USERS[index === 0 ? 1 : 0]
+    set({
+      authorizedUser: active,
+      partnerUser: other,
+      user: { id: active.id, email: `${active.display_name.toLowerCase()}@example.com` } as unknown as User,
+    })
   },
 }))

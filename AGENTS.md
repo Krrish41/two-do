@@ -1,6 +1,6 @@
 # Two-Do: Secure Two-Person To-Do & Notes App
 
-Two-Do is a collaborative, ultra-refined productivity web application designed specifically and exclusively for two named users (`krrish4173@gmail.com` and `Gparashar2504@gmail.com`). It combines Apple-inspired glassmorphism aesthetics with real-time bidirectional synchronization, structured task management (My Day, subtasks, recurrence, priorities, and drag-and-drop ordering), and rich-text note taking with Tiptap. The application is designed to be hosted as a static site on GitHub Pages with Supabase serving as the Postgres database, authentication provider, and real-time engine.
+Two-Do is a collaborative, ultra-refined productivity web application designed specifically for a private authorized pair. It combines Apple-inspired glassmorphism aesthetics with real-time bidirectional synchronization, structured task management (My Day, subtasks, recurrence, priorities, and drag-and-drop ordering), and rich-text note taking with Tiptap. The application is designed to be hosted as a static site on GitHub Pages with Supabase serving as the Postgres database, authentication provider, and real-time engine.
 
 ## Tech Stack
 - **Frontend Framework**: React 18 + TypeScript + Vite

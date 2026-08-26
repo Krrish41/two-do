@@ -32,6 +32,9 @@ export interface Database {
           id: string
           name: string
           parent_folder_id: string | null
+          color: string
+          icon: string
+          is_system: boolean
           created_by: string | null
           created_at: string
         }
@@ -39,6 +42,9 @@ export interface Database {
           id?: string
           name: string
           parent_folder_id?: string | null
+          color?: string
+          icon?: string
+          is_system?: boolean
           created_by?: string | null
           created_at?: string
         }
@@ -46,6 +52,9 @@ export interface Database {
           id?: string
           name?: string
           parent_folder_id?: string | null
+          color?: string
+          icon?: string
+          is_system?: boolean
           created_by?: string | null
           created_at?: string
         }
@@ -90,6 +99,7 @@ export interface Database {
           title: string
           notes: string | null
           parent_task_id: string | null
+          folder_id: string | null
           due_date: string | null
           is_my_day_date: string | null
           priority: number
@@ -107,6 +117,7 @@ export interface Database {
           title: string
           notes?: string | null
           parent_task_id?: string | null
+          folder_id?: string | null
           due_date?: string | null
           is_my_day_date?: string | null
           priority?: number
@@ -124,6 +135,7 @@ export interface Database {
           title?: string
           notes?: string | null
           parent_task_id?: string | null
+          folder_id?: string | null
           due_date?: string | null
           is_my_day_date?: string | null
           priority?: number
@@ -152,6 +164,13 @@ export interface Database {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tasks_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tasks_parent_task_id_fkey"
             columns: ["parent_task_id"]
             isOneToOne: false
@@ -168,6 +187,7 @@ export interface Database {
           color: string
           folder_id: string | null
           is_pinned: boolean
+          deleted_at: string | null
           created_by: string | null
           created_at: string
           updated_at: string
@@ -179,6 +199,7 @@ export interface Database {
           color?: string
           folder_id?: string | null
           is_pinned?: boolean
+          deleted_at?: string | null
           created_by?: string | null
           created_at?: string
           updated_at?: string
@@ -190,6 +211,7 @@ export interface Database {
           color?: string
           folder_id?: string | null
           is_pinned?: boolean
+          deleted_at?: string | null
           created_by?: string | null
           created_at?: string
           updated_at?: string
