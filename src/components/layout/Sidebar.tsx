@@ -12,6 +12,7 @@ import {
 import { useAuthStore } from '../../stores/authStore'
 import { useTaskStore } from '../../stores/taskStore'
 import { useNoteStore } from '../../stores/noteStore'
+import { ThemeToggle } from './ThemeToggle'
 import { cn } from '../../lib/utils'
 
 export const Sidebar: React.FC = () => {
@@ -66,17 +67,19 @@ export const Sidebar: React.FC = () => {
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="font-extrabold text-lg text-ink tracking-tight">Two-Do</h1>
-              <p className="text-[11px] font-medium text-ink/50">Private Duo Workspace</p>
+              <h1 className="font-extrabold text-lg text-ink dark:text-lavender-100 tracking-tight">Two-Do</h1>
+              <p className="text-[11px] font-medium text-ink/50 dark:text-lavender-300/50">Private Duo Workspace</p>
             </div>
           </div>
+
+          <ThemeToggle size="sm" />
         </div>
 
         {/* Current User & Partner Duo Pill */}
-        <div className="flex flex-col gap-2 p-3 rounded-2xl bg-white/50 border border-white/60 shadow-xs">
+        <div className="flex flex-col gap-2 p-3 rounded-2xl bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/10 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-ink/60 uppercase tracking-wider flex items-center gap-1">
-              <Users className="w-3 h-3 text-lavender-600" />
+            <span className="text-[11px] font-bold text-ink/60 dark:text-lavender-300/60 uppercase tracking-wider flex items-center gap-1">
+              <Users className="w-3 h-3 text-lavender-600 dark:text-lavender-400" />
               Duo Members
             </span>
             {isDemoMode && (
@@ -84,7 +87,7 @@ export const Sidebar: React.FC = () => {
                 onClick={() =>
                   setDemoUser(authorizedUser?.display_name === 'Krrish' ? 'Gparashar' : 'Krrish')
                 }
-                className="text-[10px] text-lavender-600 hover:text-lavender-700 font-semibold flex items-center gap-1 bg-lavender-50 px-2 py-0.5 rounded-full border border-lavender-200"
+                className="text-[10px] text-lavender-600 dark:text-lavender-400 hover:text-lavender-700 font-semibold flex items-center gap-1 bg-lavender-50 dark:bg-lavender-900/30 px-2 py-0.5 rounded-full border border-lavender-200 dark:border-lavender-700/50"
                 title="Switch active demo user"
               >
                 <ArrowLeftRight className="w-2.5 h-2.5" />
@@ -103,10 +106,10 @@ export const Sidebar: React.FC = () => {
                 {authorizedUser?.display_name?.charAt(0).toUpperCase() || 'U'}
               </div>
               <div className="min-w-0">
-                <div className="text-xs font-bold text-ink truncate">
+                <div className="text-xs font-bold text-ink dark:text-lavender-100 truncate">
                   {authorizedUser?.display_name || 'You'}
                 </div>
-                <div className="text-[10px] text-emerald-600 font-medium flex items-center gap-1">
+                <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Active
                 </div>
@@ -116,7 +119,7 @@ export const Sidebar: React.FC = () => {
             {/* Partner */}
             {partnerUser && (
               <div
-                className="flex items-center gap-1.5 px-2 py-1 rounded-xl bg-white/70 border border-black/5"
+                className="flex items-center gap-1.5 px-2 py-1 rounded-xl bg-white/70 dark:bg-white/10 border border-black/5 dark:border-white/10"
                 title={`Partner: ${partnerUser.display_name}`}
               >
                 <div
@@ -125,7 +128,7 @@ export const Sidebar: React.FC = () => {
                 >
                   {partnerUser.display_name?.charAt(0).toUpperCase()}
                 </div>
-                <span className="text-[11px] font-medium text-ink/80 truncate max-w-[60px]">
+                <span className="text-[11px] font-medium text-ink/80 dark:text-lavender-200 truncate max-w-[60px]">
                   {partnerUser.display_name}
                 </span>
               </div>
@@ -143,8 +146,8 @@ export const Sidebar: React.FC = () => {
                 cn(
                   'flex items-center justify-between px-3.5 py-3 rounded-2xl text-sm font-semibold transition-all duration-200',
                   isActive
-                    ? 'bg-white text-ink shadow-sm border border-white/80 scale-[1.02]'
-                    : 'text-ink/70 hover:bg-white/40 hover:text-ink'
+                    ? 'bg-white dark:bg-white/15 text-ink dark:text-white shadow-sm border border-white/80 dark:border-white/10 scale-[1.02]'
+                    : 'text-ink/70 dark:text-lavender-200/70 hover:bg-white/40 dark:hover:bg-white/10 hover:text-ink dark:hover:text-white'
                 )
               }
             >
@@ -161,8 +164,8 @@ export const Sidebar: React.FC = () => {
                       className={cn(
                         'text-xs font-bold px-2 py-0.5 rounded-full',
                         isActive
-                          ? 'bg-lavender-100 text-lavender-600'
-                          : 'bg-black/5 text-ink/50'
+                          ? 'bg-lavender-100 dark:bg-lavender-900/50 text-lavender-600 dark:text-lavender-300'
+                          : 'bg-black/5 dark:bg-white/10 text-ink/50 dark:text-lavender-300/50'
                       )}
                     >
                       {item.badge}
@@ -176,16 +179,16 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Footer: Sign Out */}
-      <div className="pt-4 border-t border-black/5 flex items-center justify-between">
+      <div className="pt-4 border-t border-black/5 dark:border-white/10 flex items-center justify-between">
         <button
           onClick={signOut}
-          className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-ink/60 hover:text-rose-600 hover:bg-rose-50/60 transition-all"
+          className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-ink/60 dark:text-lavender-300/60 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50/60 dark:hover:bg-rose-950/40 transition-all"
         >
           <LogOut className="w-3.5 h-3.5" />
           <span>Sign Out</span>
         </button>
 
-        <span className="text-[10px] text-ink/30 font-medium">v1.0 • RLS Guarded</span>
+        <span className="text-[10px] text-ink/30 dark:text-lavender-300/30 font-medium">v1.0 • RLS Guarded</span>
       </div>
     </aside>
   )

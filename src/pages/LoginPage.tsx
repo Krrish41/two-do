@@ -17,6 +17,7 @@ import { GlassCard } from '../components/glass/GlassCard'
 import { GlassInput } from '../components/glass/GlassInput'
 import { GlassButton } from '../components/glass/GlassButton'
 import { BackgroundMesh } from '../components/layout/BackgroundMesh'
+import { ThemeToggle } from '../components/layout/ThemeToggle'
 import {
   isSupabaseConfigured,
   getSupabaseConfigStatus,
@@ -90,6 +91,11 @@ export const LoginPage: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
       <BackgroundMesh />
+
+      {/* Theme Toggle Top Right */}
+      <div className="absolute top-4 right-4 z-20">
+        <ThemeToggle />
+      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 16, scale: 0.96 }}

@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom'
 import { Sun, CheckCircle2, StickyNote } from 'lucide-react'
 import { useTaskStore } from '../../stores/taskStore'
 import { useNoteStore } from '../../stores/noteStore'
+import { ThemeToggle } from './ThemeToggle'
 import { cn } from '../../lib/utils'
 
 export const MobileNav: React.FC = () => {
@@ -21,8 +22,8 @@ export const MobileNav: React.FC = () => {
         to="/today"
         className={({ isActive }) =>
           cn(
-            'flex flex-col items-center gap-1 py-1.5 px-4 rounded-xl text-xs font-semibold transition-all',
-            isActive ? 'bg-white text-amber-600 shadow-sm' : 'text-ink/60'
+            'flex flex-col items-center gap-1 py-1.5 px-3 rounded-xl text-xs font-semibold transition-all',
+            isActive ? 'bg-white dark:bg-white/15 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-ink/60 dark:text-lavender-200/60'
           )
         }
       >
@@ -39,8 +40,8 @@ export const MobileNav: React.FC = () => {
         to="/tasks"
         className={({ isActive }) =>
           cn(
-            'flex flex-col items-center gap-1 py-1.5 px-4 rounded-xl text-xs font-semibold transition-all',
-            isActive ? 'bg-white text-lavender-600 shadow-sm' : 'text-ink/60'
+            'flex flex-col items-center gap-1 py-1.5 px-3 rounded-xl text-xs font-semibold transition-all',
+            isActive ? 'bg-white dark:bg-white/15 text-lavender-600 dark:text-lavender-400 shadow-sm' : 'text-ink/60 dark:text-lavender-200/60'
           )
         }
       >
@@ -57,8 +58,8 @@ export const MobileNav: React.FC = () => {
         to="/notes"
         className={({ isActive }) =>
           cn(
-            'flex flex-col items-center gap-1 py-1.5 px-4 rounded-xl text-xs font-semibold transition-all',
-            isActive ? 'bg-white text-skyblue-600 shadow-sm' : 'text-ink/60'
+            'flex flex-col items-center gap-1 py-1.5 px-3 rounded-xl text-xs font-semibold transition-all',
+            isActive ? 'bg-white dark:bg-white/15 text-skyblue-600 dark:text-skyblue-400 shadow-sm' : 'text-ink/60 dark:text-lavender-200/60'
           )
         }
       >
@@ -70,6 +71,8 @@ export const MobileNav: React.FC = () => {
         </div>
         <span>Notes</span>
       </NavLink>
+
+      <ThemeToggle size="sm" />
     </nav>
   )
 }
