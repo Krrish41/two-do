@@ -68,7 +68,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
     ...assignableFolders.map((f) => ({
       value: f.id,
       label: f.name,
-      icon: <span>{f.icon || '📁'}</span>,
+      icon: f.icon && f.icon !== '📁' && f.icon !== '📂' ? <span>{f.icon}</span> : <FolderIcon size={14} className="text-amber-500" />,
     })),
   ]
 

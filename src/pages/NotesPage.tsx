@@ -228,7 +228,11 @@ export const NotesPage: React.FC = () => {
                     : 'bg-surface text-ink-muted hover:text-ink border-glass-border hover:bg-surface-elevated'
                 )}
               >
-                <span>{folder.icon || '📁'}</span>
+                {folder.icon && folder.icon !== '📁' && folder.icon !== '📂' ? (
+                  <span>{folder.icon}</span>
+                ) : (
+                  <FolderIcon size={14} className="text-amber-500 flex-shrink-0" />
+                )}
                 <span>{folder.name}</span>
               </button>
             )
