@@ -3,13 +3,14 @@ import { supabase, isSupabaseConfigured } from '../lib/supabaseClient'
 import type { Task } from '../lib/database.types'
 import { useAuthStore } from './authStore'
 
-export type TaskFilter = 'all' | 'my-day' | 'assigned-to-me' | 'assigned-to-partner' | 'completed'
+export type TaskFilter = 'all' | 'my-day' | 'important' | 'completed' | 'bucket-list' | 'assigned-to-me' | 'assigned-to-partner'
 
 interface TaskState {
   tasks: Task[]
   loading: boolean
   selectedTaskId: string | null
   filter: TaskFilter
+  selectedFolderId: string | null
   searchQuery: string
 
   // Actions
@@ -23,14 +24,17 @@ interface TaskState {
     recurrence_rule?: string | null
     assigned_to?: string | null
     parent_task_id?: string | null
+    folder_id?: string | null
   }) => Promise<Task | null>
   updateTask: (id: string, updates: Partial<Task>) => Promise<void>
   toggleComplete: (id: string) => Promise<void>
   toggleMyDay: (id: string) => Promise<void>
   deleteTask: (id: string) => Promise<void>
   reorderTasks: (activeId: string, overId: string) => Promise<void>
+  reorderSubtasks: (parentId: string, activeId: string, overId: string) => Promise<void>
   setSelectedTaskId: (id: string | null) => void
   setFilter: (filter: TaskFilter) => void
+  setSelectedFolderId: (folderId: string | null) => void
   setSearchQuery: (query: string) => void
   receiveRealtimeTask: (payload: {
     eventType: 'INSERT' | 'UPDATE' | 'DELETE'
@@ -42,9 +46,10 @@ interface TaskState {
 const INITIAL_DEMO_TASKS: Task[] = [
   {
     id: 'demo-task-1',
-    title: 'Review weekly roadmap & deliverables',
-    notes: 'Make sure our sprint goals align and check database performance.',
+    title: 'Review product roadmap & sprint goals',
+    notes: 'Make sure our tasks align and check database performance.',
     parent_task_id: null,
+    folder_id: 'folder-work',
     due_date: new Date().toISOString().split('T')[0],
     is_my_day_date: new Date().toISOString().split('T')[0],
     priority: 3,
@@ -59,11 +64,12 @@ const INITIAL_DEMO_TASKS: Task[] = [
   },
   {
     id: 'demo-task-2',
-    title: 'Sync Supabase RLS security policies',
-    notes: 'Verify is_authorized() definer check on all tables.',
+    title: 'Plan mountain hike and hot spring trip',
+    notes: 'Pack hiking boots, warm fleece, and camera.',
     parent_task_id: null,
-    due_date: new Date().toISOString().split('T')[0],
-    is_my_day_date: new Date().toISOString().split('T')[0],
+    folder_id: 'folder-bucket-list',
+    due_date: null,
+    is_my_day_date: null,
     priority: 2,
     is_completed: false,
     completed_at: null,
@@ -76,16 +82,35 @@ const INITIAL_DEMO_TASKS: Task[] = [
   },
   {
     id: 'demo-task-3',
+    title: 'Try cooking authentic ramen recipe from scratch',
+    notes: 'Make 12-hour pork tonkotsu broth with fresh noodles.',
+    parent_task_id: null,
+    folder_id: 'folder-bucket-list',
+    due_date: null,
+    is_my_day_date: null,
+    priority: 1,
+    is_completed: false,
+    completed_at: null,
+    recurrence_rule: null,
+    position: 300,
+    created_by: 'demo-user-1',
+    assigned_to: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'demo-task-4',
     title: 'Design Apple Glassy components with spring motion',
     notes: 'Custom blur, lavender/skyblue/blossom palette tokens.',
     parent_task_id: null,
+    folder_id: 'folder-work',
     due_date: null,
     is_my_day_date: null,
     priority: 1,
     is_completed: true,
     completed_at: new Date().toISOString(),
     recurrence_rule: null,
-    position: 300,
+    position: 400,
     created_by: 'demo-user-1',
     assigned_to: 'demo-user-2',
     created_at: new Date().toISOString(),
@@ -98,6 +123,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   loading: false,
   selectedTaskId: null,
   filter: 'my-day',
+  selectedFolderId: null,
   searchQuery: '',
 
   fetchTasks: async () => {
@@ -134,15 +160,15 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     const authUser = useAuthStore.getState().authorizedUser
     const currentTasks = get().tasks
 
-    // Calculate next position
     const minPosition = currentTasks.length > 0 ? Math.min(...currentTasks.map((t) => t.position)) : 0
-    const newPosition = minPosition - 100 // place at top by default
+    const newPosition = minPosition - 100
 
     const newTask: Task = {
       id: crypto.randomUUID(),
       title: params.title.trim(),
       notes: params.notes || null,
       parent_task_id: params.parent_task_id || null,
+      folder_id: params.folder_id || get().selectedFolderId || null,
       due_date: params.due_date || null,
       is_my_day_date: params.is_my_day_date || null,
       priority: params.priority ?? 0,
@@ -156,7 +182,6 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       updated_at: new Date().toISOString(),
     }
 
-    // Optimistic insert
     set({ tasks: [newTask, ...currentTasks] })
 
     if (!isSupabaseConfigured) {
@@ -171,6 +196,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
           title: newTask.title,
           notes: newTask.notes,
           parent_task_id: newTask.parent_task_id,
+          folder_id: newTask.folder_id,
           due_date: newTask.due_date,
           is_my_day_date: newTask.is_my_day_date,
           priority: newTask.priority,
@@ -187,7 +213,6 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       if (error) throw error
 
       if (data) {
-        // Replace with server record
         set({
           tasks: get().tasks.map((t) => (t.id === newTask.id ? data : t)),
         })
@@ -195,7 +220,6 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       }
     } catch (err) {
       console.error('Error inserting task:', err)
-      // Rollback
       set({ tasks: currentTasks })
       return null
     }
@@ -277,7 +301,6 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     const [movedTask] = currentTasks.splice(activeIndex, 1)
     currentTasks.splice(overIndex, 0, movedTask)
 
-    // Recompute float positions with intervals
     const updatedWithPositions = currentTasks.map((t, idx) => ({
       ...t,
       position: (idx + 1) * 100,
@@ -300,8 +323,43 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     }
   },
 
+  reorderSubtasks: async (parentId, activeId, overId) => {
+    if (activeId === overId) return
+
+    const currentTasks = [...get().tasks]
+    const subtasks = currentTasks.filter((t) => t.parent_task_id === parentId)
+    const otherTasks = currentTasks.filter((t) => t.parent_task_id !== parentId)
+
+    const activeIndex = subtasks.findIndex((t) => t.id === activeId)
+    const overIndex = subtasks.findIndex((t) => t.id === overId)
+
+    if (activeIndex === -1 || overIndex === -1) return
+
+    const [moved] = subtasks.splice(activeIndex, 1)
+    subtasks.splice(overIndex, 0, moved)
+
+    const updatedSubtasks = subtasks.map((t, idx) => ({
+      ...t,
+      position: (idx + 1) * 10,
+    }))
+
+    set({ tasks: [...otherTasks, ...updatedSubtasks] })
+
+    if (!isSupabaseConfigured) return
+
+    try {
+      const target = updatedSubtasks.find((t) => t.id === activeId)
+      if (target) {
+        await supabase.from('tasks').update({ position: target.position }).eq('id', activeId)
+      }
+    } catch (err) {
+      console.error('Failed to reorder subtasks:', err)
+    }
+  },
+
   setSelectedTaskId: (id) => set({ selectedTaskId: id }),
   setFilter: (filter) => set({ filter }),
+  setSelectedFolderId: (folderId) => set({ selectedFolderId: folderId }),
   setSearchQuery: (searchQuery) => set({ searchQuery }),
 
   receiveRealtimeTask: ({ eventType, new: newRecord, old: oldRecord }) => {

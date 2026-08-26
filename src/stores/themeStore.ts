@@ -17,20 +17,32 @@ function getSystemIsDark(): boolean {
 function applyTheme(theme: ThemeMode) {
   if (typeof document === 'undefined') return
   const isDark = theme === 'dark' || (theme === 'system' && getSystemIsDark())
-  if (isDark) {
-    document.documentElement.classList.add('dark')
-  } else {
-    document.documentElement.classList.remove('dark')
-  }
+  document.documentElement.dataset.theme = isDark ? 'dark' : 'light'
 }
 
-const initialTheme: ThemeMode =
-  (typeof window !== 'undefined' ? (localStorage.getItem('two_do_theme') as ThemeMode) : null) ||
-  'system'
+function getInitialTheme(): ThemeMode {
+  if (typeof window === 'undefined') return 'system'
+  const saved = localStorage.getItem('theme') as ThemeMode | null
+  if (saved && (saved === 'light' || saved === 'dark' || saved === 'system')) {
+    return saved
+  }
+  return 'system'
+}
 
-// Initialize on load
+const initialTheme = getInitialTheme()
+
+// Apply immediately on module load
 if (typeof window !== 'undefined') {
   applyTheme(initialTheme)
+
+  // Listen for OS system theme changes
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    const currentTheme = (localStorage.getItem('theme') as ThemeMode) || 'system'
+    if (currentTheme === 'system') {
+      applyTheme('system')
+      useThemeStore.setState({ isDark: getSystemIsDark() })
+    }
+  })
 }
 
 export const useThemeStore = create<ThemeState>((set, get) => ({
@@ -39,7 +51,7 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
 
   setTheme: (theme) => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('two_do_theme', theme)
+      localStorage.setItem('theme', theme)
     }
     applyTheme(theme)
     set({
@@ -49,8 +61,8 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
   },
 
   toggleTheme: () => {
-    const current = get().theme
-    const nextTheme: ThemeMode = current === 'dark' ? 'light' : 'dark'
+    const currentIsDark = get().isDark
+    const nextTheme: ThemeMode = currentIsDark ? 'light' : 'dark'
     get().setTheme(nextTheme)
   },
 }))

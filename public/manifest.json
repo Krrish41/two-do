@@ -1,0 +1,23 @@
+{
+  "name": "Two-Do",
+  "short_name": "Two-Do",
+  "description": "Collaborative Tasks & Notes",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#14111F",
+  "theme_color": "#9B7EDC",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./logo.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
