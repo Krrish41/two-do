@@ -9,6 +9,7 @@ import {
   HeartIcon,
   TrashIcon,
   PlusIcon,
+  FolderIcon,
   LogOutIcon,
   CloseIcon,
 } from '../icons'
@@ -50,7 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const todayCount = tasks.filter(
     (t) => (t.is_my_day_date === todayStr || t.due_date === todayStr) && !t.is_completed && t.deleted_at === null
   ).length
-  const allTasksCount = tasks.filter((t) => !t.is_completed && !t.parent_task_id && t.deleted_at === null).length
+  const allTasksCount = tasks.filter((t) => !t.parent_task_id && !t.is_completed && t.deleted_at === null).length
   const importantCount = tasks.filter((t) => t.priority >= 2 && !t.is_completed && t.deleted_at === null).length
   const notesCount = notes.filter((n) => n.deleted_at === null).length
 
@@ -97,8 +98,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     <>
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-40 w-72 p-4 flex flex-col justify-between transition-transform duration-300 ease-in-out md:static md:translate-x-0',
-          'glass-panel border-r border-glass-border shadow-2xl md:shadow-none',
+          'fixed inset-y-0 left-0 z-40 w-72 p-4 flex flex-col justify-between transition-transform duration-300 ease-in-out',
+          'md:static md:translate-x-0 md:m-3 md:h-[calc(100vh-1.5rem)] md:rounded-3xl',
+          'glass-panel border border-glass-border shadow-2xl md:shadow-glass',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
@@ -106,11 +108,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           {/* Logo & Header */}
           <div className="flex items-center justify-between px-2 pt-2">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-lavender-accent to-skyblue-accent p-0.5 shadow-md flex items-center justify-center">
-                <div className="w-full h-full rounded-[14px] bg-obsidian flex items-center justify-center text-white font-bold text-lg tracking-tighter">
-                  2D
-                </div>
-              </div>
+              <img
+                src="./logo.svg"
+                alt="Two-Do"
+                className="w-10 h-10 drop-shadow-md transition-transform hover:scale-105"
+              />
               <div className="flex flex-col">
                 <span className="font-extrabold text-lg text-ink tracking-tight">Two-Do</span>
                 <span className="text-[11px] font-semibold text-ink-muted">Yours, mine, ours.</span>
@@ -213,7 +215,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         )
                       }
                     >
-                      <span className="text-base flex-shrink-0">{folder.icon || '📁'}</span>
+                      {folder.icon && folder.icon !== '📁' && folder.icon !== '📂' ? (
+                        <span className="text-base flex-shrink-0">{folder.icon}</span>
+                      ) : (
+                        <FolderIcon size={18} className="text-amber-500 flex-shrink-0" />
+                      )}
                       <span className="truncate">{folder.name}</span>
                     </NavLink>
 
