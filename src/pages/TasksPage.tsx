@@ -14,6 +14,7 @@ import { FilterSortDrawer } from '../components/common/FilterSortDrawer'
 import { GlassCard } from '../components/glass/GlassCard'
 import { GlassInput } from '../components/glass/GlassInput'
 import { GlassButton } from '../components/glass/GlassButton'
+import { GlassModal } from '../components/glass/GlassModal'
 import { GlassDatePicker } from '../components/glass/GlassDatePicker'
 import { GlassDropdown } from '../components/glass/GlassDropdown'
 import { CoupleAvatar } from '../components/common/CoupleAvatar'
@@ -36,11 +37,16 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
   const authorizedUser = useAuthStore((s) => s.authorizedUser)
   const partnerUser = useAuthStore((s) => s.partnerUser)
   const folders = useNoteStore((s) => s.folders)
+  const createFolder = useNoteStore((s) => s.createFolder)
 
   const sortField = useFilterSortStore((s) => s.sortField)
   const sortDirection = useFilterSortStore((s) => s.sortDirection)
   const priorityFilter = useFilterSortStore((s) => s.priorityFilter)
   const dueDateFilter = useFilterSortStore((s) => s.dueDateFilter)
+
+  const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
+  const [newFolderName, setNewFolderName] = useState('')
+  const [newFolderIcon, setNewFolderIcon] = useState('📁')
 
   // Resolve Bucket List UUID from loaded folders list
   const bucketListFolder = folders.find(
@@ -176,6 +182,18 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
     setNewTaskTitle('')
     if (viewType !== 'important') setSelectedPriority(0)
     setSelectedDueDate(null)
+  }
+
+  const handleCreateFolder = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newFolderName.trim()) return
+    const newFolder = await createFolder(newFolderName.trim(), newFolderIcon)
+    if (newFolder?.id) {
+      setSelectedFolder(newFolder.id)
+    }
+    setNewFolderName('')
+    setNewFolderIcon('📁')
+    setIsFolderModalOpen(false)
   }
 
   const getHeaderInfo = () => {
@@ -315,15 +333,30 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
                   size="sm"
                 />
 
-                {/* Custom Glass Dropdown for Folder (excluding Bucket List to avoid repetition) */}
-                {viewType === 'all' && assignableFolders.length > 0 && (
-                  <GlassDropdown
-                    options={folderDropdownOptions}
-                    value={selectedFolder || ''}
-                    onChange={(val) => setSelectedFolder(val || null)}
-                    placeholder="No Folder"
-                    size="sm"
-                  />
+                {/* Custom Glass Dropdown for Folder with Create Action */}
+                {viewType === 'all' && (
+                  <div className="flex items-center gap-1">
+                    <GlassDropdown
+                      options={folderDropdownOptions}
+                      value={selectedFolder || ''}
+                      onChange={(val) => setSelectedFolder(val || null)}
+                      placeholder="No Folder"
+                      size="sm"
+                      actionItem={{
+                        label: 'Create New Folder...',
+                        icon: <PlusIcon size={14} className="text-lavender-accent" />,
+                        onClick: () => setIsFolderModalOpen(true),
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setIsFolderModalOpen(true)}
+                      className="p-1.5 rounded-xl text-ink-muted hover:text-lavender-accent hover:bg-surface-elevated border border-glass-border shadow-xs transition-colors flex-shrink-0"
+                      title="Create New Folder"
+                    >
+                      <PlusIcon size={14} />
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
@@ -428,6 +461,60 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
           emptySubtext="Complete tasks to celebrate achievements together here!"
         />
       )}
+
+      {/* New Folder Modal */}
+      <GlassModal
+        isOpen={isFolderModalOpen}
+        onClose={() => setIsFolderModalOpen(false)}
+        title="Create New Folder"
+        maxWidth="sm"
+      >
+        <form onSubmit={handleCreateFolder} className="flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 p-2 rounded-xl bg-surface border border-glass-border">
+              {['📁', '💼', '🏡', '✈️', '🎨', '💡', '📚', '🎯'].map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={() => setNewFolderIcon(emoji)}
+                  className={cn(
+                    'p-1.5 rounded-lg text-lg transition-transform',
+                    newFolderIcon === emoji ? 'bg-lavender-accent/20 scale-110' : 'hover:bg-surface'
+                  )}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <GlassInput
+            placeholder="Folder name (e.g. Vacation, Finance)..."
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+            autoFocus
+          />
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <GlassButton
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsFolderModalOpen(false)}
+            >
+              Cancel
+            </GlassButton>
+            <GlassButton
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={!newFolderName.trim()}
+            >
+              Create Folder
+            </GlassButton>
+          </div>
+        </form>
+      </GlassModal>
     </div>
   )
 }

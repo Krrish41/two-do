@@ -19,6 +19,11 @@ export interface GlassDropdownProps<T = string> {
   className?: string
   size?: 'sm' | 'md'
   disabled?: boolean
+  actionItem?: {
+    label: string
+    icon?: React.ReactNode
+    onClick: () => void
+  }
 }
 
 export function GlassDropdown<T extends string = string>({
@@ -30,6 +35,7 @@ export function GlassDropdown<T extends string = string>({
   className,
   size = 'sm',
   disabled = false,
+  actionItem,
 }: GlassDropdownProps<T>) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -100,7 +106,7 @@ export function GlassDropdown<T extends string = string>({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.96 }}
             transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-            className="absolute left-0 right-0 top-full mt-1.5 z-50 min-w-[180px] max-h-60 overflow-y-auto bg-white dark:bg-[#1B152B] p-1.5 rounded-2xl shadow-2xl border border-glass-border flex flex-col gap-0.5"
+            className="absolute left-0 right-0 top-full mt-1.5 z-50 min-w-[190px] max-h-60 overflow-y-auto bg-white dark:bg-[#1B152B] p-1.5 rounded-2xl shadow-2xl border border-glass-border flex flex-col gap-0.5"
           >
             {options.map((opt) => {
               const isSelected = opt.value === value
@@ -127,6 +133,22 @@ export function GlassDropdown<T extends string = string>({
                 </button>
               )
             })}
+
+            {actionItem && (
+              <div className="pt-1 mt-1 border-t border-glass-border-subtle">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false)
+                    actionItem.onClick()
+                  }}
+                  className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-bold text-lavender-accent hover:bg-lavender-accent/15 transition-colors text-left"
+                >
+                  {actionItem.icon}
+                  <span className="truncate">{actionItem.label}</span>
+                </button>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
