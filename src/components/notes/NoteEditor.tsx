@@ -24,8 +24,11 @@ import {
   PinIcon,
   TrashIcon,
   FolderIcon,
+  PlusIcon,
 } from '../icons'
 import { GlassModal } from '../glass/GlassModal'
+import { GlassInput } from '../glass/GlassInput'
+import { GlassButton } from '../glass/GlassButton'
 import { GlassDropdown } from '../glass/GlassDropdown'
 import { GlassConfirmDialog } from '../glass/GlassConfirmDialog'
 import { ColorSwatchPicker } from './ColorSwatchPicker'
@@ -45,10 +48,14 @@ export const NoteEditor: React.FC = () => {
   const togglePin = useNoteStore((s) => s.togglePin)
   const extractAndSyncTags = useNoteStore((s) => s.extractAndSyncTags)
   const folders = useNoteStore((s) => s.folders)
+  const createFolder = useNoteStore((s) => s.createFolder)
   const allUsers = useAuthStore((s) => s.allUsers)
   const isDark = useThemeStore((s) => s.isDark)
 
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
+  const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
+  const [newFolderName, setNewFolderName] = useState('')
+  const [newFolderIcon, setNewFolderIcon] = useState('📁')
 
   const currentNote = notes.find((n) => n.id === selectedNoteId)
   const creatorUser = allUsers.find((u) => u.id === currentNote?.created_by)
@@ -110,6 +117,18 @@ export const NoteEditor: React.FC = () => {
     })),
   ]
 
+  const handleCreateFolder = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newFolderName.trim() || !currentNote) return
+    const newFolder = await createFolder(newFolderName.trim(), newFolderIcon)
+    if (newFolder?.id) {
+      updateNote(currentNote.id, { folder_id: newFolder.id })
+    }
+    setNewFolderName('')
+    setNewFolderIcon('📁')
+    setIsFolderModalOpen(false)
+  }
+
   return (
     <>
       <GlassModal
@@ -163,14 +182,29 @@ export const NoteEditor: React.FC = () => {
 
           {/* Folder & Color Palette Settings with Custom GlassDropdown */}
           <div className="flex flex-wrap items-center justify-between gap-3 bg-surface p-2.5 rounded-2xl border border-glass-border">
-            <div className="w-48">
-              <GlassDropdown
-                options={folderDropdownOptions}
-                value={currentNote.folder_id || ''}
-                onChange={(val) => updateNote(currentNote.id, { folder_id: val || null })}
-                placeholder="No Folder"
-                size="sm"
-              />
+            <div className="flex items-center gap-1.5">
+              <div className="w-48">
+                <GlassDropdown
+                  options={folderDropdownOptions}
+                  value={currentNote.folder_id || ''}
+                  onChange={(val) => updateNote(currentNote.id, { folder_id: val || null })}
+                  placeholder="No Folder"
+                  size="sm"
+                  actionItem={{
+                    label: 'Create New Folder...',
+                    icon: <PlusIcon size={14} className="text-lavender-accent" />,
+                    onClick: () => setIsFolderModalOpen(true),
+                  }}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsFolderModalOpen(true)}
+                className="p-2 rounded-xl text-ink-muted hover:text-lavender-accent hover:bg-surface-elevated border border-glass-border shadow-xs transition-colors"
+                title="Create New Folder"
+              >
+                <PlusIcon size={14} />
+              </button>
             </div>
 
             {/* Read-Only Creator Mascot Attribution in Note Editor */}
@@ -367,6 +401,60 @@ export const NoteEditor: React.FC = () => {
         }}
         onCancel={() => setIsDeleteConfirmOpen(false)}
       />
+
+      {/* New Folder Modal */}
+      <GlassModal
+        isOpen={isFolderModalOpen}
+        onClose={() => setIsFolderModalOpen(false)}
+        title="Create New Folder"
+        maxWidth="sm"
+      >
+        <form onSubmit={handleCreateFolder} className="flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 p-2 rounded-xl bg-surface border border-glass-border">
+              {['📁', '💼', '🏡', '✈️', '🎨', '💡', '📚', '🎯'].map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={() => setNewFolderIcon(emoji)}
+                  className={cn(
+                    'p-1.5 rounded-lg text-lg transition-transform',
+                    newFolderIcon === emoji ? 'bg-lavender-accent/20 scale-110' : 'hover:bg-surface'
+                  )}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <GlassInput
+            placeholder="Folder name (e.g. Vacation, Finance)..."
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+            autoFocus
+          />
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <GlassButton
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsFolderModalOpen(false)}
+            >
+              Cancel
+            </GlassButton>
+            <GlassButton
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={!newFolderName.trim()}
+            >
+              Create Folder
+            </GlassButton>
+          </div>
+        </form>
+      </GlassModal>
     </>
   )
 }
