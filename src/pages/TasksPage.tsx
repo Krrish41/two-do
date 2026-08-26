@@ -1,21 +1,22 @@
 import React, { useState, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import {
-  CheckCircle2,
-  Plus,
-  Search,
-  Flag,
-  Calendar,
-  CheckCheck,
-  Flame,
-  Heart,
-  Folder as FolderIcon,
-} from 'lucide-react'
+  CheckCircleIcon,
+  PlusIcon,
+  SearchIcon,
+  CheckCheckIcon,
+  FlameIcon,
+  HeartIcon,
+  FolderIcon,
+} from '../components/icons'
 import { TaskList } from '../components/tasks/TaskList'
 import { FilterSortDrawer } from '../components/common/FilterSortDrawer'
 import { GlassCard } from '../components/glass/GlassCard'
 import { GlassInput } from '../components/glass/GlassInput'
 import { GlassButton } from '../components/glass/GlassButton'
+import { GlassDatePicker } from '../components/glass/GlassDatePicker'
+import { GlassDropdown } from '../components/glass/GlassDropdown'
+import { CoupleAvatar } from '../components/common/CoupleAvatar'
 import { useTaskStore } from '../stores/taskStore'
 import { useAuthStore } from '../stores/authStore'
 import { useNoteStore } from '../stores/noteStore'
@@ -41,7 +42,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
   const priorityFilter = useFilterSortStore((s) => s.priorityFilter)
   const dueDateFilter = useFilterSortStore((s) => s.dueDateFilter)
 
-  // Resolve the actual Bucket List UUID from loaded folders list
+  // Resolve Bucket List UUID from loaded folders list
   const bucketListFolder = folders.find(
     (f) => f.slug === 'bucket-list' || (f.is_system && f.name === 'Bucket List')
   )
@@ -49,7 +50,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
 
   const [newTaskTitle, setNewTaskTitle] = useState('')
   const [selectedPriority, setSelectedPriority] = useState<number>(viewType === 'important' ? 3 : 0)
-  const [selectedDueDate, setSelectedDueDate] = useState<string>('')
+  const [selectedDueDate, setSelectedDueDate] = useState<string | null>(null)
   const [selectedFolder, setSelectedFolder] = useState<string | null>(
     viewType === 'bucket-list' ? bucketListFolderId : folderId || null
   )
@@ -60,7 +61,19 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
 
   const currentFolder = folders.find((f) => f.id === (folderId || selectedFolder))
 
-  const rootTasks = useMemo(() => tasks.filter((t) => !t.parent_task_id), [tasks])
+  // Exclude system folders from dropdown options to prevent repetition (Section 6)
+  const assignableFolders = folders.filter((f) => !f.is_system && f.slug !== 'bucket-list')
+  const folderDropdownOptions = [
+    { value: '', label: 'No Folder', icon: <FolderIcon size={14} className="text-ink-muted" /> },
+    ...assignableFolders.map((f) => ({
+      value: f.id,
+      label: f.name,
+      icon: <span>{f.icon || '📁'}</span>,
+    })),
+  ]
+
+  // Root tasks excluding soft-deleted ones
+  const rootTasks = useMemo(() => tasks.filter((t) => !t.parent_task_id && t.deleted_at === null), [tasks])
 
   const filteredAndSortedTasks = useMemo(() => {
     let result = rootTasks.filter((task) => {
@@ -70,7 +83,6 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
       if (viewType === 'bucket-list') {
         const isBucket =
           (bucketListFolderId && task.folder_id === bucketListFolderId) ||
-          task.folder_id === 'folder-bucket-list' ||
           task.title.toLowerCase().includes('bucket')
         if (!isBucket) return false
       }
@@ -157,13 +169,13 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
     await addTask({
       title: newTaskTitle.trim(),
       priority: viewType === 'important' && selectedPriority < 2 ? 3 : selectedPriority,
-      due_date: selectedDueDate || null,
+      due_date: selectedDueDate,
       folder_id: effectiveFolder,
     })
 
     setNewTaskTitle('')
     if (viewType !== 'important') setSelectedPriority(0)
-    setSelectedDueDate('')
+    setSelectedDueDate(null)
   }
 
   const getHeaderInfo = () => {
@@ -171,7 +183,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
       case 'important':
         return {
           badge: 'High Priority',
-          icon: Flame,
+          icon: FlameIcon,
           color: 'text-rose-500',
           title: 'Important Tasks',
           subtitle: 'Urgent priorities and high-impact action items.',
@@ -179,7 +191,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
       case 'completed':
         return {
           badge: 'Archive',
-          icon: CheckCheck,
+          icon: CheckCheckIcon,
           color: 'text-emerald-500',
           title: 'Completed Tasks',
           subtitle: 'All finished deliverables and shared accomplishments.',
@@ -187,7 +199,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
       case 'bucket-list':
         return {
           badge: 'Bucket List',
-          icon: Heart,
+          icon: HeartIcon,
           color: 'text-blossom-accent',
           title: 'Bucket List',
           subtitle: 'Things we wanna do together 💕',
@@ -204,7 +216,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
       default:
         return {
           badge: 'Workspace',
-          icon: CheckCircle2,
+          icon: CheckCircleIcon,
           color: 'text-lavender-accent',
           title: 'All Tasks',
           subtitle: 'Organize, prioritize, and collaborate on shared tasks.',
@@ -220,7 +232,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className={cn('flex items-center gap-2 font-bold text-xs uppercase tracking-wider mb-1', color)}>
-            <HeaderIcon className="w-4 h-4" />
+            <HeaderIcon size={16} />
             <span>{badge}</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">{title}</h1>
@@ -234,17 +246,17 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
             placeholder="Search tasks..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            icon={<Search className="w-4 h-4" />}
+            icon={<SearchIcon size={16} />}
           />
         </div>
       </div>
 
       {/* Quick Add Task */}
       {viewType !== 'completed' && (
-        <GlassCard variant="default" className="p-4 shadow-glass">
+        <GlassCard variant="default" className="p-4 shadow-glass border border-glass-border">
           <form onSubmit={handleCreateTask} className="flex flex-col gap-3">
             <div className="flex items-center gap-3">
-              <Plus className="w-5 h-5 text-lavender-accent flex-shrink-0" />
+              <PlusIcon size={20} className="text-lavender-accent flex-shrink-0" />
               <input
                 type="text"
                 placeholder={
@@ -254,19 +266,18 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
                 }
                 value={newTaskTitle}
                 onChange={(e) => setNewTaskTitle(e.target.value)}
-                className="w-full bg-transparent text-sm sm:text-base font-medium text-ink placeholder:text-ink-muted outline-none"
+                className="w-full bg-transparent text-sm sm:text-base font-semibold text-ink placeholder:text-ink-muted outline-none"
               />
               <GlassButton type="submit" size="sm" variant="primary" disabled={!newTaskTitle.trim()}>
                 Add Task
               </GlassButton>
             </div>
 
-            {/* Quick Options */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-glass-border-subtle text-xs">
+            {/* Quick Options: High Contrast Priority Chips & Glass Custom Pickers */}
+            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2.5 border-t border-glass-border-subtle text-xs">
               <div className="flex flex-wrap items-center gap-2">
-                {/* Priority Chips */}
-                <div className="flex items-center gap-1 bg-surface p-1 rounded-xl border border-glass-border-subtle">
-                  <Flag className="w-3 h-3 text-ink-muted ml-1" />
+                {/* Priority Selector with High Contrast Styling */}
+                <div className="flex items-center gap-1 bg-surface p-1 rounded-xl border border-glass-border">
                   {[
                     { val: 0, label: 'P0' },
                     { val: 1, label: 'P1' },
@@ -278,10 +289,10 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
                       type="button"
                       onClick={() => setSelectedPriority(p.val)}
                       className={cn(
-                        'px-2 py-0.5 rounded-lg font-bold transition-all text-[11px]',
+                        'px-2.5 py-1 rounded-lg font-bold transition-all text-xs border',
                         selectedPriority === p.val
-                          ? 'bg-lavender-accent text-white shadow-xs'
-                          : 'text-ink-muted hover:text-ink'
+                          ? 'bg-lavender-accent text-white border-lavender-accent shadow-xs'
+                          : 'bg-surface text-ink border-transparent hover:bg-surface-elevated'
                       )}
                     >
                       {p.label}
@@ -289,34 +300,22 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
                   ))}
                 </div>
 
-                {/* Due Date Input */}
-                <div className="flex items-center gap-1 bg-surface px-2 py-1 rounded-xl border border-glass-border-subtle">
-                  <Calendar className="w-3 h-3 text-ink-muted" />
-                  <input
-                    type="date"
-                    value={selectedDueDate}
-                    onChange={(e) => setSelectedDueDate(e.target.value)}
-                    className="bg-transparent text-[11px] font-semibold text-ink outline-none cursor-pointer"
-                  />
-                </div>
+                {/* Custom Glass Date Picker */}
+                <GlassDatePicker
+                  value={selectedDueDate}
+                  onChange={(d) => setSelectedDueDate(d)}
+                  size="sm"
+                />
 
-                {/* Folder dropdown if creating from all view */}
-                {viewType === 'all' && folders.length > 0 && (
-                  <div className="flex items-center gap-1 bg-surface px-2 py-1 rounded-xl border border-glass-border-subtle">
-                    <FolderIcon className="w-3 h-3 text-ink-muted" />
-                    <select
-                      value={selectedFolder || ''}
-                      onChange={(e) => setSelectedFolder(e.target.value || null)}
-                      className="bg-transparent text-[11px] font-semibold text-ink outline-none cursor-pointer"
-                    >
-                      <option value="">No Folder</option>
-                      {folders.map((f) => (
-                        <option key={f.id} value={f.id}>
-                          {f.icon || '📁'} {f.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                {/* Custom Glass Dropdown for Folder (excluding Bucket List to avoid repetition) */}
+                {viewType === 'all' && assignableFolders.length > 0 && (
+                  <GlassDropdown
+                    options={folderDropdownOptions}
+                    value={selectedFolder || ''}
+                    onChange={(val) => setSelectedFolder(val || null)}
+                    placeholder="No Folder"
+                    size="sm"
+                  />
                 )}
               </div>
             </div>
@@ -324,27 +323,50 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
         </GlassCard>
       )}
 
-      {/* Toolbar: Creator Filter Tabs + Filter & Sort Drawer */}
+      {/* Toolbar: Creator Filter Tabs with Mascot Avatars + Filter & Sort Drawer */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 p-1 rounded-2xl glass-panel-subtle">
-          {[
-            { id: 'all', label: 'All' },
-            { id: 'mine', label: authorizedUser?.display_name || 'Mine' },
-            { id: 'partner', label: partnerUser?.display_name || 'Partner' },
-          ].map((tab) => (
+        <div className="flex items-center gap-1.5 p-1 rounded-2xl glass-panel-subtle border border-glass-border">
+          <button
+            onClick={() => setCreatorFilter('all')}
+            className={cn(
+              'px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all',
+              creatorFilter === 'all'
+                ? 'bg-surface-elevated text-ink shadow-sm border border-glass-border'
+                : 'text-ink-muted hover:text-ink'
+            )}
+          >
+            All
+          </button>
+
+          {authorizedUser && (
             <button
-              key={tab.id}
-              onClick={() => setCreatorFilter(tab.id as any)}
+              onClick={() => setCreatorFilter('mine')}
               className={cn(
-                'px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all',
-                creatorFilter === tab.id
-                  ? 'bg-surface-elevated text-ink shadow-sm'
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all',
+                creatorFilter === 'mine'
+                  ? 'bg-surface-elevated text-ink shadow-sm border border-glass-border'
                   : 'text-ink-muted hover:text-ink'
               )}
             >
-              {tab.label}
+              <CoupleAvatar userId={authorizedUser.id} displayName={authorizedUser.display_name} size={16} />
+              <span>{authorizedUser.display_name}</span>
             </button>
-          ))}
+          )}
+
+          {partnerUser && (
+            <button
+              onClick={() => setCreatorFilter('partner')}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all',
+                creatorFilter === 'partner'
+                  ? 'bg-surface-elevated text-ink shadow-sm border border-glass-border'
+                  : 'text-ink-muted hover:text-ink'
+              )}
+            >
+              <CoupleAvatar userId={partnerUser.id} displayName={partnerUser.display_name} size={16} />
+              <span>{partnerUser.display_name}</span>
+            </button>
+          )}
         </div>
 
         <FilterSortDrawer showDueDateFilter={true} showFolderFilter={viewType === 'all'} />
@@ -376,7 +398,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
             onClick={() => setShowCompleted(!showCompleted)}
             className="flex items-center gap-2 text-xs font-bold text-ink-muted hover:text-ink transition-colors w-fit"
           >
-            <CheckCheck className="w-4 h-4 text-emerald-500" />
+            <CheckCheckIcon size={16} className="text-emerald-500" />
             <span>Completed ({completedTasks.length})</span>
           </button>
 

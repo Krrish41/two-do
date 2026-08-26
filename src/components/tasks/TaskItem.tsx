@@ -3,18 +3,19 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import {
-  GripVertical,
-  Check,
-  Calendar,
-  Sun,
-  ListTree,
-  ChevronRight,
-} from 'lucide-react'
+  GripIcon,
+  CheckIcon,
+  CalendarIcon,
+  SunIcon,
+  ChevronRightIcon,
+  ListIcon,
+} from '../icons'
 import type { Task } from '../../lib/database.types'
 import { useTaskStore } from '../../stores/taskStore'
 import { useAuthStore } from '../../stores/authStore'
 import { PriorityFlag } from './PriorityFlag'
 import { RecurrenceIcon } from './RecurrenceIcon'
+import { CoupleAvatar } from '../common/CoupleAvatar'
 import { cn, formatDate } from '../../lib/utils'
 
 export interface TaskItemProps {
@@ -50,11 +51,11 @@ export const TaskItem: React.FC<TaskItemProps> = ({
     zIndex: isDragging ? 50 : 'auto',
   }
 
-  // Count subtasks
-  const subtasks = allTasks.filter((t) => t.parent_task_id === task.id)
+  // Count subtasks (excluding deleted)
+  const subtasks = allTasks.filter((t) => t.parent_task_id === task.id && t.deleted_at === null)
   const completedSubtasks = subtasks.filter((t) => t.is_completed).length
 
-  // Find creator for read-only attribution
+  // Find creator for read-only nickname attribution
   const creatorUser = allUsers.find((u) => u.id === task.created_by)
 
   const handleCheckboxClick = async (e: React.MouseEvent) => {
@@ -79,7 +80,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
         style={style}
         layout
         initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: isDragging ? 0.6 : 1, y: 0 }}
+        animate={{ opacity: isDragging ? 0.4 : 1, y: 0 }}
         exit={{ opacity: 0, height: 0, marginTop: 0, marginBottom: 0, overflow: 'hidden' }}
         transition={{ type: 'spring', stiffness: 300, damping: 24 }}
         onClick={() => setSelectedTaskId(task.id)}
@@ -99,11 +100,11 @@ export const TaskItem: React.FC<TaskItemProps> = ({
             className="touch-none text-ink-subtle hover:text-ink transition-colors p-0.5 rounded cursor-grab active:cursor-grabbing focus:outline-none"
             aria-label="Drag task to reorder"
           >
-            <GripVertical className="w-4 h-4" />
+            <GripIcon size={16} />
           </button>
         )}
 
-        {/* Custom Apple Glass Checkbox */}
+        {/* Custom Apple Glass Checkbox with High-Contrast Border */}
         <button
           onClick={handleCheckboxClick}
           className={cn(
@@ -122,7 +123,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                 exit={{ scale: 0 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 25 }}
               >
-                <Check className="w-3 h-3 stroke-[3]" />
+                <CheckIcon size={12} className="stroke-[3]" />
               </motion.div>
             )}
           </AnimatePresence>
@@ -145,15 +146,15 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           {/* Subtext and Meta Chips */}
           <div className="flex flex-wrap items-center gap-2 mt-1">
             {task.is_my_day_date && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-md">
-                <Sun className="w-3 h-3 text-amber-500" />
-                My Day
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-md">
+                <SunIcon size={12} className="text-amber-500" />
+                Today
               </span>
             )}
 
             {task.due_date && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-ink-muted bg-surface border border-glass-border-subtle px-2 py-0.5 rounded-md">
-                <Calendar className="w-3 h-3 text-ink-subtle" />
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-ink-muted bg-surface border border-glass-border px-2 py-0.5 rounded-md">
+                <CalendarIcon size={12} className="text-ink-subtle" />
                 {formatDate(task.due_date)}
               </span>
             )}
@@ -161,26 +162,23 @@ export const TaskItem: React.FC<TaskItemProps> = ({
             <RecurrenceIcon rule={task.recurrence_rule} />
 
             {subtasks.length > 0 && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-ink-muted bg-surface border border-glass-border-subtle px-2 py-0.5 rounded-md">
-                <ListTree className="w-3 h-3 text-ink-subtle" />
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-ink-muted bg-surface border border-glass-border px-2 py-0.5 rounded-md">
+                <ListIcon size={12} className="text-ink-subtle" />
                 {completedSubtasks}/{subtasks.length}
               </span>
             )}
 
-            {/* Read-only Attribution Pill */}
+            {/* Couple Mascot Avatar Read-only Attribution */}
             {creatorUser && (
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-medium text-ink-muted bg-surface/80 px-2 py-0.5 rounded-full border border-glass-border-subtle">
-                <span
-                  className="w-2 h-2 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: creatorUser.accent_color || '#B8A9E8' }}
-                />
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-ink bg-surface px-2 py-0.5 rounded-full border border-glass-border">
+                <CoupleAvatar userId={creatorUser.id} displayName={creatorUser.display_name} size={16} />
                 <span>Added by {creatorUser.display_name}</span>
               </span>
             )}
           </div>
         </div>
 
-        <ChevronRight className="w-4 h-4 text-ink-subtle group-hover:text-ink group-hover:translate-x-0.5 transition-all" />
+        <ChevronRightIcon size={16} className="text-ink-subtle group-hover:text-ink group-hover:translate-x-0.5 transition-all" />
       </motion.div>
     </AnimatePresence>
   )

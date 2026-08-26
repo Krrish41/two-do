@@ -1,348 +1,357 @@
 import React, { useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import {
-  Sun,
-  CheckCircle2,
-  StickyNote,
-  LogOut,
-  Flame,
-  CheckCheck,
-  Heart,
-  Plus,
-  Trash2,
-  Trash,
-} from 'lucide-react'
-import { useAuthStore } from '../../stores/authStore'
+  SunIcon,
+  CheckCircleIcon,
+  FlameIcon,
+  NotesIcon,
+  CheckCheckIcon,
+  HeartIcon,
+  TrashIcon,
+  PlusIcon,
+  LogOutIcon,
+  CloseIcon,
+} from '../icons'
+import { CoupleAvatar } from '../common/CoupleAvatar'
+import { GlassModal } from '../glass/GlassModal'
+import { GlassInput } from '../glass/GlassInput'
+import { GlassButton } from '../glass/GlassButton'
+import { GlassConfirmDialog } from '../glass/GlassConfirmDialog'
 import { useTaskStore } from '../../stores/taskStore'
 import { useNoteStore } from '../../stores/noteStore'
-import { ThemeToggle } from './ThemeToggle'
-import { GlassConfirmDialog } from '../glass/GlassConfirmDialog'
+import { useAuthStore } from '../../stores/authStore'
 import { cn } from '../../lib/utils'
 
-export const Sidebar: React.FC = () => {
-  const authorizedUser = useAuthStore((s) => s.authorizedUser)
-  const partnerUser = useAuthStore((s) => s.partnerUser)
-  const signOut = useAuthStore((s) => s.signOut)
+export interface SidebarProps {
+  isOpen?: boolean
+  onClose?: () => void
+}
 
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+  const navigate = useNavigate()
   const tasks = useTaskStore((s) => s.tasks)
   const notes = useNoteStore((s) => s.notes)
   const folders = useNoteStore((s) => s.folders)
   const createFolder = useNoteStore((s) => s.createFolder)
   const deleteFolder = useNoteStore((s) => s.deleteFolder)
 
-  const [isCreatingFolder, setIsCreatingFolder] = useState(false)
+  const authorizedUser = useAuthStore((s) => s.authorizedUser)
+  const signOut = useAuthStore((s) => s.signOut)
+
+  const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
   const [newFolderName, setNewFolderName] = useState('')
   const [newFolderIcon, setNewFolderIcon] = useState('📁')
-  const [newFolderColor, setNewFolderColor] = useState('#C4AEF0')
   const [folderToDelete, setFolderToDelete] = useState<{ id: string; name: string } | null>(null)
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false)
 
+  const todayStr = new Date().toISOString().split('T')[0]
+
+  // Count active items
+  const todayCount = tasks.filter(
+    (t) => (t.is_my_day_date === todayStr || t.due_date === todayStr) && !t.is_completed && t.deleted_at === null
+  ).length
+  const allTasksCount = tasks.filter((t) => !t.is_completed && !t.parent_task_id && t.deleted_at === null).length
+  const importantCount = tasks.filter((t) => t.priority >= 2 && !t.is_completed && t.deleted_at === null).length
+  const notesCount = notes.filter((n) => n.deleted_at === null).length
+
+  // Bucket list UUID folder
   const bucketListFolder = folders.find(
     (f) => f.slug === 'bucket-list' || (f.is_system && f.name === 'Bucket List')
   )
-  const bucketListId = bucketListFolder?.id
-
-  const todayStr = new Date().toISOString().split('T')[0]
-  const myDayCount = tasks.filter(
-    (t) => !t.is_completed && (t.is_my_day_date === todayStr || t.due_date === todayStr)
+  const bucketListFolderId = bucketListFolder?.id
+  const bucketListCount = tasks.filter(
+    (t) =>
+      ((bucketListFolderId && t.folder_id === bucketListFolderId) ||
+        t.title.toLowerCase().includes('bucket')) &&
+      !t.is_completed &&
+      t.deleted_at === null
   ).length
-  const allTasksCount = tasks.filter((t) => !t.is_completed).length
-  const importantCount = tasks.filter((t) => !t.is_completed && t.priority >= 2).length
-  const notesCount = notes.filter((n) => n.deleted_at === null).length
-  const completedCount = tasks.filter((t) => t.is_completed).length
-  const bucketListCount =
-    tasks.filter((t) => !t.is_completed && (bucketListId ? t.folder_id === bucketListId : t.title.toLowerCase().includes('bucket'))).length +
-    notes.filter((n) => n.deleted_at === null && (bucketListId ? n.folder_id === bucketListId : false)).length
-  const recycleBinCount = notes.filter((n) => n.deleted_at !== null).length
 
-  const viewItems = [
-    { to: '/today', label: 'My Day', icon: Sun, badge: myDayCount > 0 ? myDayCount : null, color: 'text-amber-500' },
-    { to: '/tasks', label: 'All Tasks', icon: CheckCircle2, badge: allTasksCount > 0 ? allTasksCount : null, color: 'text-lavender-accent' },
-    { to: '/important', label: 'Important', icon: Flame, badge: importantCount > 0 ? importantCount : null, color: 'text-rose-500' },
-    { to: '/notes', label: 'Notes & Memos', icon: StickyNote, badge: notesCount > 0 ? notesCount : null, color: 'text-skyblue-accent' },
-    { to: '/completed', label: 'Completed', icon: CheckCheck, badge: completedCount > 0 ? completedCount : null, color: 'text-emerald-500' },
-    { to: '/bucket-list', label: 'Bucket List', icon: Heart, badge: bucketListCount > 0 ? bucketListCount : null, color: 'text-blossom-accent' },
-  ]
-
-  const userFolders = folders.filter((f) => !f.is_system && !f.parent_folder_id)
+  // Custom User Folders (excluding system folders like Bucket List)
+  const customFolders = folders.filter((f) => !f.is_system && f.slug !== 'bucket-list')
 
   const handleCreateFolder = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newFolderName.trim()) return
-
-    await createFolder(newFolderName.trim(), newFolderIcon, newFolderColor)
+    await createFolder(newFolderName.trim(), newFolderIcon)
     setNewFolderName('')
-    setIsCreatingFolder(false)
+    setNewFolderIcon('📁')
+    setIsFolderModalOpen(false)
   }
 
-  const FOLDER_EMOJIS = ['📁', '🚀', '✨', '📚', '💼', '🏡', '🎨', '🏖️', '💡']
-  const FOLDER_COLORS = ['#C4AEF0', '#A7C7E7', '#F5A9C9', '#5ED99E', '#FBBF24']
+  const handleSignOut = async () => {
+    await signOut()
+    navigate('/login')
+  }
+
+  const navItems = [
+    { to: '/today', label: 'Today', icon: SunIcon, count: todayCount, color: 'text-amber-500' },
+    { to: '/tasks', label: 'All Tasks', icon: CheckCircleIcon, count: allTasksCount, color: 'text-lavender-accent' },
+    { to: '/important', label: 'Important', icon: FlameIcon, count: importantCount, color: 'text-rose-500' },
+    { to: '/notes', label: 'Notes', icon: NotesIcon, count: notesCount, color: 'text-skyblue-accent' },
+    { to: '/completed', label: 'Completed', icon: CheckCheckIcon, count: null, color: 'text-emerald-500' },
+    { to: '/bucket-list', label: 'Bucket List', icon: HeartIcon, count: bucketListCount, color: 'text-blossom-accent' },
+  ]
 
   return (
     <>
-      <aside className="w-72 hidden md:flex flex-col h-[calc(100vh-2rem)] sticky top-4 my-4 ml-4 rounded-3xl glass-panel p-5 justify-between select-none shadow-glass overflow-hidden">
-        <div className="flex flex-col gap-5 overflow-y-auto pr-1">
-          {/* Rebranded Header: Two-Orb Logo + New Tagline */}
-          <div className="flex items-center justify-between px-1 pt-1">
-            <div className="flex items-center gap-2.5">
-              <img src="./logo.svg" alt="Two-Do" className="w-9 h-9 flex-shrink-0 drop-shadow-sm" />
-              <div>
-                <h1 className="font-extrabold text-lg text-ink tracking-tight">Two-Do</h1>
-                <p className="text-[11px] font-medium text-ink-muted">Yours, mine, ours.</p>
+      <aside
+        className={cn(
+          'fixed inset-y-0 left-0 z-40 w-72 p-4 flex flex-col justify-between transition-transform duration-300 ease-in-out md:static md:translate-x-0',
+          'glass-panel border-r border-glass-border shadow-2xl md:shadow-none',
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        )}
+      >
+        <div className="flex flex-col gap-6 overflow-y-auto pr-1">
+          {/* Logo & Header */}
+          <div className="flex items-center justify-between px-2 pt-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-lavender-accent to-skyblue-accent p-0.5 shadow-md flex items-center justify-center">
+                <div className="w-full h-full rounded-[14px] bg-obsidian flex items-center justify-center text-white font-bold text-lg tracking-tighter">
+                  2D
+                </div>
+              </div>
+              <div className="flex flex-col">
+                <span className="font-extrabold text-lg text-ink tracking-tight">Two-Do</span>
+                <span className="text-[11px] font-semibold text-ink-muted">Yours, mine, ours.</span>
               </div>
             </div>
 
-            <ThemeToggle size="sm" />
+            {/* Mobile Close Button */}
+            <button
+              onClick={onClose}
+              className="md:hidden p-2 rounded-xl text-ink-muted hover:text-ink hover:bg-surface transition-colors"
+            >
+              <CloseIcon size={20} />
+            </button>
           </div>
 
-          {/* Duo Members Pill */}
-          <div className="flex items-center justify-between p-2.5 rounded-2xl glass-panel-subtle text-xs">
-            <div className="flex items-center gap-2 min-w-0">
-              <div
-                className="w-6 h-6 rounded-full text-[10px] font-bold text-white flex items-center justify-center flex-shrink-0"
-                style={{ backgroundColor: authorizedUser?.accent_color || '#B8A9E8' }}
-              >
-                {authorizedUser?.display_name?.charAt(0).toUpperCase() || 'U'}
-              </div>
-              <div className="min-w-0">
-                <div className="font-bold text-ink truncate text-[11px]">
-                  {authorizedUser?.display_name || 'Active User'}
-                </div>
-                <div className="text-[9px] text-emerald-500 font-semibold flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Online
-                </div>
-              </div>
-            </div>
-
-            {partnerUser && (
-              <div
-                className="flex items-center gap-1 px-2 py-0.5 rounded-xl bg-surface text-ink-muted text-[10px]"
-                title={`Partner: ${partnerUser.display_name}`}
-              >
-                <div
-                  className="w-4 h-4 rounded-full text-[9px] font-bold text-white flex items-center justify-center"
-                  style={{ backgroundColor: partnerUser.accent_color || '#A7C7E7' }}
-                >
-                  {partnerUser.display_name?.charAt(0).toUpperCase()}
-                </div>
-                <span className="truncate max-w-[70px]">{partnerUser.display_name}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Section: Views */}
+          {/* Core Views Navigation */}
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider px-3 mb-1">
+            <span className="px-3 text-[11px] font-bold uppercase tracking-wider text-ink-subtle mb-1">
               Views
             </span>
-            {viewItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center justify-between px-3 py-2 rounded-2xl text-xs font-semibold transition-all duration-150',
-                    isActive
-                      ? 'bg-surface-elevated text-ink shadow-sm border border-glass-border scale-[1.01]'
-                      : 'text-ink-muted hover:bg-surface hover:text-ink'
-                  )
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <div className="flex items-center gap-2.5">
-                      <item.icon
-                        className={cn('w-4 h-4 transition-transform', item.color, isActive && 'scale-110')}
-                      />
-                      <span>{item.label}</span>
-                    </div>
-                    {item.badge !== null && (
-                      <span
-                        className={cn(
-                          'text-[10px] font-bold px-2 py-0.5 rounded-full',
-                          isActive
-                            ? 'bg-lavender-500/15 text-lavender-accent'
-                            : 'bg-surface text-ink-muted'
-                        )}
-                      >
-                        {item.badge}
-                      </span>
-                    )}
-                  </>
-                )}
-              </NavLink>
-            ))}
+            {navItems.map((item) => {
+              const Icon = item.icon
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  onClick={onClose}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200 group select-none',
+                      isActive
+                        ? 'bg-lavender-accent/15 text-lavender-accent font-bold shadow-xs border border-lavender-accent/25'
+                        : 'text-ink-muted hover:text-ink hover:bg-surface'
+                    )
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <div className="flex items-center gap-3 truncate">
+                        <Icon size={18} className={cn('transition-transform group-hover:scale-110 flex-shrink-0', isActive ? 'text-lavender-accent' : item.color)} />
+                        <span className="truncate">{item.label}</span>
+                      </div>
+                      {typeof item.count === 'number' && item.count > 0 && (
+                        <span
+                          className={cn(
+                            'px-2 py-0.5 text-[11px] font-bold rounded-full transition-colors',
+                            isActive
+                              ? 'bg-lavender-accent text-white'
+                              : 'bg-surface text-ink-muted group-hover:bg-surface-elevated'
+                          )}
+                        >
+                          {item.count}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </NavLink>
+              )
+            })}
           </div>
 
-          {/* Section: Folders & Projects */}
-          <div className="flex flex-col gap-1 pt-2 border-t border-glass-border-subtle">
+          {/* Custom Folders & Projects */}
+          <div className="flex flex-col gap-1">
             <div className="flex items-center justify-between px-3 mb-1">
-              <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-ink-subtle">
                 Folders & Projects
               </span>
               <button
                 type="button"
-                onClick={() => setIsCreatingFolder(true)}
-                className="p-1 rounded-lg text-ink-muted hover:text-ink hover:bg-surface transition-colors"
-                title="New Folder"
+                onClick={() => setIsFolderModalOpen(true)}
+                className="p-1 rounded-lg text-ink-subtle hover:text-lavender-accent hover:bg-surface transition-colors"
+                title="Create new folder"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <PlusIcon size={16} />
               </button>
             </div>
 
-            {/* Folder List */}
-            <div className="flex flex-col gap-0.5">
-              {userFolders.map((folder) => {
-                const count =
-                  tasks.filter((t) => !t.is_completed && t.folder_id === folder.id).length +
-                  notes.filter((n) => n.deleted_at === null && n.folder_id === folder.id).length
+            {customFolders.length === 0 ? (
+              <div className="px-3 py-2 text-xs text-ink-subtle italic">No folders yet</div>
+            ) : (
+              customFolders.map((folder) => {
+                const folderTaskCount = tasks.filter(
+                  (t) => t.folder_id === folder.id && !t.is_completed && t.deleted_at === null
+                ).length
 
                 return (
-                  <NavLink
+                  <div
                     key={folder.id}
-                    to={`/folder/${folder.id}`}
-                    className={({ isActive }) =>
-                      cn(
-                        'group flex items-center justify-between px-3 py-2 rounded-2xl text-xs font-semibold transition-all',
-                        isActive
-                          ? 'bg-surface-elevated text-ink shadow-sm border border-glass-border'
-                          : 'text-ink-muted hover:bg-surface hover:text-ink'
-                      )
-                    }
+                    className="group flex items-center justify-between rounded-2xl hover:bg-surface transition-colors pr-2"
                   >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span>{folder.icon || '📁'}</span>
+                    <NavLink
+                      to={`/folder/${folder.id}`}
+                      onClick={onClose}
+                      className={({ isActive }) =>
+                        cn(
+                          'flex items-center gap-3 px-3.5 py-2 text-xs sm:text-sm font-semibold transition-colors flex-1 truncate select-none',
+                          isActive
+                            ? 'text-lavender-accent font-bold'
+                            : 'text-ink-muted group-hover:text-ink'
+                        )
+                      }
+                    >
+                      <span className="text-base flex-shrink-0">{folder.icon || '📁'}</span>
                       <span className="truncate">{folder.name}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      {count > 0 && (
-                        <span className="text-[10px] text-ink-subtle bg-surface px-1.5 py-0.2 rounded-full">
-                          {count}
+                    </NavLink>
+
+                    <div className="flex items-center gap-1">
+                      {folderTaskCount > 0 && (
+                        <span className="text-[11px] text-ink-subtle font-semibold px-1.5">
+                          {folderTaskCount}
                         </span>
                       )}
                       <button
                         type="button"
-                        onClick={(e) => {
-                          e.preventDefault()
-                          e.stopPropagation()
-                          setFolderToDelete({ id: folder.id, name: folder.name })
-                        }}
-                        className="opacity-0 group-hover:opacity-100 p-0.5 hover:text-rose-500 text-ink-subtle transition-opacity"
+                        onClick={() => setFolderToDelete({ id: folder.id, name: folder.name })}
+                        className="opacity-0 group-hover:opacity-100 p-1 text-ink-subtle hover:text-rose-500 transition-opacity"
+                        title="Delete folder"
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <TrashIcon size={14} />
                       </button>
                     </div>
-                  </NavLink>
+                  </div>
                 )
-              })}
-            </div>
-
-            {/* New Folder Form */}
-            {isCreatingFolder && (
-              <form onSubmit={handleCreateFolder} className="p-3 rounded-2xl bg-surface border border-glass-border flex flex-col gap-2 mt-1">
-                <div className="flex items-center gap-2">
-                  <select
-                    value={newFolderIcon}
-                    onChange={(e) => setNewFolderIcon(e.target.value)}
-                    className="bg-transparent text-sm outline-none cursor-pointer"
-                  >
-                    {FOLDER_EMOJIS.map((em) => (
-                      <option key={em} value={em}>
-                        {em}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="text"
-                    placeholder="Folder name..."
-                    value={newFolderName}
-                    onChange={(e) => setNewFolderName(e.target.value)}
-                    className="w-full bg-transparent text-xs text-ink outline-none placeholder:text-ink-muted font-medium"
-                    autoFocus
-                  />
-                </div>
-
-                <div className="flex items-center justify-between pt-1 border-t border-glass-border-subtle">
-                  <div className="flex items-center gap-1">
-                    {FOLDER_COLORS.map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        onClick={() => setNewFolderColor(c)}
-                        style={{ backgroundColor: c }}
-                        className={cn(
-                          'w-3 h-3 rounded-full',
-                          newFolderColor === c && 'ring-1 ring-ink ring-offset-1'
-                        )}
-                      />
-                    ))}
-                  </div>
-
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="submit"
-                      className="px-2 py-0.5 rounded-lg bg-lavender-accent text-white text-[11px] font-bold"
-                    >
-                      Add
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIsCreatingFolder(false)}
-                      className="text-[11px] text-ink-muted hover:text-ink px-1"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              </form>
+              })
             )}
+          </div>
+
+          {/* Recycle Bin Navigation */}
+          <div className="flex flex-col gap-1 pt-2 border-t border-glass-border-subtle">
+            <NavLink
+              to="/recycle-bin"
+              onClick={onClose}
+              className={({ isActive }) =>
+                cn(
+                  'flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200 group select-none',
+                  isActive
+                    ? 'bg-lavender-accent/15 text-lavender-accent font-bold'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface'
+                )
+              }
+            >
+              <div className="flex items-center gap-3">
+                <TrashIcon size={18} className="text-ink-subtle group-hover:text-rose-500 transition-colors" />
+                <span>Recycle Bin</span>
+              </div>
+            </NavLink>
           </div>
         </div>
 
-        {/* Footer: Recycle Bin & Sign Out */}
-        <div className="pt-3 border-t border-glass-border-subtle flex flex-col gap-2">
-          {/* Recycle Bin Link */}
-          <NavLink
-            to="/recycle-bin"
-            className={({ isActive }) =>
-              cn(
-                'flex items-center justify-between px-3 py-1.5 rounded-xl text-xs transition-colors',
-                isActive
-                  ? 'bg-surface text-ink font-semibold'
-                  : 'text-ink-muted hover:text-ink hover:bg-surface/50'
-              )
-            }
-          >
-            <div className="flex items-center gap-2">
-              <Trash className="w-3.5 h-3.5 text-ink-subtle" />
-              <span>Recycle Bin</span>
+        {/* User Footer Profile & Mascot Avatars */}
+        <div className="pt-4 border-t border-glass-border-subtle flex flex-col gap-3">
+          <div className="flex items-center justify-between p-2 rounded-2xl bg-surface border border-glass-border">
+            <div className="flex items-center gap-2.5 truncate">
+              {authorizedUser && (
+                <CoupleAvatar
+                  userId={authorizedUser.id}
+                  displayName={authorizedUser.display_name}
+                  size={32}
+                  showOnlineBadge={true}
+                />
+              )}
+              <div className="flex flex-col min-w-0">
+                <span className="font-bold text-xs text-ink truncate">
+                  {authorizedUser?.display_name || 'Dr. Bubs'}
+                </span>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Online
+                </span>
+              </div>
             </div>
-            {recycleBinCount > 0 && (
-              <span className="text-[10px] text-ink-muted bg-surface px-1.5 py-0.2 rounded-full">
-                {recycleBinCount}
-              </span>
-            )}
-          </NavLink>
 
-          <div className="flex items-center justify-between px-1">
             <button
-              type="button"
-              onClick={signOut}
-              className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs text-ink-muted hover:text-rose-500 hover:bg-rose-500/10 transition-colors font-medium"
+              onClick={() => setIsLogoutConfirmOpen(true)}
+              className="p-2 rounded-xl text-ink-subtle hover:text-rose-500 hover:bg-surface-elevated transition-colors"
+              title="Sign Out"
             >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Sign Out</span>
+              <LogOutIcon size={16} />
             </button>
-            <span className="text-[10px] text-ink-subtle font-medium">Two-Do</span>
           </div>
         </div>
       </aside>
 
-      {/* Confirmation Dialog for Folder Deletion */}
+      {/* New Folder Modal */}
+      <GlassModal
+        isOpen={isFolderModalOpen}
+        onClose={() => setIsFolderModalOpen(false)}
+        title="Create New Folder"
+        maxWidth="sm"
+      >
+        <form onSubmit={handleCreateFolder} className="flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 p-2 rounded-xl bg-surface border border-glass-border">
+              {['📁', '💼', '🏡', '✈️', '🎨', '💡', '📚', '🎯'].map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={() => setNewFolderIcon(emoji)}
+                  className={cn(
+                    'p-1.5 rounded-lg text-lg transition-transform',
+                    newFolderIcon === emoji ? 'bg-lavender-accent/20 scale-110' : 'hover:bg-surface'
+                  )}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-bold text-ink-muted">Folder Name</label>
+            <GlassInput
+              placeholder="e.g. Vacation Plans, Renovations..."
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              required
+              autoFocus
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <GlassButton
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsFolderModalOpen(false)}
+            >
+              Cancel
+            </GlassButton>
+            <GlassButton type="submit" variant="primary" size="sm" disabled={!newFolderName.trim()}>
+              Create Folder
+            </GlassButton>
+          </div>
+        </form>
+      </GlassModal>
+
+      {/* Modern Glass Confirm Dialog for Folder Deletion */}
       <GlassConfirmDialog
         isOpen={Boolean(folderToDelete)}
         title="Delete Folder?"
-        description={`Are you sure you want to delete the folder "${folderToDelete?.name}"? Tasks inside will remain intact.`}
+        description={`Are you sure you want to delete "${folderToDelete?.name}"? Tasks and notes in this folder will not be deleted.`}
         confirmText="Delete Folder"
         variant="danger"
         onConfirm={() => {
@@ -352,6 +361,20 @@ export const Sidebar: React.FC = () => {
           }
         }}
         onCancel={() => setFolderToDelete(null)}
+      />
+
+      {/* Modern Glass Confirm Dialog for Logout */}
+      <GlassConfirmDialog
+        isOpen={isLogoutConfirmOpen}
+        title="Sign Out?"
+        description="Are you sure you want to log out of Two-Do?"
+        confirmText="Sign Out"
+        variant="primary"
+        onConfirm={() => {
+          setIsLogoutConfirmOpen(false)
+          handleSignOut()
+        }}
+        onCancel={() => setIsLogoutConfirmOpen(false)}
       />
     </>
   )

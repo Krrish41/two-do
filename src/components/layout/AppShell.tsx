@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { MobileNav } from './MobileNav'
 import { BackgroundMesh } from './BackgroundMesh'
+import { ThemeToggle } from './ThemeToggle'
 import { TaskDetailSheet } from '../tasks/TaskDetailSheet'
 import { NoteEditor } from '../notes/NoteEditor'
 import { useRealtimeSync } from '../../hooks/useRealtimeSync'
@@ -30,6 +31,11 @@ export const AppShell: React.FC = () => {
       <main className="flex-1 max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 w-full overflow-y-auto">
         <Outlet />
       </main>
+
+      {/* Floating Theme Toggle */}
+      <div className="fixed top-4 right-4 z-30">
+        <ThemeToggle />
+      </div>
 
       <MobileNav />
 
