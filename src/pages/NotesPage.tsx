@@ -12,6 +12,7 @@ import { NoteCard } from '../components/notes/NoteCard'
 import { NoteEditor } from '../components/notes/NoteEditor'
 import { GlassInput } from '../components/glass/GlassInput'
 import { GlassButton } from '../components/glass/GlassButton'
+import { GlassModal } from '../components/glass/GlassModal'
 import { CoupleAvatar } from '../components/common/CoupleAvatar'
 import { useNoteStore } from '../stores/noteStore'
 import { useAuthStore } from '../stores/authStore'
@@ -20,6 +21,7 @@ import { cn } from '../lib/utils'
 export const NotesPage: React.FC = () => {
   const notes = useNoteStore((s) => s.notes)
   const folders = useNoteStore((s) => s.folders)
+  const createFolder = useNoteStore((s) => s.createFolder)
   const noteTags = useNoteStore((s) => s.noteTags)
   const addNote = useNoteStore((s) => s.addNote)
   const setSelectedNoteId = useNoteStore((s) => s.setSelectedNoteId)
@@ -32,6 +34,10 @@ export const NotesPage: React.FC = () => {
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null)
   const [creatorFilter, setCreatorFilter] = useState<'all' | 'mine' | 'partner'>('all')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+
+  const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
+  const [newFolderName, setNewFolderName] = useState('')
+  const [newFolderIcon, setNewFolderIcon] = useState('📁')
 
   const assignableFolders = folders.filter((f) => !f.is_system && f.slug !== 'bucket-list')
 
@@ -73,9 +79,21 @@ export const NotesPage: React.FC = () => {
     }
   }
 
+  const handleCreateFolder = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newFolderName.trim()) return
+    const newFolder = await createFolder(newFolderName.trim(), newFolderIcon)
+    if (newFolder?.id) {
+      setSelectedFolderId(newFolder.id)
+    }
+    setNewFolderName('')
+    setNewFolderIcon('📁')
+    setIsFolderModalOpen(false)
+  }
+
   return (
     <div className="flex flex-col gap-6 max-w-5xl mx-auto pb-12">
-      {/* Header Banner */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-skyblue-accent font-bold text-xs uppercase tracking-wider mb-1">
@@ -88,40 +106,39 @@ export const NotesPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* View Mode & New Note Action */}
+        <div className="flex items-center gap-2.5">
           {/* View Mode Toggle */}
-          <div className="flex items-center gap-1 p-1 rounded-2xl glass-panel-subtle border border-glass-border">
+          <div className="flex items-center p-1 rounded-2xl bg-surface border border-glass-border">
             <button
-              type="button"
               onClick={() => setViewMode('grid')}
               style={
                 viewMode === 'grid'
                   ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
-                  : { color: 'var(--color-ink-muted)' }
+                  : {}
               }
               className={cn(
                 'p-2 rounded-xl transition-all',
                 viewMode === 'grid'
-                  ? 'shadow-xs border border-white/20'
-                  : 'hover:text-ink'
+                  ? 'border border-white/20 shadow-xs'
+                  : 'text-ink-muted hover:text-ink'
               )}
               title="Grid View"
             >
               <GridIcon size={16} />
             </button>
             <button
-              type="button"
               onClick={() => setViewMode('list')}
               style={
                 viewMode === 'list'
                   ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
-                  : { color: 'var(--color-ink-muted)' }
+                  : {}
               }
               className={cn(
                 'p-2 rounded-xl transition-all',
                 viewMode === 'list'
-                  ? 'shadow-xs border border-white/20'
-                  : 'hover:text-ink'
+                  ? 'border border-white/20 shadow-xs'
+                  : 'text-ink-muted hover:text-ink'
               )}
               title="List View"
             >
@@ -129,53 +146,62 @@ export const NotesPage: React.FC = () => {
             </button>
           </div>
 
-          <GlassButton variant="primary" size="md" onClick={handleCreateNote}>
-            <PlusIcon size={18} className="mr-1.5" />
-            New Note
+          <GlassButton
+            variant="primary"
+            size="md"
+            onClick={handleCreateNote}
+            className="flex items-center gap-2"
+          >
+            <PlusIcon size={18} />
+            <span>New Note</span>
           </GlassButton>
         </div>
       </div>
 
-      {/* Filter and Search Toolbar */}
+      {/* Toolbar: Creator Filter Tabs & Search */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        {/* Creator Tabs with Mascot Avatars */}
         <div className="flex items-center gap-1.5 p-1 rounded-2xl glass-panel-subtle border border-glass-border">
-          {[
-            { key: 'all', label: 'All' },
-            {
-              key: 'mine',
-              label: authorizedUser?.display_name || 'Me',
-              avatar: authorizedUser ? <CoupleAvatar userId={authorizedUser.id} displayName={authorizedUser.display_name} size={16} /> : null,
-            },
-            {
-              key: 'partner',
-              label: partnerUser?.display_name || 'Partner',
-              avatar: partnerUser ? <CoupleAvatar userId={partnerUser.id} displayName={partnerUser.display_name} size={16} /> : null,
-            },
-          ].map((tab) => {
-            const isSelected = creatorFilter === tab.key
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setCreatorFilter(tab.key as any)}
-                style={
-                  isSelected
-                    ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
-                    : { color: 'var(--color-ink-muted)' }
-                }
-                className={cn(
-                  'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all',
-                  isSelected
-                    ? 'shadow-xs border border-white/20'
-                    : 'hover:text-ink'
-                )}
-              >
-                {tab.avatar}
-                <span>{tab.label}</span>
-              </button>
-            )
-          })}
+          <button
+            onClick={() => setCreatorFilter('all')}
+            className={cn(
+              'px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all',
+              creatorFilter === 'all'
+                ? 'bg-surface-elevated text-ink shadow-sm border border-glass-border'
+                : 'text-ink-muted hover:text-ink'
+            )}
+          >
+            All
+          </button>
+
+          {authorizedUser && (
+            <button
+              onClick={() => setCreatorFilter('mine')}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all',
+                creatorFilter === 'mine'
+                  ? 'bg-surface-elevated text-ink shadow-sm border border-glass-border'
+                  : 'text-ink-muted hover:text-ink'
+              )}
+            >
+              <CoupleAvatar userId={authorizedUser.id} displayName={authorizedUser.display_name} size={16} />
+              <span>{authorizedUser.display_name}</span>
+            </button>
+          )}
+
+          {partnerUser && (
+            <button
+              onClick={() => setCreatorFilter('partner')}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all',
+                creatorFilter === 'partner'
+                  ? 'bg-surface-elevated text-ink shadow-sm border border-glass-border'
+                  : 'text-ink-muted hover:text-ink'
+              )}
+            >
+              <CoupleAvatar userId={partnerUser.id} displayName={partnerUser.display_name} size={16} />
+              <span>{partnerUser.display_name}</span>
+            </button>
+          )}
         </div>
 
         {/* Search */}
@@ -190,56 +216,64 @@ export const NotesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Folder Chips */}
-      {assignableFolders.length > 0 && (
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-          <button
-            type="button"
-            onClick={() => setSelectedFolderId(null)}
-            style={
-              selectedFolderId === null
-                ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
-                : {}
-            }
-            className={cn(
-              'px-3 py-1.5 rounded-xl text-xs font-bold transition-all border whitespace-nowrap',
-              selectedFolderId === null
-                ? 'border-white/20 shadow-xs'
-                : 'bg-surface text-ink-muted hover:text-ink border-glass-border hover:bg-surface-elevated'
-            )}
-          >
-            All Notes
-          </button>
-          {assignableFolders.map((folder) => {
-            const isSelected = selectedFolderId === folder.id
-            return (
-              <button
-                key={folder.id}
-                type="button"
-                onClick={() => setSelectedFolderId(isSelected ? null : folder.id)}
-                style={
-                  isSelected
-                    ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
-                    : {}
-                }
-                className={cn(
-                  'px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 whitespace-nowrap',
-                  isSelected
-                    ? 'border-white/20 shadow-xs'
-                    : 'bg-surface text-ink-muted hover:text-ink border-glass-border hover:bg-surface-elevated'
-                )}
-              >
-                {folder.icon && folder.icon !== '📁' && folder.icon !== '📂' ? (
-                  <span>{folder.icon}</span>
-                ) : (
-                  <FolderIcon size={14} className="text-amber-500 flex-shrink-0" />
-                )}
-                <span>{folder.name}</span>
-              </button>
-            )
-          })}
-        </div>
-      )}
+      {/* Folder Chips with + New Folder Button */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        <button
+          type="button"
+          onClick={() => setSelectedFolderId(null)}
+          style={
+            selectedFolderId === null
+              ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
+              : {}
+          }
+          className={cn(
+            'px-3 py-1.5 rounded-xl text-xs font-bold transition-all border whitespace-nowrap',
+            selectedFolderId === null
+              ? 'border-white/20 shadow-xs'
+              : 'bg-surface text-ink-muted hover:text-ink border-glass-border hover:bg-surface-elevated'
+          )}
+        >
+          All Notes
+        </button>
+        {assignableFolders.map((folder) => {
+          const isSelected = selectedFolderId === folder.id
+          return (
+            <button
+              key={folder.id}
+              type="button"
+              onClick={() => setSelectedFolderId(isSelected ? null : folder.id)}
+              style={
+                isSelected
+                  ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
+                  : {}
+              }
+              className={cn(
+                'px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 whitespace-nowrap',
+                isSelected
+                  ? 'border-white/20 shadow-xs'
+                  : 'bg-surface text-ink-muted hover:text-ink border-glass-border hover:bg-surface-elevated'
+              )}
+            >
+              {folder.icon && folder.icon !== '📁' && folder.icon !== '📂' ? (
+                <span>{folder.icon}</span>
+              ) : (
+                <FolderIcon size={14} className="text-amber-500 flex-shrink-0" />
+              )}
+              <span>{folder.name}</span>
+            </button>
+          )
+        })}
+
+        <button
+          type="button"
+          onClick={() => setIsFolderModalOpen(true)}
+          className="px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all border border-dashed border-lavender-accent/40 text-lavender-accent hover:bg-lavender-accent/15 flex items-center gap-1 whitespace-nowrap"
+          title="Create New Folder"
+        >
+          <PlusIcon size={13} />
+          <span>Folder</span>
+        </button>
+      </div>
 
       {/* Pinned Notes Section */}
       {pinnedNotes.length > 0 && (
@@ -304,6 +338,60 @@ export const NotesPage: React.FC = () => {
 
       {/* Full Modal Rich-Text Note Editor */}
       <NoteEditor />
+
+      {/* New Folder Modal */}
+      <GlassModal
+        isOpen={isFolderModalOpen}
+        onClose={() => setIsFolderModalOpen(false)}
+        title="Create New Folder"
+        maxWidth="sm"
+      >
+        <form onSubmit={handleCreateFolder} className="flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 p-2 rounded-xl bg-surface border border-glass-border">
+              {['📁', '💼', '🏡', '✈️', '🎨', '💡', '📚', '🎯'].map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={() => setNewFolderIcon(emoji)}
+                  className={cn(
+                    'p-1.5 rounded-lg text-lg transition-transform',
+                    newFolderIcon === emoji ? 'bg-lavender-accent/20 scale-110' : 'hover:bg-surface'
+                  )}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <GlassInput
+            placeholder="Folder name (e.g. Vacation, Finance)..."
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+            autoFocus
+          />
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <GlassButton
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsFolderModalOpen(false)}
+            >
+              Cancel
+            </GlassButton>
+            <GlassButton
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={!newFolderName.trim()}
+            >
+              Create Folder
+            </GlassButton>
+          </div>
+        </form>
+      </GlassModal>
     </div>
   )
 }

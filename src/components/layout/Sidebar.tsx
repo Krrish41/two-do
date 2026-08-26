@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   SunIcon,
   CheckCircleIcon,
@@ -97,11 +98,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   return (
     <>
+      {/* Mobile Backdrop Overlay */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+          />
+        )}
+      </AnimatePresence>
+
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-40 w-72 p-4 flex flex-col justify-between transition-transform duration-300 ease-in-out',
+          'fixed inset-y-0 left-0 z-50 w-72 p-4 flex flex-col justify-between transition-transform duration-300 ease-in-out',
           'md:static md:translate-x-0 md:m-3 md:h-[calc(100vh-1.5rem)] md:rounded-3xl',
-          'glass-panel border border-glass-border shadow-2xl md:shadow-glass',
+          'bg-white/95 dark:bg-[#150F22]/95 backdrop-blur-2xl md:glass-panel border border-glass-border shadow-2xl md:shadow-glass',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
