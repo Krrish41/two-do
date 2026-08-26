@@ -47,7 +47,7 @@ export const GlassButton: React.FC<GlassButtonProps> = ({
       transition={{ type: 'spring', stiffness: 320, damping: 24 }}
       disabled={disabled || loading}
       className={cn(
-        'inline-flex items-center justify-center transition-all select-none disabled:opacity-50 disabled:cursor-not-allowed',
+        'inline-flex items-center justify-center transition-all select-none disabled:opacity-60 disabled:cursor-not-allowed disabled:shadow-none',
         sizeClasses,
         variantClasses,
         className
