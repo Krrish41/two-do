@@ -14,6 +14,7 @@ import {
   CloseIcon,
 } from '../icons'
 import { CoupleAvatar } from '../common/CoupleAvatar'
+import { ThemeToggle } from './ThemeToggle'
 import { GlassModal } from '../glass/GlassModal'
 import { GlassInput } from '../glass/GlassInput'
 import { GlassButton } from '../glass/GlassButton'
@@ -289,13 +290,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               </div>
             </div>
 
-            <button
-              onClick={() => setIsLogoutConfirmOpen(true)}
-              className="p-2 rounded-xl text-ink-subtle hover:text-rose-500 hover:bg-surface-elevated transition-colors"
-              title="Sign Out"
-            >
-              <LogOutIcon size={16} />
-            </button>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <ThemeToggle size="sm" />
+              <button
+                type="button"
+                onClick={() => setIsLogoutConfirmOpen(true)}
+                className="p-2 rounded-xl text-ink-subtle hover:text-rose-500 hover:bg-surface-elevated transition-colors"
+                title="Sign Out"
+              >
+                <LogOutIcon size={16} />
+              </button>
+            </div>
           </div>
         </div>
       </aside>
