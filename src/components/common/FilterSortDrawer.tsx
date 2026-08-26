@@ -105,7 +105,7 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                   <SortIcon size={14} className="text-lavender-accent" />
                   Sort By
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="flex flex-wrap gap-2">
                   {[
                     { field: 'position' as SortField, label: 'Manual Order' },
                     { field: 'created_at' as SortField, label: 'Date Created' },
@@ -130,15 +130,15 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                             : { color: 'var(--color-ink)' }
                         }
                         className={cn(
-                          'p-2.5 rounded-xl text-xs font-bold transition-all border text-center flex items-center justify-center gap-1',
+                          'px-3.5 py-2 rounded-xl text-xs font-bold transition-all border text-center flex items-center gap-1.5 flex-1 min-w-[100px] justify-center select-none',
                           isSelected
                             ? 'border-white/20 shadow-xs'
                             : 'bg-surface text-ink border-glass-border hover:bg-surface-elevated'
                         )}
                       >
-                        <span className="truncate">{label}</span>
+                        <span className="whitespace-nowrap">{label}</span>
                         {isSelected && (
-                          <span className="text-[10px] ml-0.5">
+                          <span className="text-xs ml-0.5 font-bold">
                             {sortDirection === 'asc' ? '↑' : '↓'}
                           </span>
                         )}
@@ -154,13 +154,13 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                   <FlagIcon size={14} className="text-lavender-accent" />
                   Priority
                 </label>
-                <div className="grid grid-cols-5 gap-1.5">
+                <div className="flex flex-wrap gap-1.5">
                   {[
                     { val: null, label: 'All' },
                     { val: 0, label: 'None' },
                     { val: 1, label: 'Low (P1)' },
                     { val: 2, label: 'Med (P2)' },
-                    { val: 3, label: 'Urg (P3)' },
+                    { val: 3, label: 'Urgent (P3)' },
                   ].map((p) => {
                     const isSelected = priorityFilter === p.val
                     return (
@@ -174,7 +174,7 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                             : { color: 'var(--color-ink)' }
                         }
                         className={cn(
-                          'p-2 rounded-xl text-xs font-bold transition-all border text-center',
+                          'px-3 py-2 rounded-xl text-xs font-bold transition-all border text-center flex-1 min-w-[65px] select-none',
                           isSelected
                             ? 'border-white/20 shadow-xs'
                             : 'bg-surface text-ink border-glass-border hover:bg-surface-elevated'
@@ -194,7 +194,7 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                     <CalendarIcon size={14} className="text-lavender-accent" />
                     Due Date
                   </label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {[
                       { val: 'all' as DueDateFilter, label: 'All Dates' },
                       { val: 'today' as DueDateFilter, label: 'Due Today' },
@@ -214,7 +214,7 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                               : { color: 'var(--color-ink)' }
                           }
                           className={cn(
-                            'p-2 rounded-xl text-xs font-bold transition-all border text-center',
+                            'px-3 py-2 rounded-xl text-xs font-bold transition-all border text-center flex-1 min-w-[85px] select-none',
                             isSelected
                               ? 'border-white/20 shadow-xs'
                               : 'bg-surface text-ink border-glass-border hover:bg-surface-elevated'
