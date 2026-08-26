@@ -24,40 +24,43 @@ export const MobileNav: React.FC<MobileNavProps> = ({ onOpenMenu }) => {
 
   return (
     <nav
-      className="md:hidden fixed bottom-3 left-3 right-3 z-40 select-none"
+      className="md:hidden fixed bottom-3.5 left-4 right-4 z-40 select-none"
       style={{
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
     >
-      <div className="liquid-tabbar flex items-center justify-around py-1.5 px-1.5 shadow-2xl">
+      <div className="liquid-tabbar flex items-center justify-around py-2 px-2 shadow-2xl">
         {navItems.map((item) => {
           const Icon = item.icon
           return (
             <NavLink
               key={item.to}
               to={item.to}
-              className="relative flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] rounded-2xl transition-all duration-200"
+              className="relative flex flex-col items-center justify-center py-1.5 px-3 min-w-[58px] rounded-full transition-all duration-200"
             >
               {({ isActive }) => (
                 <>
-                  {/* Liquid Morphing Selection Indicator */}
+                  {/* Apple iOS 26 Liquid Glass 3D Refractive Lens with Chromatic Prism Glow */}
                   {isActive && (
                     <motion.div
-                      layoutId="liquid-active-tab"
-                      className="absolute inset-0 bg-lavender-accent/20 rounded-2xl border border-lavender-accent/30 shadow-inner"
+                      layoutId="liquid-glass-active-lens"
+                      className="liquid-glass-lens"
                       transition={{
                         type: 'spring',
-                        stiffness: 400,
-                        damping: 30,
+                        stiffness: 420,
+                        damping: 28,
+                        mass: 0.8,
                       }}
                     />
                   )}
 
                   <Icon
-                    size={19}
+                    size={20}
                     className={cn(
                       'relative z-10 transition-all duration-200',
-                      isActive ? 'text-lavender-accent scale-110' : 'text-ink-muted'
+                      isActive
+                        ? 'text-lavender-accent scale-110 drop-shadow-[0_2px_10px_rgba(104,60,184,0.4)]'
+                        : 'text-ink-muted hover:text-ink'
                     )}
                   />
                   <span
@@ -78,10 +81,10 @@ export const MobileNav: React.FC<MobileNavProps> = ({ onOpenMenu }) => {
         <button
           type="button"
           onClick={onOpenMenu}
-          className="relative flex flex-col items-center justify-center py-1 px-2.5 min-w-[56px] rounded-2xl text-ink-muted hover:text-ink transition-colors"
+          className="relative flex flex-col items-center justify-center py-1.5 px-3 min-w-[58px] rounded-full text-ink-muted hover:text-ink transition-colors"
           title="Open Menu & Folders"
         >
-          <MenuIcon size={19} className="relative z-10" />
+          <MenuIcon size={20} className="relative z-10" />
           <span className="relative z-10 text-[10px] font-bold mt-0.5 tracking-tight">
             Menu
           </span>
