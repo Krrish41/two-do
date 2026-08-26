@@ -112,7 +112,7 @@ export const TodayPage: React.FC = () => {
       </div>
 
       {/* Quick Add Form */}
-      <GlassCard variant="default" className="p-4 shadow-glass border border-glass-border">
+      <GlassCard variant="default" className="relative z-30 p-4 shadow-glass border border-glass-border">
         <form onSubmit={handleCreateTask} className="flex flex-col gap-3">
           <div className="flex items-center gap-3">
             <PlusIcon size={20} className="text-amber-500 flex-shrink-0" />
