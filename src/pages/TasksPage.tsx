@@ -253,7 +253,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
 
       {/* Quick Add Task */}
       {viewType !== 'completed' && (
-        <GlassCard variant="default" className="p-4 shadow-glass border border-glass-border">
+        <GlassCard variant="default" className="relative z-30 p-4 shadow-glass border border-glass-border">
           <form onSubmit={handleCreateTask} className="flex flex-col gap-3">
             <div className="flex items-center gap-3">
               <PlusIcon size={20} className="text-lavender-accent flex-shrink-0" />
