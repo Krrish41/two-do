@@ -41,7 +41,7 @@ export const GlassButton: React.FC<GlassButtonProps> = ({
       'bg-skyblue-accent text-white shadow-sm hover:brightness-110 border border-white/20 disabled:opacity-50',
   }[variant]
 
-  const defaultStyle: React.CSSProperties =
+  const defaultStyle: any =
     variant === 'primary'
       ? {
           background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)',
