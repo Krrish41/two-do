@@ -178,7 +178,7 @@ export const App: React.FC = () => {
                   {authorizedUser.display_name}
                 </span>
                 <span className="text-xs text-ink-muted truncate">
-                  {authorizedUser.email}
+                  {session?.user?.email || 'Authorized User'}
                 </span>
                 <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -224,12 +224,12 @@ export const App: React.FC = () => {
       {/* Logout Confirmation Dialog */}
       <GlassConfirmDialog
         isOpen={isLogoutConfirmOpen}
-        onClose={() => setIsLogoutConfirmOpen(false)}
+        onCancel={() => setIsLogoutConfirmOpen(false)}
         onConfirm={handleSignOut}
         title="Sign Out"
-        message="Are you sure you want to sign out of your shared workspace?"
+        description="Are you sure you want to sign out of your shared workspace?"
         confirmText="Sign Out"
-        confirmVariant="danger"
+        variant="danger"
       />
 
       {/* Sidebar (Responsive drawer on mobile, floating column on desktop) */}
