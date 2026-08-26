@@ -13,18 +13,10 @@ export const GlassInput = forwardRef<HTMLInputElement, GlassInputProps>(
     return (
       <div className={cn('w-full flex flex-col gap-1', containerClassName)}>
         <div className="relative flex items-center w-full">
-          {icon && (
-            <div
-              style={{ color: 'var(--color-ink-muted)' }}
-              className="absolute left-3.5 flex items-center pointer-events-none text-ink-muted flex-shrink-0"
-            >
-              {icon}
-            </div>
-          )}
           <input
             ref={ref}
             className={cn(
-              'w-full glass-input text-ink font-medium placeholder:text-ink-muted/75 text-sm rounded-2xl px-4 py-2.5 outline-none transition-all',
+              'w-full glass-input text-ink font-medium placeholder:text-ink-muted/80 text-sm rounded-2xl px-4 py-2.5 outline-none transition-all',
               icon && 'pl-10',
               rightIcon && 'pr-10',
               error && 'border-rose-500 focus:border-rose-600 focus:ring-rose-200',
@@ -32,8 +24,16 @@ export const GlassInput = forwardRef<HTMLInputElement, GlassInputProps>(
             )}
             {...props}
           />
+          {icon && (
+            <div
+              style={{ color: 'var(--color-ink-muted)' }}
+              className="absolute left-3.5 z-10 flex items-center pointer-events-none text-ink-muted flex-shrink-0"
+            >
+              {icon}
+            </div>
+          )}
           {rightIcon && (
-            <div className="absolute right-3.5 flex items-center text-ink-muted flex-shrink-0">
+            <div className="absolute right-3.5 z-10 flex items-center text-ink-muted flex-shrink-0">
               {rightIcon}
             </div>
           )}
