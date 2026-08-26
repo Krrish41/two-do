@@ -16,8 +16,17 @@ export const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // 1. Validation for empty fields
     if (!email.trim() || !password.trim()) {
-      setErrorMessage('Please enter both email and password.')
+      setErrorMessage('Please enter both your email and password.')
+      return
+    }
+
+    // 2. Validation for malformed email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email.trim())) {
+      setErrorMessage("That doesn't look like a valid email address.")
       return
     }
 
@@ -26,12 +35,13 @@ export const LoginPage: React.FC = () => {
 
     const result = await signIn(email.trim(), password)
     if (result.error) {
-      // Use generic error copy to avoid user enumeration / identity leakage
-      setErrorMessage(
-        result.error.includes('allowlist')
-          ? 'Access denied: This workspace is restricted to authorized members.'
-          : 'Invalid credentials. Please verify your email and password.'
-      )
+      const lowerError = result.error.toLowerCase()
+      if (lowerError.includes('too many') || lowerError.includes('rate limit')) {
+        setErrorMessage('Too many attempts. Please wait a moment and try again.')
+      } else {
+        // Generic error message for all credential failures to prevent user enumeration
+        setErrorMessage('Invalid email or password.')
+      }
     }
     setLoading(false)
   }
@@ -93,7 +103,7 @@ export const LoginPage: React.FC = () => {
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">Two-Do</h1>
             <p className="text-xs sm:text-sm text-ink-muted mt-1 max-w-xs">
-              Private collaborative duo workspace for tasks, notes, and dreams.
+              Yours, mine, ours.
             </p>
           </div>
 
@@ -102,7 +112,7 @@ export const LoginPage: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-5 p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-medium flex items-center gap-2.5"
+              className="mb-5 p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-semibold flex items-center gap-2.5"
             >
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               <span>{errorMessage}</span>

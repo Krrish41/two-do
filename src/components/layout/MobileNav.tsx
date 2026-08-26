@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import {
   Sun,
   CheckCircle2,
@@ -21,6 +22,7 @@ import { cn } from '../../lib/utils'
 export const MobileNav: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const signOut = useAuthStore((s) => s.signOut)
+  const location = useLocation()
 
   const tasks = useTaskStore((s) => s.tasks)
   const notes = useNoteStore((s) => s.notes)
@@ -31,6 +33,13 @@ export const MobileNav: React.FC = () => {
   ).length
   const notesCount = notes.filter((n) => n.deleted_at === null).length
   const allTasksCount = tasks.filter((t) => !t.is_completed).length
+
+  const navItems = [
+    { to: '/today', label: 'My Day', icon: Sun, color: 'text-amber-500', badge: myDayCount },
+    { to: '/tasks', label: 'Tasks', icon: CheckCircle2, color: 'text-lavender-accent', badge: allTasksCount },
+    { to: '/notes', label: 'Notes', icon: StickyNote, color: 'text-skyblue-accent', badge: notesCount },
+    { to: '/bucket-list', label: 'Bucket', icon: Heart, color: 'text-blossom-accent' },
+  ]
 
   return (
     <>
@@ -45,7 +54,10 @@ export const MobileNav: React.FC = () => {
             <div className="flex items-center justify-between pb-3 border-b border-glass-border-subtle">
               <div className="flex items-center gap-2.5">
                 <img src="./logo.svg" alt="Two-Do" className="w-8 h-8" />
-                <span className="font-extrabold text-base text-ink">Two-Do Views</span>
+                <div>
+                  <span className="font-extrabold text-base text-ink">Two-Do</span>
+                  <p className="text-[10px] text-ink-muted">Yours, mine, ours.</p>
+                </div>
               </div>
               <button
                 type="button"
@@ -109,78 +121,51 @@ export const MobileNav: React.FC = () => {
         </div>
       )}
 
-      {/* Fixed Bottom Glass Navigation Bar */}
-      <nav className="fixed bottom-3 left-3 right-3 md:hidden z-40 glass-panel-elevated p-2 rounded-2xl flex items-center justify-around shadow-2xl">
-        <NavLink
-          to="/today"
-          className={({ isActive }) =>
-            cn(
-              'flex flex-col items-center gap-1 p-2 rounded-xl text-[10px] font-bold transition-all relative',
-              isActive ? 'text-amber-500 bg-surface' : 'text-ink-muted hover:text-ink'
-            )
-          }
-        >
-          <Sun className="w-5 h-5" />
-          <span>My Day</span>
-          {myDayCount > 0 && (
-            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-500" />
-          )}
-        </NavLink>
+      {/* iOS 26 Liquid Glass Floating Bottom Navigation Bar */}
+      <div className="fixed bottom-4 left-4 right-4 md:hidden z-40 pb-[env(safe-area-inset-bottom)]">
+        <nav className="liquid-tabbar p-1.5 flex items-center justify-around shadow-2xl relative">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.to
 
-        <NavLink
-          to="/tasks"
-          className={({ isActive }) =>
-            cn(
-              'flex flex-col items-center gap-1 p-2 rounded-xl text-[10px] font-bold transition-all relative',
-              isActive ? 'text-lavender-accent bg-surface' : 'text-ink-muted hover:text-ink'
-            )
-          }
-        >
-          <CheckCircle2 className="w-5 h-5" />
-          <span>Tasks</span>
-          {allTasksCount > 0 && (
-            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-lavender-accent" />
-          )}
-        </NavLink>
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={cn(
+                  'relative flex flex-col items-center justify-center py-2 px-3 rounded-2xl text-[10px] font-bold transition-colors select-none flex-1 z-10',
+                  isActive ? cn(item.color, 'font-extrabold') : 'text-ink-muted hover:text-ink'
+                )}
+              >
+                {/* Liquid morphing pill background */}
+                {isActive && (
+                  <motion.div
+                    layoutId="liquid-active-tab"
+                    className="absolute inset-0 bg-surface-elevated rounded-2xl shadow-xs border border-glass-border -z-10"
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  />
+                )}
 
-        <NavLink
-          to="/notes"
-          className={({ isActive }) =>
-            cn(
-              'flex flex-col items-center gap-1 p-2 rounded-xl text-[10px] font-bold transition-all relative',
-              isActive ? 'text-skyblue-accent bg-surface' : 'text-ink-muted hover:text-ink'
-            )
-          }
-        >
-          <StickyNote className="w-5 h-5" />
-          <span>Notes</span>
-          {notesCount > 0 && (
-            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-skyblue-accent" />
-          )}
-        </NavLink>
+                <item.icon className="w-5 h-5 relative" />
+                <span className="mt-0.5 relative">{item.label}</span>
 
-        <NavLink
-          to="/bucket-list"
-          className={({ isActive }) =>
-            cn(
-              'flex flex-col items-center gap-1 p-2 rounded-xl text-[10px] font-bold transition-all',
-              isActive ? 'text-blossom-accent bg-surface' : 'text-ink-muted hover:text-ink'
+                {Boolean(item.badge && item.badge > 0) && (
+                  <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-lavender-accent" />
+                )}
+              </NavLink>
             )
-          }
-        >
-          <Heart className="w-5 h-5" />
-          <span>Bucket</span>
-        </NavLink>
+          })}
 
-        <button
-          type="button"
-          onClick={() => setIsMenuOpen(true)}
-          className="flex flex-col items-center gap-1 p-2 rounded-xl text-[10px] font-bold text-ink-muted hover:text-ink transition-all"
-        >
-          <Menu className="w-5 h-5" />
-          <span>More</span>
-        </button>
-      </nav>
+          {/* More Menu Button */}
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen(true)}
+            className="flex flex-col items-center justify-center py-2 px-3 rounded-2xl text-[10px] font-bold text-ink-muted hover:text-ink transition-colors select-none flex-1"
+          >
+            <Menu className="w-5 h-5" />
+            <span className="mt-0.5">More</span>
+          </button>
+        </nav>
+      </div>
     </>
   )
 }

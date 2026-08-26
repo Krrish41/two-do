@@ -5,7 +5,6 @@ import {
   Sparkles,
   Calendar,
   Flag,
-  UserCheck,
   CheckCircle2,
 } from 'lucide-react'
 import { TaskList } from '../components/tasks/TaskList'
@@ -13,35 +12,32 @@ import { GlassCard } from '../components/glass/GlassCard'
 import { GlassButton } from '../components/glass/GlassButton'
 import { useTaskStore } from '../stores/taskStore'
 import { useAuthStore } from '../stores/authStore'
-import { cn } from '../lib/utils'
 
 export const TodayPage: React.FC = () => {
   const tasks = useTaskStore((s) => s.tasks)
   const addTask = useTaskStore((s) => s.addTask)
   const authorizedUser = useAuthStore((s) => s.authorizedUser)
   const partnerUser = useAuthStore((s) => s.partnerUser)
-  const allUsers = useAuthStore((s) => s.allUsers)
 
   const [newTaskTitle, setNewTaskTitle] = useState('')
   const [selectedPriority, setSelectedPriority] = useState<number>(0)
-  const [selectedAssignee, setSelectedAssignee] = useState<string | null>(authorizedUser?.id || null)
-  const [assigneeFilter, setAssigneeFilter] = useState<'all' | 'mine' | 'partner'>('all')
+  const [creatorFilter, setCreatorFilter] = useState<'all' | 'mine' | 'partner'>('all')
 
   const todayStr = new Date().toISOString().split('T')[0]
 
-  // Filter tasks that belong to "My Day" (either is_my_day_date is today or due_date is today)
+  // Filter tasks that belong to "My Day"
   const myDayTasks = useMemo(() => {
     return tasks.filter((t) => {
       if (t.parent_task_id) return false
       const isToday = t.is_my_day_date === todayStr || t.due_date === todayStr
       if (!isToday) return false
 
-      if (assigneeFilter === 'mine' && t.assigned_to !== authorizedUser?.id) return false
-      if (assigneeFilter === 'partner' && t.assigned_to !== partnerUser?.id) return false
+      if (creatorFilter === 'mine' && t.created_by !== authorizedUser?.id) return false
+      if (creatorFilter === 'partner' && t.created_by !== partnerUser?.id) return false
 
       return true
     })
-  }, [tasks, todayStr, assigneeFilter, authorizedUser, partnerUser])
+  }, [tasks, todayStr, creatorFilter, authorizedUser, partnerUser])
 
   const pendingTasks = useMemo(() => myDayTasks.filter((t) => !t.is_completed), [myDayTasks])
   const completedTasks = useMemo(() => myDayTasks.filter((t) => t.is_completed), [myDayTasks])
@@ -65,7 +61,6 @@ export const TodayPage: React.FC = () => {
       is_my_day_date: todayStr,
       due_date: todayStr,
       priority: selectedPriority,
-      assigned_to: selectedAssignee || authorizedUser?.id,
     })
 
     setNewTaskTitle('')
@@ -133,7 +128,7 @@ export const TodayPage: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-glass-border-subtle text-xs">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2">
               {/* Priority Selector */}
               <div className="flex items-center gap-1 bg-surface p-1 rounded-xl border border-glass-border-subtle">
                 <Flag className="w-3 h-3 text-ink-muted ml-1" />
@@ -147,41 +142,15 @@ export const TodayPage: React.FC = () => {
                     key={p.val}
                     type="button"
                     onClick={() => setSelectedPriority(p.val)}
-                    className={cn(
-                      'px-2 py-0.5 rounded-lg font-bold transition-all text-[11px]',
+                    className={`px-2 py-0.5 rounded-lg font-bold transition-all text-[11px] ${
                       selectedPriority === p.val
                         ? 'bg-lavender-accent text-white shadow-xs'
                         : 'text-ink-muted hover:text-ink'
-                    )}
+                    }`}
                   >
                     {p.label}
                   </button>
                 ))}
-              </div>
-
-              {/* Assignee Selector */}
-              <div className="flex items-center gap-1 bg-surface p-1 rounded-xl border border-glass-border-subtle">
-                <UserCheck className="w-3 h-3 text-ink-muted ml-1" />
-                {allUsers.map((u) => {
-                  const isSel = (selectedAssignee || authorizedUser?.id) === u.id
-                  return (
-                    <button
-                      key={u.id}
-                      type="button"
-                      onClick={() => setSelectedAssignee(u.id)}
-                      className={cn(
-                        'px-2 py-0.5 rounded-lg font-semibold transition-all text-[11px] flex items-center gap-1',
-                        isSel ? 'bg-surface-elevated text-ink shadow-xs font-bold' : 'text-ink-muted hover:text-ink'
-                      )}
-                    >
-                      <span
-                        className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: u.accent_color }}
-                      />
-                      <span>{u.display_name}</span>
-                    </button>
-                  )
-                })}
               </div>
             </div>
 
@@ -193,22 +162,21 @@ export const TodayPage: React.FC = () => {
         </form>
       </GlassCard>
 
-      {/* Filter Tabs */}
+      {/* Filter Tabs by Nickname */}
       <div className="flex items-center gap-1.5 p-1 rounded-2xl glass-panel-subtle w-fit">
         {[
           { id: 'all', label: 'All My Day' },
-          { id: 'mine', label: 'Mine' },
+          { id: 'mine', label: authorizedUser?.display_name || 'Mine' },
           { id: 'partner', label: partnerUser?.display_name || 'Partner' },
         ].map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setAssigneeFilter(tab.id as any)}
-            className={cn(
-              'px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all',
-              assigneeFilter === tab.id
+            onClick={() => setCreatorFilter(tab.id as any)}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              creatorFilter === tab.id
                 ? 'bg-surface-elevated text-ink shadow-sm'
                 : 'text-ink-muted hover:text-ink'
-            )}
+            }`}
           >
             {tab.label}
           </button>

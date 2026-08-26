@@ -1,4 +1,6 @@
-# Two-Do: Collaborative Tasks & Notes
+# Two-Do
+
+> **Yours, mine, ours.**
 
 Two-Do is an ultra-refined, private collaborative productivity web application designed for a private duo workspace. It combines Apple-inspired glassmorphism aesthetics with real-time bidirectional synchronization, structured task management (My Day, subtasks, recurrence, priorities, and drag-and-drop ordering), and rich-text note taking with Tiptap.
 
@@ -23,6 +25,7 @@ Run the SQL migrations in order in your Supabase SQL Editor:
 2. `supabase/migrations/0002_rls_policies.sql`
 3. `supabase/migrations/0003_seed_authorized_users.sql`
 4. `supabase/migrations/0004_v2_features.sql`
+5. `supabase/migrations/0005_v3_consistency.sql`
 
 ## Operational Note on Free-Tier Supabase Inactivity
 Free-tier Supabase projects pause after a period of inactivity. When resuming, the first request after a pause may take a few seconds while the database container warms up — this is expected behavior.

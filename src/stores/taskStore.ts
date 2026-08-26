@@ -188,6 +188,11 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       return newTask
     }
 
+    const isUUID = (val: string | null | undefined) =>
+      Boolean(val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val))
+
+    const safeFolderId = isUUID(newTask.folder_id) ? newTask.folder_id : null
+
     try {
       const { data, error } = await supabase
         .from('tasks')
@@ -196,7 +201,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
           title: newTask.title,
           notes: newTask.notes,
           parent_task_id: newTask.parent_task_id,
-          folder_id: newTask.folder_id,
+          folder_id: safeFolderId,
           due_date: newTask.due_date,
           is_my_day_date: newTask.is_my_day_date,
           priority: newTask.priority,

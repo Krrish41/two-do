@@ -5,8 +5,19 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: './',
+  resolve: {
+    preserveSymlinks: true,
+  },
   build: {
     outDir: 'dist',
     sourcemap: true,
+  },
+  server: {
+    fs: {
+      strict: false,
+    },
+    watch: {
+      ignored: ['**/dist/**', '**/.git/**'],
+    },
   },
 })
