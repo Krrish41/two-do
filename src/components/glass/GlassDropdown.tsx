@@ -100,7 +100,7 @@ export function GlassDropdown<T extends string = string>({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.96 }}
             transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-            className="absolute left-0 right-0 top-full mt-1.5 z-50 min-w-[180px] max-h-60 overflow-y-auto glass-panel-elevated p-1.5 rounded-2xl shadow-2xl border border-glass-border flex flex-col gap-0.5"
+            className="absolute left-0 right-0 top-full mt-1.5 z-50 min-w-[180px] max-h-60 overflow-y-auto bg-white dark:bg-[#1B152B] p-1.5 rounded-2xl shadow-2xl border border-glass-border flex flex-col gap-0.5"
           >
             {options.map((opt) => {
               const isSelected = opt.value === value

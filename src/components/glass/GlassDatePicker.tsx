@@ -147,7 +147,7 @@ export const GlassDatePicker: React.FC<GlassDatePickerProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-            className="absolute left-0 top-full mt-2 z-50 w-72 glass-panel-elevated p-4 rounded-3xl shadow-2xl border border-glass-border flex flex-col gap-3"
+            className="absolute left-0 top-full mt-2 z-50 w-72 bg-white dark:bg-[#1B152B] p-4 rounded-3xl shadow-2xl border border-glass-border flex flex-col gap-3"
           >
             {/* Month & Year Navigation Header */}
             <div className="flex items-center justify-between px-1">
