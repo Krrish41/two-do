@@ -1,21 +1,64 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from './database.types'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+function getStoredConfig(): { url: string; anonKey: string } {
+  const envUrl = (import.meta.env.VITE_SUPABASE_URL || '').trim()
+  const envKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim()
+
+  const localUrl = (typeof window !== 'undefined' ? localStorage.getItem('two_do_supabase_url') || '' : '').trim()
+  const localKey = (typeof window !== 'undefined' ? localStorage.getItem('two_do_supabase_anon_key') || '' : '').trim()
+
+  const url = sanitizeSupabaseUrl(envUrl || localUrl)
+  const anonKey = envKey || localKey
+
+  return { url, anonKey }
+}
+
+export function sanitizeSupabaseUrl(rawUrl: string): string {
+  if (!rawUrl) return ''
+  let cleaned = rawUrl.trim()
+  // Remove trailing slashes
+  cleaned = cleaned.replace(/\/+$/, '')
+  // If user accidentally pasted the dashboard URL, warn / clean
+  if (cleaned.includes('supabase.com/dashboard/project/')) {
+    const match = cleaned.match(/project\/([a-z0-9]+)/)
+    if (match && match[1]) {
+      cleaned = `https://${match[1]}.supabase.co`
+    }
+  }
+  return cleaned
+}
+
+export function saveCustomSupabaseConfig(url: string, anonKey: string) {
+  const cleanedUrl = sanitizeSupabaseUrl(url)
+  const cleanedKey = anonKey.trim()
+
+  if (typeof window !== 'undefined') {
+    if (cleanedUrl && cleanedKey) {
+      localStorage.setItem('two_do_supabase_url', cleanedUrl)
+      localStorage.setItem('two_do_supabase_anon_key', cleanedKey)
+    } else {
+      localStorage.removeItem('two_do_supabase_url')
+      localStorage.removeItem('two_do_supabase_anon_key')
+    }
+  }
+  // Reload to re-initialize client
+  window.location.reload()
+}
+
+const { url: initialUrl, anonKey: initialKey } = getStoredConfig()
 
 export const isSupabaseConfigured = Boolean(
-  supabaseUrl && 
-  supabaseAnonKey && 
-  supabaseUrl.startsWith('https://') &&
-  !supabaseUrl.includes('placeholder')
+  initialUrl && 
+  initialKey && 
+  initialUrl.startsWith('https://') &&
+  !initialUrl.includes('placeholder')
 )
 
-// Fallback dummy values to prevent createClient throwing invalid URL on initial boot without .env
-const effectiveUrl = isSupabaseConfigured ? supabaseUrl : 'https://placeholder.supabase.co'
-const effectiveKey = isSupabaseConfigured ? supabaseAnonKey : 'placeholder-anon-key'
+const effectiveUrl = isSupabaseConfigured ? initialUrl : 'https://placeholder.supabase.co'
+const effectiveKey = isSupabaseConfigured ? initialKey : 'placeholder-anon-key'
 
-export const supabase = createClient<Database>(effectiveUrl, effectiveKey, {
+export const supabase: SupabaseClient<Database> = createClient<Database>(effectiveUrl, effectiveKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
@@ -27,3 +70,20 @@ export const supabase = createClient<Database>(effectiveUrl, effectiveKey, {
     },
   },
 })
+
+export function getSupabaseConfigStatus(): {
+  isConfigured: boolean
+  url: string
+  source: 'env' | 'localStorage' | 'none'
+} {
+  const { url } = getStoredConfig()
+  const envUrl = import.meta.env.VITE_SUPABASE_URL
+  if (envUrl && !envUrl.includes('placeholder')) {
+    return { isConfigured: isSupabaseConfigured, url, source: 'env' }
+  }
+  const localUrl = typeof window !== 'undefined' ? localStorage.getItem('two_do_supabase_url') : null
+  if (localUrl) {
+    return { isConfigured: isSupabaseConfigured, url, source: 'localStorage' }
+  }
+  return { isConfigured: false, url: '', source: 'none' }
+}
