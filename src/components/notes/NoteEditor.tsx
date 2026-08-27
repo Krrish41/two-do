@@ -5,6 +5,7 @@ import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
 import Highlight from '@tiptap/extension-highlight'
 import Placeholder from '@tiptap/extension-placeholder'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
   Bold,
   Italic,
@@ -26,7 +27,6 @@ import {
   FolderIcon,
   PlusIcon,
 } from '../icons'
-import { GlassModal } from '../glass/GlassModal'
 import { GlassDropdown } from '../glass/GlassDropdown'
 import { GlassConfirmDialog } from '../glass/GlassConfirmDialog'
 import { ColorSwatchPicker } from './ColorSwatchPicker'
@@ -151,7 +151,7 @@ export const NoteEditor: React.FC = () => {
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose-base focus:outline-none min-h-[220px] px-1 text-ink font-normal',
+        class: 'prose prose-sm sm:prose-base focus:outline-none min-h-[300px] text-ink font-normal leading-relaxed',
       },
     },
   })
@@ -185,13 +185,24 @@ export const NoteEditor: React.FC = () => {
     setSelectedNoteId(null)
   }
 
-  if (!currentNote) return null
+  // Handle escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && selectedNoteId) {
+        handleClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedNoteId])
+
+  if (!selectedNoteId || !currentNote) return null
 
   const preset =
     NOTE_COLOR_PRESETS.find((p) => p.hex.toLowerCase() === currentNote.color?.toLowerCase()) ||
     NOTE_COLOR_PRESETS[0]
-  const bgColor = isDark ? preset.darkBg : currentNote.color || '#F4F2EF'
-  const borderColor = isDark ? preset.darkBorder : undefined
+  const bgColor = isDark ? preset.darkBg : currentNote.color || '#FAF8F5'
+  const borderColor = isDark ? preset.darkBorder : 'rgba(255,255,255,0.6)'
 
   // Exclude system folders (Bucket List) so it is not repeated in dropdowns (Section 6)
   const assignableFolders = folders.filter((f) => !f.is_system && f.slug !== 'bucket-list')
@@ -205,46 +216,73 @@ export const NoteEditor: React.FC = () => {
   ]
 
   return (
-    <>
-      <GlassModal
-        isOpen={Boolean(selectedNoteId)}
-        onClose={handleClose}
-        maxWidth="2xl"
-        showCloseButton={false}
-      >
-        <div
-          className="flex flex-col gap-3.5 sm:gap-4 -m-5 sm:-m-7 p-4 sm:p-7 rounded-3xl transition-colors duration-300 border border-glass-border min-h-full"
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 overflow-hidden">
+        {/* Backdrop */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 bg-ink/40 backdrop-blur-md"
+          onClick={handleClose}
+        />
+
+        {/* Modal Container */}
+        <motion.div
+          initial={{ opacity: 0, y: 30, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 30, scale: 0.98 }}
+          transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+          className="relative w-full max-w-3xl h-[100dvh] sm:h-[88vh] sm:max-h-[850px] rounded-t-[32px] sm:rounded-[32px] flex flex-col overflow-hidden shadow-2xl z-10 border border-glass-border"
           style={{ backgroundColor: bgColor, borderColor }}
         >
-          {/* Header Controls: Title & Pin/Delete/Close */}
-          <div className="flex items-start justify-between gap-3 border-b border-glass-border-subtle pb-3">
-            <input
-              type="text"
-              value={localTitle}
-              onChange={(e) => {
-                const newTitle = e.target.value
-                setLocalTitle(newTitle)
-                if (activeNoteIdRef.current) {
-                  debouncedSaveTitle(
-                    activeNoteIdRef.current,
-                    newTitle,
-                    editor?.getText() || ''
-                  )
-                }
-              }}
-              placeholder="Note title (supports #tags)..."
-              className="w-full bg-transparent font-bold text-xl sm:text-2xl text-ink outline-none placeholder:text-ink-muted tracking-tight"
-            />
+          {/* TOP FIXED NAVIGATION BAR (Never scrolls off, protected header) */}
+          <div className="flex-shrink-0 flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-glass-border-subtle bg-surface/75 dark:bg-black/35 backdrop-blur-xl z-20">
+            {/* Left: Close/Done + Folder Picker */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleClose}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-elevated/90 dark:bg-white/10 hover:bg-surface text-ink text-xs font-bold border border-glass-border transition-all shadow-xs"
+                title="Done editing"
+              >
+                <span>Done</span>
+              </button>
 
-            <div className="flex items-center gap-1 flex-shrink-0">
+              <div className="w-36 sm:w-48">
+                <GlassDropdown
+                  options={folderDropdownOptions}
+                  value={currentNote.folder_id || ''}
+                  onChange={(val) => updateNote(currentNote.id, { folder_id: val || null })}
+                  placeholder="No Folder"
+                  size="sm"
+                  actionItem={{
+                    label: 'Create New Folder...',
+                    icon: <PlusIcon size={14} className="text-lavender-accent" />,
+                    onClick: () => setIsFolderModalOpen(true),
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Right: Creator Mascot + Pin + Delete */}
+            <div className="flex items-center gap-1 sm:gap-1.5">
+              {creatorUser && (
+                <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-surface-subtle/80 dark:bg-white/5 text-[11px] font-semibold text-ink border border-glass-border">
+                  <CoupleAvatar userId={creatorUser.id} displayName={creatorUser.display_name} size={16} />
+                  <span>Added by {creatorUser.display_name}</span>
+                </div>
+              )}
+
               <button
                 type="button"
                 onClick={() => togglePin(currentNote.id)}
                 className={cn(
                   'p-2 rounded-xl transition-all',
                   currentNote.is_pinned
-                    ? 'bg-ink/10 text-lavender-accent'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface'
+                    ? 'bg-lavender-accent/20 text-lavender-accent'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface/60'
                 )}
                 title={currentNote.is_pinned ? 'Unpin note' : 'Pin note'}
               >
@@ -259,252 +297,243 @@ export const NoteEditor: React.FC = () => {
               >
                 <TrashIcon size={16} />
               </button>
-
-              <button
-                type="button"
-                onClick={handleClose}
-                className="p-2 rounded-xl text-ink-muted hover:text-ink hover:bg-surface transition-all"
-                title="Close"
-              >
-                ✕
-              </button>
             </div>
           </div>
 
-          {/* Folder & Color Palette Settings with Custom GlassDropdown */}
-          <div className="flex flex-wrap items-center justify-between gap-3 bg-surface/80 dark:bg-black/25 backdrop-blur-md p-2.5 rounded-2xl border border-glass-border">
-            <div className="w-48 sm:w-56">
-              <GlassDropdown
-                options={folderDropdownOptions}
-                value={currentNote.folder_id || ''}
-                onChange={(val) => updateNote(currentNote.id, { folder_id: val || null })}
-                placeholder="No Folder"
-                size="sm"
-                actionItem={{
-                  label: 'Create New Folder...',
-                  icon: <PlusIcon size={14} className="text-lavender-accent" />,
-                  onClick: () => setIsFolderModalOpen(true),
-                }}
-              />
-            </div>
-
-            {/* Read-Only Creator Mascot Attribution in Note Editor */}
-            {creatorUser && (
-              <div className="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-surface-subtle/80 dark:bg-black/20 text-xs font-semibold text-ink border border-glass-border">
-                <CoupleAvatar userId={creatorUser.id} displayName={creatorUser.display_name} size={16} />
-                <span>Added by {creatorUser.display_name}</span>
-              </div>
-            )}
-
-            <ColorSwatchPicker
-              selectedColor={currentNote.color || NOTE_COLOR_PRESETS[0].hex}
-              onSelectColor={(hex) => updateNote(currentNote.id, { color: hex })}
+          {/* SCROLLABLE NOTE BODY */}
+          <div className="flex-1 overflow-y-auto overscroll-contain px-5 sm:px-8 py-5 flex flex-col gap-4">
+            {/* Title Input */}
+            <input
+              type="text"
+              value={localTitle}
+              onChange={(e) => {
+                const newTitle = e.target.value
+                setLocalTitle(newTitle)
+                if (activeNoteIdRef.current) {
+                  debouncedSaveTitle(
+                    activeNoteIdRef.current,
+                    newTitle,
+                    editor?.getText() || ''
+                  )
+                }
+              }}
+              placeholder="Note Title..."
+              className="w-full bg-transparent font-extrabold text-2xl sm:text-3xl text-ink outline-none placeholder:text-ink-muted/40 tracking-tight"
             />
+
+            {/* Metadata Strip: Color Swatches + Tags */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-glass-border-subtle">
+              <ColorSwatchPicker
+                selectedColor={currentNote.color || NOTE_COLOR_PRESETS[0].hex}
+                onSelectColor={(hex) => updateNote(currentNote.id, { color: hex })}
+              />
+
+              <TagPicker noteId={currentNote.id} />
+            </div>
+
+            {/* Clean, Free-Flowing Editor Canvas */}
+            <div className="flex-1 min-h-[300px] cursor-text pb-16" onClick={() => editor?.commands.focus()}>
+              <EditorContent editor={editor} />
+            </div>
           </div>
 
-          {/* Tag Picker */}
-          <TagPicker noteId={currentNote.id} />
-
-          {/* Tiptap Formatting Toolbar */}
+          {/* BOTTOM DOCKED FORMATTING TOOLBAR */}
           {editor && (
-            <div className="flex flex-wrap items-center gap-1 p-1.5 rounded-2xl bg-surface-elevated/80 dark:bg-black/30 backdrop-blur-md border border-glass-border shadow-xs">
-              <button
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => editor.chain().focus().toggleBold().run()}
-                className={cn(
-                  'p-1.5 rounded-lg transition-all',
-                  editor.isActive('bold')
-                    ? 'bg-lavender-accent text-white shadow-xs font-bold'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface'
-                )}
-                title="Bold"
-              >
-                <Bold className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => editor.chain().focus().toggleItalic().run()}
-                className={cn(
-                  'p-1.5 rounded-lg transition-all',
-                  editor.isActive('italic')
-                    ? 'bg-lavender-accent text-white shadow-xs'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface'
-                )}
-                title="Italic"
-              >
-                <Italic className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => editor.chain().focus().toggleStrike().run()}
-                className={cn(
-                  'p-1.5 rounded-lg transition-all',
-                  editor.isActive('strike')
-                    ? 'bg-lavender-accent text-white shadow-xs'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface'
-                )}
-                title="Strikethrough"
-              >
-                <Strikethrough className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => editor.chain().focus().toggleHighlight().run()}
-                className={cn(
-                  'p-1.5 rounded-lg transition-all',
-                  editor.isActive('highlight')
-                    ? 'bg-amber-400 text-slate-900 shadow-xs font-bold'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface'
-                )}
-                title="Highlight"
-              >
-                <Highlighter className="w-3.5 h-3.5" />
-              </button>
+            <div className="flex-shrink-0 px-3 py-2 sm:py-2.5 bg-surface/75 dark:bg-black/40 backdrop-blur-xl border-t border-glass-border-subtle flex items-center justify-center z-20">
+              <div className="flex flex-wrap items-center justify-center gap-1 max-w-full overflow-x-auto py-0.5 scrollbar-none">
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => editor.chain().focus().toggleBold().run()}
+                  className={cn(
+                    'p-1.5 rounded-lg transition-all',
+                    editor.isActive('bold')
+                      ? 'bg-lavender-accent text-white shadow-xs font-bold'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface/60'
+                  )}
+                  title="Bold"
+                >
+                  <Bold className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => editor.chain().focus().toggleItalic().run()}
+                  className={cn(
+                    'p-1.5 rounded-lg transition-all',
+                    editor.isActive('italic')
+                      ? 'bg-lavender-accent text-white shadow-xs'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface/60'
+                  )}
+                  title="Italic"
+                >
+                  <Italic className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => editor.chain().focus().toggleStrike().run()}
+                  className={cn(
+                    'p-1.5 rounded-lg transition-all',
+                    editor.isActive('strike')
+                      ? 'bg-lavender-accent text-white shadow-xs'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface/60'
+                  )}
+                  title="Strikethrough"
+                >
+                  <Strikethrough className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => editor.chain().focus().toggleHighlight().run()}
+                  className={cn(
+                    'p-1.5 rounded-lg transition-all',
+                    editor.isActive('highlight')
+                      ? 'bg-amber-400 text-slate-900 shadow-xs font-bold'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface/60'
+                  )}
+                  title="Highlight"
+                >
+                  <Highlighter className="w-4 h-4" />
+                </button>
 
-              <div className="w-[1px] h-4 bg-glass-border-subtle mx-1" />
+                <div className="w-[1px] h-4 bg-glass-border-subtle mx-1" />
 
-              <button
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-                className={cn(
-                  'p-1.5 rounded-lg transition-all',
-                  editor.isActive('heading', { level: 1 })
-                    ? 'bg-lavender-accent text-white shadow-xs font-bold'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface'
-                )}
-                title="Heading 1"
-              >
-                <Heading1 className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-                className={cn(
-                  'p-1.5 rounded-lg transition-all',
-                  editor.isActive('heading', { level: 2 })
-                    ? 'bg-lavender-accent text-white shadow-xs font-bold'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface'
-                )}
-                title="Heading 2"
-              >
-                <Heading2 className="w-3.5 h-3.5" />
-              </button>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                  className={cn(
+                    'p-1.5 rounded-lg transition-all',
+                    editor.isActive('heading', { level: 1 })
+                      ? 'bg-lavender-accent text-white shadow-xs font-bold'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface/60'
+                  )}
+                  title="Heading 1"
+                >
+                  <Heading1 className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                  className={cn(
+                    'p-1.5 rounded-lg transition-all',
+                    editor.isActive('heading', { level: 2 })
+                      ? 'bg-lavender-accent text-white shadow-xs font-bold'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface/60'
+                  )}
+                  title="Heading 2"
+                >
+                  <Heading2 className="w-4 h-4" />
+                </button>
 
-              <div className="w-[1px] h-4 bg-glass-border-subtle mx-1" />
+                <div className="w-[1px] h-4 bg-glass-border-subtle mx-1" />
 
-              <button
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => editor.chain().focus().toggleBulletList().run()}
-                className={cn(
-                  'p-1.5 rounded-lg transition-all',
-                  editor.isActive('bulletList')
-                    ? 'bg-lavender-accent text-white shadow-xs'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface'
-                )}
-                title="Bullet List"
-              >
-                <List className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                className={cn(
-                  'p-1.5 rounded-lg transition-all',
-                  editor.isActive('orderedList')
-                    ? 'bg-lavender-accent text-white shadow-xs'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface'
-                )}
-                title="Numbered List"
-              >
-                <ListOrdered className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => editor.chain().focus().toggleTaskList().run()}
-                className={cn(
-                  'p-1.5 rounded-lg transition-all',
-                  editor.isActive('taskList')
-                    ? 'bg-lavender-accent text-white shadow-xs'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface'
-                )}
-                title="Task List"
-              >
-                <CheckSquare className="w-3.5 h-3.5" />
-              </button>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => editor.chain().focus().toggleBulletList().run()}
+                  className={cn(
+                    'p-1.5 rounded-lg transition-all',
+                    editor.isActive('bulletList')
+                      ? 'bg-lavender-accent text-white shadow-xs'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface/60'
+                  )}
+                  title="Bullet List"
+                >
+                  <List className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                  className={cn(
+                    'p-1.5 rounded-lg transition-all',
+                    editor.isActive('orderedList')
+                      ? 'bg-lavender-accent text-white shadow-xs'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface/60'
+                  )}
+                  title="Numbered List"
+                >
+                  <ListOrdered className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => editor.chain().focus().toggleTaskList().run()}
+                  className={cn(
+                    'p-1.5 rounded-lg transition-all',
+                    editor.isActive('taskList')
+                      ? 'bg-lavender-accent text-white shadow-xs'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface/60'
+                  )}
+                  title="Checklist"
+                >
+                  <CheckSquare className="w-4 h-4" />
+                </button>
 
-              <div className="w-[1px] h-4 bg-glass-border-subtle mx-1" />
+                <div className="w-[1px] h-4 bg-glass-border-subtle mx-1" />
 
-              <button
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => editor.chain().focus().toggleBlockquote().run()}
-                className={cn(
-                  'p-1.5 rounded-lg transition-all',
-                  editor.isActive('blockquote')
-                    ? 'bg-lavender-accent text-white shadow-xs'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface'
-                )}
-                title="Quote"
-              >
-                <Quote className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-                className={cn(
-                  'p-1.5 rounded-lg transition-all',
-                  editor.isActive('codeBlock')
-                    ? 'bg-lavender-accent text-white shadow-xs'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface'
-                )}
-                title="Code Block"
-              >
-                <Code className="w-3.5 h-3.5" />
-              </button>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                  className={cn(
+                    'p-1.5 rounded-lg transition-all',
+                    editor.isActive('blockquote')
+                      ? 'bg-lavender-accent text-white shadow-xs'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface/60'
+                  )}
+                  title="Quote"
+                >
+                  <Quote className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+                  className={cn(
+                    'p-1.5 rounded-lg transition-all',
+                    editor.isActive('codeBlock')
+                      ? 'bg-lavender-accent text-white shadow-xs'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface/60'
+                  )}
+                  title="Code Block"
+                >
+                  <Code className="w-4 h-4" />
+                </button>
 
-              <div className="w-[1px] h-4 bg-glass-border-subtle mx-1" />
+                <div className="w-[1px] h-4 bg-glass-border-subtle mx-1" />
 
-              <button
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => editor.chain().focus().undo().run()}
-                disabled={!editor.can().undo()}
-                className="p-1.5 rounded-lg text-ink-subtle hover:text-ink disabled:opacity-30 transition-colors"
-                title="Undo"
-              >
-                <Undo className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => editor.chain().focus().redo().run()}
-                disabled={!editor.can().redo()}
-                className="p-1.5 rounded-lg text-ink-subtle hover:text-ink disabled:opacity-30 transition-colors"
-                title="Redo"
-              >
-                <Redo className="w-3.5 h-3.5" />
-              </button>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => editor.chain().focus().undo().run()}
+                  disabled={!editor.can().undo()}
+                  className="p-1.5 rounded-lg text-ink-subtle hover:text-ink disabled:opacity-20 transition-colors"
+                  title="Undo"
+                >
+                  <Undo className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => editor.chain().focus().redo().run()}
+                  disabled={!editor.can().redo()}
+                  className="p-1.5 rounded-lg text-ink-subtle hover:text-ink disabled:opacity-20 transition-colors"
+                  title="Redo"
+                >
+                  <Redo className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           )}
+        </motion.div>
+      </div>
 
-          {/* Editor Body */}
-          <div className="p-4 rounded-2xl bg-surface-elevated/70 dark:bg-black/20 backdrop-blur-md border border-glass-border min-h-[240px] focus-within:ring-2 focus-within:ring-lavender-accent/20 transition-all">
-            <EditorContent editor={editor} />
-          </div>
-        </div>
-      </GlassModal>
-
-      {/* Glass Confirmation Dialog for Moving Note to Recycle Bin */}
+      {/* Confirmation Dialog for Recycle Bin */}
       <GlassConfirmDialog
         isOpen={isDeleteConfirmOpen}
         title="Move to Recycle Bin?"
@@ -524,6 +553,6 @@ export const NoteEditor: React.FC = () => {
         onClose={() => setIsFolderModalOpen(false)}
         onCreated={(id) => updateNote(currentNote.id, { folder_id: id })}
       />
-    </>
+    </AnimatePresence>
   )
 }
