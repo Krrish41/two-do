@@ -10,16 +10,13 @@ import {
 } from '../icons'
 import { cn } from '../../lib/utils'
 
-export interface MobileNavProps {
-  onOpenMenu?: () => void
-}
-
-export const MobileNav: React.FC<MobileNavProps> = ({ onOpenMenu }) => {
+export const MobileNav: React.FC = () => {
   const navItems = [
     { to: '/today', label: 'Today', icon: SunIcon },
     { to: '/tasks', label: 'Tasks', icon: CheckCircleIcon },
     { to: '/notes', label: 'Notes', icon: NotesIcon },
     { to: '/bucket-list', label: 'Bucket', icon: HeartIcon },
+    { to: '/menu', label: 'Menu', icon: MenuIcon },
   ]
 
   return (
@@ -36,11 +33,11 @@ export const MobileNav: React.FC<MobileNavProps> = ({ onOpenMenu }) => {
             <NavLink
               key={item.to}
               to={item.to}
-              className="relative flex flex-col items-center justify-center py-1.5 px-3 min-w-[58px] rounded-full transition-all duration-200"
+              className="relative flex flex-col items-center justify-center py-1.5 px-3 min-w-[56px] rounded-full transition-all duration-200"
             >
               {({ isActive }) => (
                 <>
-                  {/* Apple iOS 26 Liquid Glass 3D Refractive Lens with Chromatic Prism Glow */}
+                  {/* Apple iOS 26 Liquid Glass 3D Refractive Lens */}
                   {isActive && (
                     <motion.div
                       layoutId="liquid-glass-active-lens"
@@ -76,19 +73,6 @@ export const MobileNav: React.FC<MobileNavProps> = ({ onOpenMenu }) => {
             </NavLink>
           )
         })}
-
-        {/* 5th Tab: Menu (Opens Sidebar on Mobile) */}
-        <button
-          type="button"
-          onClick={onOpenMenu}
-          className="relative flex flex-col items-center justify-center py-1.5 px-3 min-w-[58px] rounded-full text-ink-muted hover:text-ink transition-colors"
-          title="Open Menu & Folders"
-        >
-          <MenuIcon size={20} className="relative z-10" />
-          <span className="relative z-10 text-[10px] font-bold mt-0.5 tracking-tight">
-            Menu
-          </span>
-        </button>
       </div>
     </nav>
   )
