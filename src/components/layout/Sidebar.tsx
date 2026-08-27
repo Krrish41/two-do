@@ -72,12 +72,54 @@ export const Sidebar: React.FC<SidebarProps> = () => {
   }
 
   const navItems = [
-    { to: '/today', label: 'Today', icon: SunIcon, count: todayCount, color: 'text-amber-500' },
-    { to: '/tasks', label: 'All Tasks', icon: CheckCircleIcon, count: allTasksCount, color: 'text-lavender-accent' },
-    { to: '/important', label: 'Important', icon: FlameIcon, count: importantCount, color: 'text-rose-500' },
-    { to: '/notes', label: 'Notes', icon: NotesIcon, count: notesCount, color: 'text-skyblue-accent' },
-    { to: '/completed', label: 'Completed', icon: CheckCheckIcon, count: null, color: 'text-emerald-500' },
-    { to: '/bucket-list', label: 'Bucket List', icon: HeartIcon, count: bucketListCount, color: 'text-blossom-accent' },
+    {
+      to: '/today',
+      label: 'Today',
+      icon: SunIcon,
+      count: todayCount,
+      color: 'text-amber-500',
+      activeBadge: 'bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/35',
+    },
+    {
+      to: '/tasks',
+      label: 'All Tasks',
+      icon: CheckCircleIcon,
+      count: allTasksCount,
+      color: 'text-lavender-accent',
+      activeBadge: 'bg-lavender-accent/25 text-lavender-accent dark:text-[#E4DBF7] border border-lavender-accent/35',
+    },
+    {
+      to: '/important',
+      label: 'Important',
+      icon: FlameIcon,
+      count: importantCount,
+      color: 'text-rose-500',
+      activeBadge: 'bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/35',
+    },
+    {
+      to: '/notes',
+      label: 'Notes',
+      icon: NotesIcon,
+      count: notesCount,
+      color: 'text-skyblue-accent',
+      activeBadge: 'bg-lavender-accent/25 text-lavender-accent dark:text-[#E4DBF7] border border-lavender-accent/35',
+    },
+    {
+      to: '/completed',
+      label: 'Completed',
+      icon: CheckCheckIcon,
+      count: null,
+      color: 'text-emerald-500',
+      activeBadge: 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/35',
+    },
+    {
+      to: '/bucket-list',
+      label: 'Bucket List',
+      icon: HeartIcon,
+      count: bucketListCount,
+      color: 'text-blossom-accent',
+      activeBadge: 'bg-pink-500/20 text-pink-600 dark:text-pink-300 border border-pink-500/35',
+    },
   ]
 
   return (
@@ -131,9 +173,9 @@ export const Sidebar: React.FC<SidebarProps> = () => {
                       {typeof item.count === 'number' && item.count > 0 && (
                         <span
                           className={cn(
-                            'px-2 py-0.5 rounded-full text-xs font-bold transition-colors',
+                            'px-2 py-0.5 rounded-full text-xs font-bold transition-all',
                             isActive
-                              ? 'bg-lavender-accent text-white shadow-xs'
+                              ? cn(item.activeBadge, 'shadow-xs font-extrabold')
                               : 'bg-surface-subtle text-ink-muted group-hover:bg-surface-elevated'
                           )}
                         >
@@ -180,31 +222,42 @@ export const Sidebar: React.FC<SidebarProps> = () => {
                     )
                   }
                 >
-                  <div className="flex items-center gap-3 truncate">
-                    <FolderIconRenderer icon={folder.icon} size={18} className="flex-shrink-0" />
-                    <span className="truncate">{folder.name}</span>
-                  </div>
+                  {({ isActive }) => (
+                    <>
+                      <div className="flex items-center gap-3 truncate">
+                        <FolderIconRenderer icon={folder.icon} size={18} className="flex-shrink-0" />
+                        <span className="truncate">{folder.name}</span>
+                      </div>
 
-                  <div className="flex items-center gap-1.5 opacity-80 group-hover:opacity-100">
-                    {folderTaskCount > 0 && (
-                      <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-surface-subtle text-ink-muted">
-                        {folderTaskCount}
-                      </span>
-                    )}
+                      <div className="flex items-center gap-1.5 opacity-80 group-hover:opacity-100">
+                        {folderTaskCount > 0 && (
+                          <span
+                            className={cn(
+                              'px-2 py-0.5 rounded-full text-xs font-bold transition-all',
+                              isActive
+                                ? 'bg-lavender-accent/25 text-lavender-accent dark:text-[#E4DBF7] border border-lavender-accent/35 shadow-xs'
+                                : 'bg-surface-subtle text-ink-muted'
+                            )}
+                          >
+                            {folderTaskCount}
+                          </span>
+                        )}
 
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        setFolderToDelete({ id: folder.id, name: folder.name })
-                      }}
-                      className="p-1 rounded-md text-ink-subtle hover:text-rose-500 hover:bg-rose-500/10 transition-colors opacity-0 group-hover:opacity-100"
-                      title="Delete Folder"
-                    >
-                      <TrashIcon size={13} />
-                    </button>
-                  </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            setFolderToDelete({ id: folder.id, name: folder.name })
+                          }}
+                          className="p-1 rounded-md text-ink-subtle hover:text-rose-500 hover:bg-rose-500/10 transition-colors opacity-0 group-hover:opacity-100"
+                          title="Delete Folder"
+                        >
+                          <TrashIcon size={13} />
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </NavLink>
               )
             })}
