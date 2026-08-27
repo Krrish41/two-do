@@ -423,8 +423,8 @@ export const TaskDetailSheet: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Folder & Recurrence Row */}
-                <div className="grid grid-cols-2 gap-2.5 relative z-20">
+                {/* Folder & Recurrence Card */}
+                <div className="p-3.5 rounded-2xl glass-panel-subtle grid grid-cols-2 gap-3 relative z-20">
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-bold text-ink-muted flex items-center gap-1.5">
                       <FolderIcon size={14} className="text-lavender-accent" />
