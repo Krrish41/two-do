@@ -20,8 +20,10 @@ export const ColorSwatchPicker: React.FC<ColorSwatchPickerProps> = ({
   return (
     <div className={cn('flex items-center gap-2', className)}>
       {NOTE_COLOR_PRESETS.map((preset) => {
-        const isSelected = selectedColor?.toLowerCase() === preset.hex.toLowerCase()
         const isClear = preset.id === 'clear'
+        const isSelected = isClear
+          ? (!selectedColor || selectedColor === '#FAF8F5' || selectedColor.toLowerCase() === preset.hex.toLowerCase() || selectedColor.startsWith('rgba'))
+          : selectedColor?.toLowerCase() === preset.hex.toLowerCase()
         const swatchColor = isDark ? preset.swatchDark : preset.swatchLight
 
         return (

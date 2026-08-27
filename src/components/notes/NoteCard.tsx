@@ -44,8 +44,21 @@ export const NoteCard: React.FC<NoteCardProps> = React.memo(({
   const preset =
     NOTE_COLOR_PRESETS.find((p) => p.hex.toLowerCase() === note.color?.toLowerCase()) ||
     NOTE_COLOR_PRESETS[0]
-  const bgColor = isDark ? preset.darkBg : note.color || '#F4F2EF'
-  const borderColor = isDark ? preset.darkBorder : undefined
+  const isClear = preset.id === 'clear' || note.color?.startsWith('rgba') || !note.color || note.color === '#FAF8F5'
+  const bgColor = isDark
+    ? isClear
+      ? 'rgba(255, 255, 255, 0.05)'
+      : preset.darkBg
+    : isClear
+    ? 'rgba(255, 255, 255, 0.65)'
+    : note.color || '#F4F2EF'
+  const borderColor = isDark
+    ? isClear
+      ? 'rgba(255, 255, 255, 0.12)'
+      : preset.darkBorder
+    : isClear
+    ? 'rgba(255, 255, 255, 0.85)'
+    : undefined
 
   const extractTextPreview = (content: any): string => {
     if (!content) return ''
