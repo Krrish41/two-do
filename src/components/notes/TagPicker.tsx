@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Plus, Tag as TagIcon, Check } from 'lucide-react'
+import { Plus, Tag as TagIcon, Check, X } from 'lucide-react'
 import { useNoteStore } from '../../stores/noteStore'
 import { cn } from '../../lib/utils'
 
@@ -16,7 +16,7 @@ export const TagPicker: React.FC<TagPickerProps> = ({ noteId, className }) => {
 
   const [isCreating, setIsCreating] = useState(false)
   const [newTagName, setNewTagName] = useState('')
-  const [selectedTagColor, setSelectedTagColor] = useState('#A7C7E7')
+  const [selectedTagColor, setSelectedTagColor] = useState('#8B5CF6')
 
   const activeTagIds = noteId
     ? noteTags.filter((nt) => nt.note_id === noteId).map((nt) => nt.tag_id)
@@ -34,7 +34,7 @@ export const TagPicker: React.FC<TagPickerProps> = ({ noteId, className }) => {
     setIsCreating(false)
   }
 
-  const TAG_COLORS = ['#A7C7E7', '#F5A9C9', '#C4AEF0', '#B8E1D9', '#FCE38A']
+  const TAG_COLORS = ['#8B5CF6', '#3B82F6', '#EC4899', '#10B981', '#F59E0B']
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
@@ -47,18 +47,18 @@ export const TagPicker: React.FC<TagPickerProps> = ({ noteId, className }) => {
               type="button"
               onClick={() => noteId && toggleNoteTag(noteId, tag.id)}
               className={cn(
-                'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-all select-none',
+                'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs transition-all select-none cursor-pointer border',
                 isActive
-                  ? 'bg-white shadow-xs border-ink/30 ring-1 ring-ink/20 font-semibold'
-                  : 'bg-white/40 border-black/5 text-ink/70 hover:bg-white/70'
+                  ? 'bg-lavender-accent/25 dark:bg-lavender-accent/35 text-lavender-accent dark:text-[#E4DBF7] border-lavender-accent/50 shadow-xs font-bold'
+                  : 'bg-surface/80 dark:bg-white/[0.06] text-ink-muted hover:text-ink hover:bg-surface-elevated border-glass-border font-medium'
               )}
             >
               <span
-                className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: tag.color || '#A7C7E7' }}
+                className="w-2 h-2 rounded-full flex-shrink-0"
+                style={{ backgroundColor: tag.color || '#8B5CF6' }}
               />
-              <span>{tag.name}</span>
-              {isActive && <Check className="w-3 h-3 text-ink ml-0.5 stroke-[2.5]" />}
+              <span>#{tag.name}</span>
+              {isActive && <Check className="w-3 h-3 stroke-[2.5] flex-shrink-0" />}
             </button>
           )
         })}
@@ -67,7 +67,7 @@ export const TagPicker: React.FC<TagPickerProps> = ({ noteId, className }) => {
           <button
             type="button"
             onClick={() => setIsCreating(true)}
-            className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs text-ink/60 hover:text-ink bg-white/30 hover:bg-white/60 border border-black/5 transition-all"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold text-lavender-accent bg-surface/50 hover:bg-lavender-accent/15 border border-dashed border-lavender-accent/40 transition-all cursor-pointer select-none"
           >
             <Plus className="w-3 h-3" />
             <span>New Tag</span>
@@ -76,14 +76,17 @@ export const TagPicker: React.FC<TagPickerProps> = ({ noteId, className }) => {
       </div>
 
       {isCreating && (
-        <form onSubmit={handleCreateTag} className="flex items-center gap-2 p-2 rounded-xl bg-white/70 border border-black/5">
-          <TagIcon className="w-3.5 h-3.5 text-ink/50 ml-1" />
+        <form
+          onSubmit={handleCreateTag}
+          className="flex items-center gap-2 p-2 rounded-2xl bg-surface-elevated/95 dark:bg-[#1E1630]/95 backdrop-blur-xl border border-glass-border shadow-lg max-w-sm"
+        >
+          <TagIcon className="w-3.5 h-3.5 text-lavender-accent ml-1 flex-shrink-0" />
           <input
             type="text"
             placeholder="Tag name..."
             value={newTagName}
             onChange={(e) => setNewTagName(e.target.value)}
-            className="bg-transparent text-xs text-ink outline-none flex-1 placeholder:text-ink/40"
+            className="bg-transparent text-xs text-ink outline-none flex-1 placeholder:text-ink-muted/50"
             autoFocus
           />
           <div className="flex items-center gap-1">
@@ -94,24 +97,25 @@ export const TagPicker: React.FC<TagPickerProps> = ({ noteId, className }) => {
                 onClick={() => setSelectedTagColor(c)}
                 style={{ backgroundColor: c }}
                 className={cn(
-                  'w-3.5 h-3.5 rounded-full',
-                  selectedTagColor === c && 'ring-1 ring-black ring-offset-1'
+                  'w-3.5 h-3.5 rounded-full transition-transform cursor-pointer',
+                  selectedTagColor === c ? 'scale-125 ring-2 ring-lavender-accent ring-offset-1 ring-offset-surface' : 'opacity-70 hover:opacity-100'
                 )}
               />
             ))}
           </div>
           <button
             type="submit"
-            className="px-2 py-0.5 rounded-lg bg-lavender-600 text-white text-xs font-medium"
+            className="px-2.5 py-1 rounded-xl bg-lavender-accent text-white text-xs font-bold shadow-xs hover:opacity-90 transition-all cursor-pointer"
           >
             Add
           </button>
           <button
             type="button"
             onClick={() => setIsCreating(false)}
-            className="text-xs text-ink/50 hover:text-ink"
+            className="p-1 text-ink-muted hover:text-ink transition-colors cursor-pointer"
+            title="Cancel"
           >
-            Cancel
+            <X size={14} />
           </button>
         </form>
       )}
