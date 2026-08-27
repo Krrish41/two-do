@@ -1,7 +1,5 @@
 import React, { useState } from 'react'
 import {
-  Folder as FolderIcon,
-  FolderOpen,
   Plus,
   Trash2,
   Layers,

@@ -10,7 +10,6 @@ import {
   HeartIcon,
   TrashIcon,
   PlusIcon,
-  FolderIcon,
   LogOutIcon,
   CloseIcon,
 } from '../icons'
