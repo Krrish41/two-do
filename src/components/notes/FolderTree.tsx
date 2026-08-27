@@ -143,7 +143,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({ className }) => {
         {/* Add Folder Input */}
         {isCreating && (
           <form onSubmit={handleCreateFolder} className="flex items-center gap-1.5 p-1.5 rounded-xl bg-surface border border-glass-border mt-1">
-            <FolderIcon className="w-3.5 h-3.5 text-ink-muted ml-1" />
+            <span className="text-xs ml-1">📁</span>
             <input
               type="text"
               placeholder="Folder name..."
