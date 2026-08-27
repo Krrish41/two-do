@@ -11,8 +11,9 @@ import { NoteCard } from '../components/notes/NoteCard'
 import { NoteEditor } from '../components/notes/NoteEditor'
 import { GlassInput } from '../components/glass/GlassInput'
 import { GlassButton } from '../components/glass/GlassButton'
-import { GlassModal } from '../components/glass/GlassModal'
 import { CoupleAvatar } from '../components/common/CoupleAvatar'
+import { FolderIconRenderer } from '../components/common/FolderIconRenderer'
+import { CreateFolderModal } from '../components/common/CreateFolderModal'
 import { useNoteStore } from '../stores/noteStore'
 import { useAuthStore } from '../stores/authStore'
 import { cn } from '../lib/utils'
@@ -20,7 +21,6 @@ import { cn } from '../lib/utils'
 export const NotesPage: React.FC = () => {
   const notes = useNoteStore((s) => s.notes)
   const folders = useNoteStore((s) => s.folders)
-  const createFolder = useNoteStore((s) => s.createFolder)
   const noteTags = useNoteStore((s) => s.noteTags)
   const addNote = useNoteStore((s) => s.addNote)
   const setSelectedNoteId = useNoteStore((s) => s.setSelectedNoteId)
@@ -35,8 +35,6 @@ export const NotesPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
-  const [newFolderName, setNewFolderName] = useState('')
-  const [newFolderIcon, setNewFolderIcon] = useState('📁')
 
   const assignableFolders = folders.filter((f) => !f.is_system && f.slug !== 'bucket-list')
 
@@ -76,18 +74,6 @@ export const NotesPage: React.FC = () => {
     if (newNote) {
       setSelectedNoteId(newNote.id)
     }
-  }
-
-  const handleCreateFolder = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newFolderName.trim()) return
-    const newFolder = await createFolder(newFolderName.trim(), newFolderIcon)
-    if (newFolder?.id) {
-      setSelectedFolderId(newFolder.id)
-    }
-    setNewFolderName('')
-    setNewFolderIcon('📁')
-    setIsFolderModalOpen(false)
   }
 
   return (
@@ -256,7 +242,7 @@ export const NotesPage: React.FC = () => {
                   : 'bg-surface text-ink-muted hover:text-ink border-glass-border hover:bg-surface-elevated'
               )}
             >
-              <span>{folder.icon || '📁'}</span>
+              <FolderIconRenderer icon={folder.icon} size={14} className="flex-shrink-0" />
               <span>{folder.name}</span>
             </button>
           )
@@ -283,52 +269,47 @@ export const NotesPage: React.FC = () => {
 
           <div
             className={cn(
-              viewMode === 'grid'
-                ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'
-                : 'flex flex-col gap-2.5'
+              'grid gap-4',
+              viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'
             )}
           >
             {pinnedNotes.map((note) => (
-              <NoteCard key={note.id} note={note} viewMode={viewMode} />
+              <NoteCard key={note.id} note={note} />
             ))}
           </div>
         </div>
       )}
 
-      {/* Main Notes List */}
+      {/* All Notes Section */}
       <div className="flex flex-col gap-3">
-        {pinnedNotes.length > 0 && otherNotes.length > 0 && (
-          <div className="text-xs font-bold text-ink-muted uppercase tracking-wider pt-2">
+        {pinnedNotes.length > 0 && (
+          <div className="flex items-center gap-2 text-xs font-bold text-ink-muted uppercase tracking-wider">
+            <NotesIcon size={14} />
             <span>Other Notes ({otherNotes.length})</span>
           </div>
         )}
 
-        {filteredNotes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 px-4 text-center select-none">
-            <div className="w-16 h-16 rounded-full glass-panel-subtle flex items-center justify-center mb-4 text-skyblue-accent shadow-sm">
-              <NotesIcon size={32} />
+        {otherNotes.length === 0 && pinnedNotes.length === 0 ? (
+          <div className="flex flex-col items-center justify-center p-12 text-center rounded-3xl bg-surface/50 border border-glass-border">
+            <div className="w-12 h-12 rounded-2xl bg-lavender-accent/10 flex items-center justify-center text-lavender-accent mb-3 shadow-xs">
+              <NotesIcon size={24} />
             </div>
-            <h3 className="text-base font-bold text-ink">No notes found</h3>
-            <p className="text-xs sm:text-sm text-ink-muted mt-1 max-w-sm">
-              Create your first note to capture ideas, meeting notes, recipes, or thoughts together.
+            <h3 className="text-sm font-bold text-ink">No notes found</h3>
+            <p className="text-xs text-ink-muted mt-1 max-w-xs">
+              {searchQuery || selectedFolderId || selectedTagId || creatorFilter !== 'all'
+                ? 'Try adjusting your filters or search query.'
+                : 'Capture your thoughts, ideas, lists, and stories together.'}
             </p>
-            <div className="mt-4">
-              <GlassButton variant="primary" size="sm" onClick={handleCreateNote}>
-                <PlusIcon size={16} className="mr-1" />
-                Create Note
-              </GlassButton>
-            </div>
           </div>
         ) : (
           <div
             className={cn(
-              viewMode === 'grid'
-                ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'
-                : 'flex flex-col gap-2.5'
+              'grid gap-4',
+              viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'
             )}
           >
             {otherNotes.map((note) => (
-              <NoteCard key={note.id} note={note} viewMode={viewMode} />
+              <NoteCard key={note.id} note={note} />
             ))}
           </div>
         )}
@@ -338,58 +319,11 @@ export const NotesPage: React.FC = () => {
       <NoteEditor />
 
       {/* New Folder Modal */}
-      <GlassModal
+      <CreateFolderModal
         isOpen={isFolderModalOpen}
         onClose={() => setIsFolderModalOpen(false)}
-        title="Create New Folder"
-        maxWidth="sm"
-      >
-        <form onSubmit={handleCreateFolder} className="flex flex-col gap-4">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 p-2 rounded-xl bg-surface border border-glass-border">
-              {['📁', '💼', '🏡', '✈️', '🎨', '💡', '📚', '🎯'].map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => setNewFolderIcon(emoji)}
-                  className={cn(
-                    'p-1.5 rounded-lg text-lg transition-transform',
-                    newFolderIcon === emoji ? 'bg-lavender-accent/20 scale-110' : 'hover:bg-surface'
-                  )}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <GlassInput
-            placeholder="Folder name (e.g. Vacation, Finance)..."
-            value={newFolderName}
-            onChange={(e) => setNewFolderName(e.target.value)}
-            autoFocus
-          />
-
-          <div className="flex items-center justify-end gap-2 pt-2">
-            <GlassButton
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsFolderModalOpen(false)}
-            >
-              Cancel
-            </GlassButton>
-            <GlassButton
-              type="submit"
-              variant="primary"
-              size="sm"
-              disabled={!newFolderName.trim()}
-            >
-              Create Folder
-            </GlassButton>
-          </div>
-        </form>
-      </GlassModal>
+        onCreated={(id) => setSelectedFolderId(id)}
+      />
     </div>
   )
 }

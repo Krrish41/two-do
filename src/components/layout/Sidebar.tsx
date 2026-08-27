@@ -15,10 +15,9 @@ import {
 } from '../icons'
 import { CoupleAvatar } from '../common/CoupleAvatar'
 import { ThemeToggle } from './ThemeToggle'
-import { GlassModal } from '../glass/GlassModal'
-import { GlassInput } from '../glass/GlassInput'
-import { GlassButton } from '../glass/GlassButton'
 import { GlassConfirmDialog } from '../glass/GlassConfirmDialog'
+import { FolderIconRenderer } from '../common/FolderIconRenderer'
+import { CreateFolderModal } from '../common/CreateFolderModal'
 import { useTaskStore } from '../../stores/taskStore'
 import { useNoteStore } from '../../stores/noteStore'
 import { useAuthStore } from '../../stores/authStore'
@@ -34,15 +33,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const tasks = useTaskStore((s) => s.tasks)
   const notes = useNoteStore((s) => s.notes)
   const folders = useNoteStore((s) => s.folders)
-  const createFolder = useNoteStore((s) => s.createFolder)
   const deleteFolder = useNoteStore((s) => s.deleteFolder)
 
   const authorizedUser = useAuthStore((s) => s.authorizedUser)
   const signOut = useAuthStore((s) => s.signOut)
 
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
-  const [newFolderName, setNewFolderName] = useState('')
-  const [newFolderIcon, setNewFolderIcon] = useState('📁')
   const [folderToDelete, setFolderToDelete] = useState<{ id: string; name: string } | null>(null)
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false)
 
@@ -71,15 +67,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   // Custom User Folders (excluding system folders like Bucket List)
   const customFolders = folders.filter((f) => !f.is_system && f.slug !== 'bucket-list')
-
-  const handleCreateFolder = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newFolderName.trim()) return
-    await createFolder(newFolderName.trim(), newFolderIcon)
-    setNewFolderName('')
-    setNewFolderIcon('📁')
-    setIsFolderModalOpen(false)
-  }
 
   const handleSignOut = async () => {
     await signOut()
@@ -229,7 +216,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         )
                       }
                     >
-                      <span className="text-base flex-shrink-0">{folder.icon || '📁'}</span>
+                      <FolderIconRenderer icon={folder.icon} size={18} className="flex-shrink-0" />
                       <span className="truncate">{folder.name}</span>
                     </NavLink>
 
@@ -261,51 +248,46 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               onClick={onClose}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200 group select-none',
+                  'flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-colors select-none',
                   isActive
                     ? 'bg-lavender-accent/15 text-lavender-accent font-bold'
                     : 'text-ink-muted hover:text-ink hover:bg-surface'
                 )
               }
             >
-              <div className="flex items-center gap-3">
-                <TrashIcon size={18} className="text-ink-subtle group-hover:text-rose-500 transition-colors" />
-                <span>Recycle Bin</span>
-              </div>
+              <TrashIcon size={18} className="text-ink-muted flex-shrink-0" />
+              <span>Recycle Bin</span>
             </NavLink>
           </div>
         </div>
 
-        {/* User Footer Profile & Mascot Avatars */}
-        <div className="pt-4 border-t border-glass-border-subtle flex flex-col gap-3">
+        {/* User Card & Settings */}
+        <div className="p-3 border-t border-glass-border-subtle">
           <div className="flex items-center justify-between p-2 rounded-2xl bg-surface border border-glass-border">
             <div className="flex items-center gap-2.5 truncate">
-              {authorizedUser && (
-                <CoupleAvatar
-                  userId={authorizedUser.id}
-                  displayName={authorizedUser.display_name}
-                  size={32}
-                  showOnlineBadge={true}
-                />
-              )}
-              <div className="flex flex-col min-w-0">
-                <span className="font-bold text-xs text-ink truncate">
-                  {authorizedUser?.display_name || 'Dr. Bubs'}
+              <CoupleAvatar
+                userId={authorizedUser?.id || ''}
+                displayName={authorizedUser?.display_name || ''}
+                size={34}
+              />
+              <div className="flex flex-col truncate">
+                <span className="text-xs font-bold text-ink truncate">
+                  {authorizedUser?.display_name || 'User'}
                 </span>
-                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                <span className="text-[10px] text-emerald-500 font-semibold flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Online
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-1 flex-shrink-0">
+            <div className="flex items-center gap-1">
               <ThemeToggle size="sm" />
               <button
                 type="button"
                 onClick={() => setIsLogoutConfirmOpen(true)}
-                className="p-2 rounded-xl text-ink-subtle hover:text-rose-500 hover:bg-surface-elevated transition-colors"
-                title="Sign Out"
+                className="p-1.5 rounded-xl text-ink-muted hover:text-rose-500 hover:bg-surface-elevated transition-colors"
+                title="Log Out"
               >
                 <LogOutIcon size={16} />
               </button>
@@ -315,57 +297,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       </aside>
 
       {/* New Folder Modal */}
-      <GlassModal
+      <CreateFolderModal
         isOpen={isFolderModalOpen}
         onClose={() => setIsFolderModalOpen(false)}
-        title="Create New Folder"
-        maxWidth="sm"
-      >
-        <form onSubmit={handleCreateFolder} className="flex flex-col gap-4">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 p-2 rounded-xl bg-surface border border-glass-border">
-              {['📁', '💼', '🏡', '✈️', '🎨', '💡', '📚', '🎯'].map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => setNewFolderIcon(emoji)}
-                  className={cn(
-                    'p-1.5 rounded-lg text-lg transition-transform',
-                    newFolderIcon === emoji ? 'bg-lavender-accent/20 scale-110' : 'hover:bg-surface'
-                  )}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-bold text-ink-muted">Folder Name</label>
-            <GlassInput
-              placeholder="e.g. Vacation Plans, Renovations..."
-              value={newFolderName}
-              onChange={(e) => setNewFolderName(e.target.value)}
-              required
-              autoFocus
-            />
-          </div>
-
-          <div className="flex items-center justify-end gap-2 pt-2">
-            <GlassButton
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => setIsFolderModalOpen(false)}
-            >
-              Cancel
-            </GlassButton>
-            <GlassButton type="submit" variant="primary" size="sm" disabled={!newFolderName.trim()}>
-              Create Folder
-            </GlassButton>
-          </div>
-        </form>
-      </GlassModal>
+      />
 
       {/* Modern Glass Confirm Dialog for Folder Deletion */}
       <GlassConfirmDialog

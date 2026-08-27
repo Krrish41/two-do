@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { useNoteStore } from '../../stores/noteStore'
 import { GlassConfirmDialog } from '../glass/GlassConfirmDialog'
+import { FolderIconRenderer } from '../common/FolderIconRenderer'
 import { cn } from '../../lib/utils'
 
 export interface FolderTreeProps {
@@ -73,7 +74,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({ className }) => {
             ) : (
               <div className="w-3" />
             )}
-            <span className="text-sm flex-shrink-0">{folder.icon || '📁'}</span>
+            <FolderIconRenderer icon={folder.icon} size={14} className="flex-shrink-0" />
             <span className="truncate">{folder.name}</span>
           </div>
 
