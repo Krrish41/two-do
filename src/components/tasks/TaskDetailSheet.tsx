@@ -311,29 +311,18 @@ export const TaskDetailSheet: React.FC = () => {
                       <FolderIcon size={14} className="text-lavender-accent" />
                       Folder / Project
                     </label>
-                    <div className="flex items-center gap-1">
-                      <div className="flex-1 min-w-0">
-                        <GlassDropdown
-                          options={folderOptions}
-                          value={currentTask.folder_id || ''}
-                          onChange={(val) => updateTask(currentTask.id, { folder_id: val || null })}
-                          placeholder="No Folder"
-                          actionItem={{
-                            label: 'Create New Folder...',
-                            icon: <PlusIcon size={14} className="text-lavender-accent" />,
-                            onClick: () => setIsFolderModalOpen(true),
-                          }}
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setIsFolderModalOpen(true)}
-                        className="p-1.5 rounded-xl text-ink-muted hover:text-lavender-accent hover:bg-surface-elevated border border-glass-border shadow-xs transition-colors flex-shrink-0"
-                        title="Create New Folder"
-                      >
-                        <PlusIcon size={14} />
-                      </button>
-                    </div>
+                    <GlassDropdown
+                      className="w-full"
+                      options={folderOptions}
+                      value={currentTask.folder_id || ''}
+                      onChange={(val) => updateTask(currentTask.id, { folder_id: val || null })}
+                      placeholder="No Folder"
+                      actionItem={{
+                        label: 'Create New Folder...',
+                        icon: <PlusIcon size={14} className="text-lavender-accent" />,
+                        onClick: () => setIsFolderModalOpen(true),
+                      }}
+                    />
                   </div>
 
                   {/* Recurrence Custom Dropdown */}

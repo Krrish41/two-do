@@ -182,29 +182,19 @@ export const NoteEditor: React.FC = () => {
 
           {/* Folder & Color Palette Settings with Custom GlassDropdown */}
           <div className="flex flex-wrap items-center justify-between gap-3 bg-surface p-2.5 rounded-2xl border border-glass-border">
-            <div className="flex items-center gap-1.5">
-              <div className="w-48">
-                <GlassDropdown
-                  options={folderDropdownOptions}
-                  value={currentNote.folder_id || ''}
-                  onChange={(val) => updateNote(currentNote.id, { folder_id: val || null })}
-                  placeholder="No Folder"
-                  size="sm"
-                  actionItem={{
-                    label: 'Create New Folder...',
-                    icon: <PlusIcon size={14} className="text-lavender-accent" />,
-                    onClick: () => setIsFolderModalOpen(true),
-                  }}
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsFolderModalOpen(true)}
-                className="p-2 rounded-xl text-ink-muted hover:text-lavender-accent hover:bg-surface-elevated border border-glass-border shadow-xs transition-colors"
-                title="Create New Folder"
-              >
-                <PlusIcon size={14} />
-              </button>
+            <div className="w-48 sm:w-56">
+              <GlassDropdown
+                options={folderDropdownOptions}
+                value={currentNote.folder_id || ''}
+                onChange={(val) => updateNote(currentNote.id, { folder_id: val || null })}
+                placeholder="No Folder"
+                size="sm"
+                actionItem={{
+                  label: 'Create New Folder...',
+                  icon: <PlusIcon size={14} className="text-lavender-accent" />,
+                  onClick: () => setIsFolderModalOpen(true),
+                }}
+              />
             </div>
 
             {/* Read-Only Creator Mascot Attribution in Note Editor */}
