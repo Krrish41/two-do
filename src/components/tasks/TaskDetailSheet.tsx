@@ -370,17 +370,6 @@ export const TaskDetailSheet: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Read-Only Creator Mascot Attribution */}
-                {creatorUser && (
-                  <div className="p-3 rounded-2xl glass-panel-subtle flex items-center justify-between text-xs">
-                    <span className="text-ink-muted font-bold">Created By</span>
-                    <div className="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-surface border border-glass-border font-bold text-ink">
-                      <CoupleAvatar userId={creatorUser.id} displayName={creatorUser.display_name} size={20} />
-                      <span>{creatorUser.display_name}</span>
-                    </div>
-                  </div>
-                )}
-
                 {/* Subtasks Section with Drag-and-Drop */}
                 <div className="p-4 rounded-2xl glass-panel-subtle flex flex-col gap-3">
                   <div className="flex items-center justify-between">
@@ -433,6 +422,17 @@ export const TaskDetailSheet: React.FC = () => {
                     className="w-full glass-input rounded-xl p-3 text-xs sm:text-sm text-ink outline-none placeholder:text-ink-muted resize-none font-normal leading-relaxed"
                   />
                 </div>
+
+                {/* Read-Only Creator Mascot Attribution (Bottom Metadata Area) */}
+                {creatorUser && (
+                  <div className="p-3 rounded-2xl glass-panel-subtle flex items-center justify-between text-xs">
+                    <span className="text-ink-muted font-bold">Created By</span>
+                    <div className="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-surface border border-glass-border font-bold text-ink">
+                      <CoupleAvatar userId={creatorUser.id} displayName={creatorUser.display_name} size={20} />
+                      <span>{creatorUser.display_name}</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Footer Soft Delete Button */}
