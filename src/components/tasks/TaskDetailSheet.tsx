@@ -164,7 +164,7 @@ export const TaskDetailSheet: React.FC = () => {
   const notesTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const activeTaskIdRef = useRef<string | null>(selectedTaskId)
   const lastLoadedTaskIdRef = useRef<string | null>(null)
-  const titleInputRef = useRef<HTMLInputElement | null>(null)
+  const titleInputRef = useRef<HTMLTextAreaElement | null>(null)
   const notesTextareaRef = useRef<HTMLTextAreaElement | null>(null)
   const requestSeqRef = useRef(0)
 
@@ -172,6 +172,14 @@ export const TaskDetailSheet: React.FC = () => {
   useEffect(() => {
     activeTaskIdRef.current = selectedTaskId
   }, [selectedTaskId])
+
+  // Adjust title textarea height dynamically
+  useEffect(() => {
+    if (titleInputRef.current) {
+      titleInputRef.current.style.height = 'auto'
+      titleInputRef.current.style.height = `${titleInputRef.current.scrollHeight}px`
+    }
+  }, [localTitle, selectedTaskId])
 
   // Sync from server/store ONLY when switching to a different task
   useEffect(() => {
@@ -189,6 +197,10 @@ export const TaskDetailSheet: React.FC = () => {
   // Debounced save title
   const handleTitleChange = (newTitle: string) => {
     setLocalTitle(newTitle)
+    if (titleInputRef.current) {
+      titleInputRef.current.style.height = 'auto'
+      titleInputRef.current.style.height = `${titleInputRef.current.scrollHeight}px`
+    }
     setSaveStatus('saving')
     if (titleTimeoutRef.current) clearTimeout(titleTimeoutRef.current)
 
@@ -314,48 +326,49 @@ export const TaskDetailSheet: React.FC = () => {
 
             {/* Responsive Sheet */}
             <motion.div
-              initial={{ y: '100%', x: 0 }}
-              animate={{ y: 0, x: 0 }}
-              exit={{ y: '100%', x: 0 }}
-              transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 30 }}
+              transition={{ type: 'spring', stiffness: 350, damping: 30 }}
               className={cn(
-                'relative w-full glass-panel-elevated p-6 shadow-2xl z-10 overflow-y-auto max-h-[88vh] rounded-t-3xl md:rounded-t-none md:rounded-l-3xl md:rounded-r-none md:max-h-full md:w-[480px] md:h-full flex flex-col justify-between'
+                'relative w-full glass-panel-elevated shadow-2xl z-10 rounded-t-[32px] md:rounded-t-none md:rounded-l-[32px] md:rounded-r-none max-h-[92dvh] md:max-h-full md:w-[490px] md:h-full flex flex-col overflow-hidden'
               )}
             >
-              <div className="flex flex-col gap-5 pb-6">
-                {/* Header Bar */}
-                <div className="flex items-center justify-between pb-3 border-b border-glass-border-subtle">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">
-                      Task Details
-                    </span>
-                    {/* Saving / Saved Indicator */}
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold transition-all bg-surface/60 border border-glass-border">
-                      <span
-                        className={cn(
-                          'w-1.5 h-1.5 rounded-full transition-colors',
-                          saveStatus === 'saving' ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'
-                        )}
-                      />
-                      <span className="text-ink-muted">{saveStatus === 'saving' ? 'Saving…' : 'Saved'}</span>
-                    </div>
+              {/* FIXED HEADER BAR */}
+              <div className="flex-shrink-0 px-6 py-4 border-b border-glass-border-subtle flex items-center justify-between bg-surface/80 dark:bg-[#1E1630]/85 backdrop-blur-xl z-20">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">
+                    Task Details
+                  </span>
+                  {/* Saving / Saved Indicator */}
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold transition-all bg-surface/60 border border-glass-border">
+                    <span
+                      className={cn(
+                        'w-1.5 h-1.5 rounded-full transition-colors',
+                        saveStatus === 'saving' ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'
+                      )}
+                    />
+                    <span className="text-ink-muted">{saveStatus === 'saving' ? 'Saving…' : 'Saved'}</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleClose}
-                    className="p-1.5 rounded-xl hover:bg-surface text-ink-muted hover:text-ink transition-colors"
-                  >
-                    <CloseIcon size={18} />
-                  </button>
                 </div>
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="p-1.5 rounded-xl hover:bg-surface text-ink-muted hover:text-ink transition-colors cursor-pointer"
+                >
+                  <CloseIcon size={18} />
+                </button>
+              </div>
 
+              {/* SCROLLABLE BODY (Never cuts off content on laptop or phone) */}
+              <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-4.5 overscroll-contain">
                 {/* Title & Checkbox */}
                 <div className="flex items-start gap-3 p-3.5 rounded-2xl glass-panel-subtle">
                   <button
                     type="button"
                     onClick={() => toggleComplete(currentTask.id)}
                     className={cn(
-                      'mt-1 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 focus:outline-none checkbox-glass',
+                      'mt-0.5 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 focus:outline-none checkbox-glass cursor-pointer',
                       currentTask.is_completed
                         ? 'bg-lavender-accent border-lavender-accent text-white shadow-sm'
                         : 'bg-surface hover:border-lavender-accent'
@@ -364,14 +377,14 @@ export const TaskDetailSheet: React.FC = () => {
                     {currentTask.is_completed && <CheckIcon size={14} className="stroke-[3]" />}
                   </button>
 
-                  <input
+                  <textarea
                     ref={titleInputRef}
-                    type="text"
                     data-task-id={currentTask.id}
                     value={localTitle}
+                    rows={1}
                     onChange={(e) => handleTitleChange(e.target.value)}
                     className={cn(
-                      'w-full bg-transparent font-bold text-base sm:text-lg text-ink focus:outline-none placeholder:text-ink-muted',
+                      'w-full bg-transparent font-bold text-base sm:text-lg text-ink focus:outline-none placeholder:text-ink-muted resize-none leading-snug break-words',
                       currentTask.is_completed && 'line-through text-ink-muted'
                     )}
                     placeholder="Task title..."
@@ -384,7 +397,7 @@ export const TaskDetailSheet: React.FC = () => {
                     type="button"
                     onClick={() => toggleMyDay(currentTask.id)}
                     className={cn(
-                      'flex items-center gap-2.5 p-3 rounded-2xl border text-xs font-semibold transition-all shadow-xs text-left',
+                      'flex items-center gap-2.5 p-3 rounded-2xl border text-xs font-semibold transition-all shadow-xs text-left cursor-pointer',
                       isTodayTask
                         ? 'bg-amber-500/15 border-amber-500/30 text-amber-700 dark:text-amber-300'
                         : 'glass-panel-subtle hover:bg-surface text-ink'
@@ -428,7 +441,7 @@ export const TaskDetailSheet: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setIsFolderModalOpen(true)}
-                        className="p-2 rounded-xl bg-surface hover:bg-surface-elevated text-ink-muted hover:text-lavender-accent border border-glass-border transition-colors flex-shrink-0"
+                        className="p-2 rounded-xl bg-surface hover:bg-surface-elevated text-ink-muted hover:text-lavender-accent border border-glass-border transition-colors flex-shrink-0 cursor-pointer"
                         title="Create New Folder"
                       >
                         <PlusIcon size={14} />
@@ -468,7 +481,7 @@ export const TaskDetailSheet: React.FC = () => {
                         type="button"
                         onClick={() => updateTask(currentTask.id, { priority: p.val })}
                         className={cn(
-                          'py-2 px-1 rounded-xl text-xs font-bold transition-all text-center border',
+                          'py-2 px-1 rounded-xl text-xs font-bold transition-all text-center border cursor-pointer',
                           currentTask.priority === p.val
                             ? 'bg-lavender-accent text-white shadow-xs border-lavender-accent'
                             : 'bg-surface text-ink border-glass-border hover:bg-surface-elevated'
@@ -547,8 +560,16 @@ export const TaskDetailSheet: React.FC = () => {
                 )}
               </div>
 
-              {/* Footer Soft Delete Button */}
-              <div className="pt-4 border-t border-glass-border-subtle flex justify-end">
+              {/* FIXED FOOTER WITH DELETE BUTTON & METADATA */}
+              <div
+                className="flex-shrink-0 px-6 py-3.5 border-t border-glass-border-subtle bg-surface/80 dark:bg-[#1E1630]/85 backdrop-blur-xl flex items-center justify-between z-20"
+                style={{ paddingBottom: 'max(0.875rem, env(safe-area-inset-bottom, 0px))' }}
+              >
+                <div className="text-[11px] text-ink-muted font-medium">
+                  {currentTask.updated_at
+                    ? `Updated ${new Date(currentTask.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                    : ''}
+                </div>
                 <GlassButton
                   variant="danger"
                   size="sm"
