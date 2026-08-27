@@ -74,16 +74,15 @@ export const TaskItem: React.FC<TaskItemProps> = React.memo(({
   const isChecked = task.is_completed || isPendingComplete
 
   return (
-    <AnimatePresence mode="popLayout">
-      <motion.div
-        ref={setNodeRef}
-        style={style}
-        layout
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: isDragging ? 0.4 : 1, y: 0 }}
-        exit={{ opacity: 0, height: 0, marginTop: 0, marginBottom: 0, overflow: 'hidden' }}
-        transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-        onClick={() => setSelectedTaskId(task.id)}
+    <motion.div
+      ref={setNodeRef}
+      style={style}
+      layout
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: isDragging ? 0.4 : 1, y: 0 }}
+      exit={{ opacity: 0, height: 0, marginTop: 0, marginBottom: 0, overflow: 'hidden' }}
+      transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+      onClick={() => setSelectedTaskId(task.id)}
         className={cn(
           'group relative flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl glass-panel transition-all duration-200 cursor-pointer select-none',
           isChecked && 'opacity-65 bg-surface-subtle',
@@ -180,6 +179,5 @@ export const TaskItem: React.FC<TaskItemProps> = React.memo(({
 
         <ChevronRightIcon size={16} className="text-ink-subtle group-hover:text-ink group-hover:translate-x-0.5 transition-all" />
       </motion.div>
-    </AnimatePresence>
   )
 })
