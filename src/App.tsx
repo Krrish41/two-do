@@ -1,17 +1,13 @@
-import React, { useEffect, useState } from 'react'
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import React, { useEffect } from 'react'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { LoginPage } from './pages/LoginPage'
 import { TodayPage } from './pages/TodayPage'
 import { TasksPage } from './pages/TasksPage'
 import { NotesPage } from './pages/NotesPage'
 import { RecycleBinPage } from './pages/RecycleBinPage'
+import { MenuPage } from './pages/MenuPage'
 import { Sidebar } from './components/layout/Sidebar'
 import { MobileNav } from './components/layout/MobileNav'
-import { ThemeToggle } from './components/layout/ThemeToggle'
-import { CoupleAvatar } from './components/common/CoupleAvatar'
-import { MenuIcon, TrashIcon, LogOutIcon } from './components/icons'
-import { GlassModal } from './components/glass/GlassModal'
-import { GlassConfirmDialog } from './components/glass/GlassConfirmDialog'
 import { TaskDetailSheet } from './components/tasks/TaskDetailSheet'
 import { NoteEditor } from './components/notes/NoteEditor'
 import { useAuthStore } from './stores/authStore'
@@ -20,15 +16,12 @@ import { useNoteStore } from './stores/noteStore'
 import { supabase, isSupabaseConfigured } from './lib/supabaseClient'
 
 export const App: React.FC = () => {
-  const { session, loading, initializeAuth, authorizedUser } = useAuthStore()
-  const signOut = useAuthStore((s) => s.signOut)
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
-  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false)
-  const navigate = useNavigate()
+  const { session, loading, initializeAuth } = useAuthStore()
+  const location = useLocation()
 
   const fetchTasks = useTaskStore((s) => s.fetchTasks)
   const fetchNotes = useNoteStore((s) => s.fetchNotes)
+  const folders = useNoteStore((s) => s.folders)
   const receiveRealtimeTask = useTaskStore((s) => s.receiveRealtimeTask)
   const receiveRealtimeNote = useNoteStore((s) => s.receiveRealtimeNote)
   const receiveRealtimeFolder = useNoteStore((s) => s.receiveRealtimeFolder)
@@ -90,10 +83,25 @@ export const App: React.FC = () => {
     }
   }, [session, receiveRealtimeTask, receiveRealtimeNote, receiveRealtimeFolder])
 
-  const handleSignOut = async () => {
-    await signOut()
-    navigate('/login')
+  // Helper to determine the current page title for minimal mobile top app bar
+  const getPageTitle = (pathname: string): string => {
+    if (pathname === '/today' || pathname === '/') return 'Today'
+    if (pathname === '/tasks') return 'All Tasks'
+    if (pathname === '/important') return 'Important'
+    if (pathname === '/completed') return 'Completed'
+    if (pathname === '/bucket-list') return 'Bucket List'
+    if (pathname === '/notes') return 'Notes'
+    if (pathname === '/recycle-bin') return 'Recycle Bin'
+    if (pathname === '/menu') return 'Menu'
+    if (pathname.startsWith('/folder/')) {
+      const folderId = pathname.replace('/folder/', '')
+      const folder = folders.find((f) => f.id === folderId)
+      return folder ? folder.name : 'Folder'
+    }
+    return 'Two-Do'
   }
+
+  const pageTitle = getPageTitle(location.pathname)
 
   if (loading) {
     return (
@@ -118,125 +126,20 @@ export const App: React.FC = () => {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen max-w-[1600px] mx-auto w-full relative">
-      {/* Mobile Top App Bar */}
-      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-2.5 bg-surface/90 backdrop-blur-xl border-b border-glass-border shadow-xs">
+      {/* Minimal Mobile Top App Bar (Title only, zero persistent floating icons) */}
+      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-surface/85 backdrop-blur-xl border-b border-glass-border-subtle shadow-xs select-none">
         <div className="flex items-center gap-2.5">
           <img
             src="./logo.svg"
             alt="Two-Do"
-            className="w-7 h-7 drop-shadow-sm"
+            className="w-6 h-6 drop-shadow-sm"
           />
-          <span className="font-extrabold text-base text-ink tracking-tight">Two-Do</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {authorizedUser && (
-            <button
-              type="button"
-              onClick={() => setIsProfileModalOpen(true)}
-              className="flex items-center p-0.5 rounded-full hover:ring-2 hover:ring-lavender-accent transition-all"
-              title="Open Profile & Settings"
-            >
-              <CoupleAvatar
-                userId={authorizedUser.id}
-                displayName={authorizedUser.display_name}
-                size={26}
-                showOnlineBadge={true}
-              />
-            </button>
-          )}
-          <ThemeToggle size="sm" />
-          <button
-            type="button"
-            onClick={() => setIsMobileSidebarOpen(true)}
-            className="p-1.5 rounded-xl text-ink-muted hover:text-ink hover:bg-surface-elevated transition-colors border border-glass-border-subtle"
-            title="Open Menu"
-          >
-            <MenuIcon size={18} />
-          </button>
+          <h1 className="font-extrabold text-base text-ink tracking-tight">{pageTitle}</h1>
         </div>
       </header>
 
-      {/* Mobile Profile & Quick Settings Modal */}
-      <GlassModal
-        isOpen={isProfileModalOpen}
-        onClose={() => setIsProfileModalOpen(false)}
-        title="Profile & Settings"
-        maxWidth="sm"
-      >
-        <div className="flex flex-col gap-4">
-          {authorizedUser && (
-            <div className="flex items-center gap-3 p-3 rounded-2xl bg-surface border border-glass-border">
-              <CoupleAvatar
-                userId={authorizedUser.id}
-                displayName={authorizedUser.display_name}
-                size={42}
-                showOnlineBadge={true}
-              />
-              <div className="flex flex-col min-w-0">
-                <span className="font-bold text-sm text-ink truncate">
-                  {authorizedUser.display_name}
-                </span>
-                <span className="text-xs text-ink-muted truncate">
-                  {session?.user?.email || 'Authorized User'}
-                </span>
-                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Online in Shared Space
-                </span>
-              </div>
-            </div>
-          )}
-
-          <div className="flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setIsProfileModalOpen(false)
-                navigate('/recycle-bin')
-              }}
-              className="flex items-center justify-between p-3 rounded-2xl bg-surface hover:bg-surface-elevated border border-glass-border text-ink font-semibold text-xs transition-colors"
-            >
-              <div className="flex items-center gap-2.5">
-                <TrashIcon size={16} className="text-ink-subtle" />
-                <span>Recycle Bin (Trash)</span>
-              </div>
-              <span className="text-ink-muted">→</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setIsProfileModalOpen(false)
-                setIsLogoutConfirmOpen(true)
-              }}
-              className="flex items-center justify-between p-3 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 text-rose-600 dark:text-rose-400 font-bold text-xs transition-colors"
-            >
-              <div className="flex items-center gap-2.5">
-                <LogOutIcon size={16} />
-                <span>Sign Out / Log Out</span>
-              </div>
-            </button>
-          </div>
-        </div>
-      </GlassModal>
-
-      {/* Logout Confirmation Dialog */}
-      <GlassConfirmDialog
-        isOpen={isLogoutConfirmOpen}
-        onCancel={() => setIsLogoutConfirmOpen(false)}
-        onConfirm={handleSignOut}
-        title="Sign Out"
-        description="Are you sure you want to sign out of your shared workspace?"
-        confirmText="Sign Out"
-        variant="danger"
-      />
-
-      {/* Sidebar (Responsive drawer on mobile, floating column on desktop) */}
-      <Sidebar
-        isOpen={isMobileSidebarOpen}
-        onClose={() => setIsMobileSidebarOpen(false)}
-      />
+      {/* Desktop/Tablet Sidebar (hidden on mobile, static on desktop) */}
+      <Sidebar />
 
       {/* Main Workspace View */}
       <main className="flex-1 p-3.5 sm:p-6 md:p-8 mb-24 md:mb-4 overflow-y-auto max-w-full">
@@ -250,13 +153,14 @@ export const App: React.FC = () => {
           <Route path="/folder/:folderId" element={<TasksPage viewType="folder" />} />
           <Route path="/notes" element={<NotesPage />} />
           <Route path="/recycle-bin" element={<RecycleBinPage />} />
+          <Route path="/menu" element={<MenuPage />} />
           <Route path="/login" element={<Navigate to="/today" replace />} />
           <Route path="*" element={<Navigate to="/today" replace />} />
         </Routes>
       </main>
 
-      {/* Mobile Bottom Navigation */}
-      <MobileNav onOpenMenu={() => setIsMobileSidebarOpen(true)} />
+      {/* Mobile Bottom Navigation Bar (5 tabs: Today, Tasks, Notes, Bucket, Menu) */}
+      <MobileNav />
 
       {/* Global Modals & Slide-Overs */}
       <TaskDetailSheet />
@@ -264,4 +168,5 @@ export const App: React.FC = () => {
     </div>
   )
 }
+
 export default App

@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
 import {
   SunIcon,
   CheckCircleIcon,
@@ -11,7 +10,6 @@ import {
   TrashIcon,
   PlusIcon,
   LogOutIcon,
-  CloseIcon,
 } from '../icons'
 import { CoupleAvatar } from '../common/CoupleAvatar'
 import { ThemeToggle } from './ThemeToggle'
@@ -28,7 +26,7 @@ export interface SidebarProps {
   onClose?: () => void
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+export const Sidebar: React.FC<SidebarProps> = () => {
   const navigate = useNavigate()
   const tasks = useTaskStore((s) => s.tasks)
   const notes = useNoteStore((s) => s.notes)
@@ -84,49 +82,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   return (
     <>
-      {/* Mobile Backdrop Overlay */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
-          />
-        )}
-      </AnimatePresence>
-
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-72 p-4 flex flex-col justify-between transition-transform duration-300 ease-in-out',
-          'md:static md:translate-x-0 md:m-3 md:h-[calc(100vh-1.5rem)] md:rounded-3xl',
-          'bg-white/95 dark:bg-[#150F22]/95 backdrop-blur-2xl md:glass-panel border border-glass-border shadow-2xl md:shadow-glass',
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+          'hidden md:flex flex-col justify-between w-72 p-4 m-3 h-[calc(100vh-1.5rem)] rounded-3xl flex-shrink-0',
+          'glass-panel border border-glass-border shadow-glass'
         )}
       >
         <div className="flex flex-col gap-6 overflow-y-auto pr-1">
           {/* Logo & Header */}
-          <div className="flex items-center justify-between px-2 pt-2">
-            <div className="flex items-center gap-3">
-              <img
-                src="./logo.svg"
-                alt="Two-Do"
-                className="w-10 h-10 drop-shadow-md transition-transform hover:scale-105"
-              />
-              <div className="flex flex-col">
-                <span className="font-extrabold text-lg text-ink tracking-tight">Two-Do</span>
-                <span className="text-[11px] font-semibold text-ink-muted">Yours, mine, ours.</span>
-              </div>
+          <div className="flex items-center gap-3 px-2 pt-2">
+            <img
+              src="./logo.svg"
+              alt="Two-Do"
+              className="w-10 h-10 drop-shadow-md transition-transform hover:scale-105"
+            />
+            <div className="flex flex-col">
+              <span className="font-extrabold text-lg text-ink tracking-tight">Two-Do</span>
+              <span className="text-[11px] font-semibold text-ink-muted">Yours, mine, ours.</span>
             </div>
-
-            {/* Mobile Close Button */}
-            <button
-              onClick={onClose}
-              className="md:hidden p-2 rounded-xl text-ink-muted hover:text-ink hover:bg-surface transition-colors"
-            >
-              <CloseIcon size={20} />
-            </button>
           </div>
 
           {/* Core Views Navigation */}
@@ -140,7 +113,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  onClick={onClose}
                   className={({ isActive }) =>
                     cn(
                       'flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200 group select-none',
@@ -159,10 +131,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       {typeof item.count === 'number' && item.count > 0 && (
                         <span
                           className={cn(
-                            'px-2 py-0.5 text-[11px] font-bold rounded-full transition-colors',
+                            'px-2 py-0.5 rounded-full text-xs font-bold transition-colors',
                             isActive
-                              ? 'bg-lavender-accent text-white'
-                              : 'bg-surface text-ink-muted group-hover:bg-surface-elevated'
+                              ? 'bg-lavender-accent text-white shadow-xs'
+                              : 'bg-surface-subtle text-ink-muted group-hover:bg-surface-elevated'
                           )}
                         >
                           {item.count}
@@ -175,106 +147,107 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             })}
           </div>
 
-          {/* Custom Folders & Projects */}
+          {/* Folders & Projects Navigation */}
           <div className="flex flex-col gap-1">
             <div className="flex items-center justify-between px-3 mb-1">
               <span className="text-[11px] font-bold uppercase tracking-wider text-ink-subtle">
                 Folders & Projects
               </span>
               <button
-                type="button"
                 onClick={() => setIsFolderModalOpen(true)}
-                className="p-1 rounded-lg text-ink-subtle hover:text-lavender-accent hover:bg-surface transition-colors"
-                title="Create new folder"
+                className="p-1 rounded-lg text-ink-muted hover:text-lavender-accent hover:bg-surface transition-colors"
+                title="Create New Folder"
               >
-                <PlusIcon size={16} />
+                <PlusIcon size={14} />
               </button>
             </div>
 
-            {customFolders.length === 0 ? (
-              <div className="px-3 py-2 text-xs text-ink-subtle italic">No folders yet</div>
-            ) : (
-              customFolders.map((folder) => {
-                const folderTaskCount = tasks.filter(
-                  (t) => t.folder_id === folder.id && !t.is_completed && t.deleted_at === null
-                ).length
+            {customFolders.map((folder) => {
+              const folderTaskCount = tasks.filter(
+                (t) => t.folder_id === folder.id && !t.is_completed && t.deleted_at === null
+              ).length
 
-                return (
-                  <div
-                    key={folder.id}
-                    className="group flex items-center justify-between rounded-2xl hover:bg-surface transition-colors pr-2"
-                  >
-                    <NavLink
-                      to={`/folder/${folder.id}`}
-                      onClick={onClose}
-                      className={({ isActive }) =>
-                        cn(
-                          'flex items-center gap-3 px-3.5 py-2 text-xs sm:text-sm font-semibold transition-colors flex-1 truncate select-none',
-                          isActive
-                            ? 'text-lavender-accent font-bold'
-                            : 'text-ink-muted group-hover:text-ink'
-                        )
-                      }
-                    >
-                      <FolderIconRenderer icon={folder.icon} size={18} className="flex-shrink-0" />
-                      <span className="truncate">{folder.name}</span>
-                    </NavLink>
-
-                    <div className="flex items-center gap-1">
-                      {folderTaskCount > 0 && (
-                        <span className="text-[11px] text-ink-subtle font-semibold px-1.5">
-                          {folderTaskCount}
-                        </span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => setFolderToDelete({ id: folder.id, name: folder.name })}
-                        className="opacity-0 group-hover:opacity-100 p-1 text-ink-subtle hover:text-rose-500 transition-opacity"
-                        title="Delete folder"
-                      >
-                        <TrashIcon size={14} />
-                      </button>
-                    </div>
+              return (
+                <NavLink
+                  key={folder.id}
+                  to={`/folder/${folder.id}`}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200 group select-none',
+                      isActive
+                        ? 'bg-lavender-accent/15 text-lavender-accent font-bold shadow-xs border border-lavender-accent/25'
+                        : 'text-ink-muted hover:text-ink hover:bg-surface'
+                    )
+                  }
+                >
+                  <div className="flex items-center gap-3 truncate">
+                    <FolderIconRenderer icon={folder.icon} size={18} className="flex-shrink-0" />
+                    <span className="truncate">{folder.name}</span>
                   </div>
-                )
-              })
-            )}
+
+                  <div className="flex items-center gap-1.5 opacity-80 group-hover:opacity-100">
+                    {folderTaskCount > 0 && (
+                      <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-surface-subtle text-ink-muted">
+                        {folderTaskCount}
+                      </span>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        setFolderToDelete({ id: folder.id, name: folder.name })
+                      }}
+                      className="p-1 rounded-md text-ink-subtle hover:text-rose-500 hover:bg-rose-500/10 transition-colors opacity-0 group-hover:opacity-100"
+                      title="Delete Folder"
+                    >
+                      <TrashIcon size={13} />
+                    </button>
+                  </div>
+                </NavLink>
+              )
+            })}
           </div>
 
           {/* Recycle Bin Navigation */}
           <div className="flex flex-col gap-1 pt-2 border-t border-glass-border-subtle">
             <NavLink
               to="/recycle-bin"
-              onClick={onClose}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-colors select-none',
+                  'flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200 group select-none',
                   isActive
-                    ? 'bg-lavender-accent/15 text-lavender-accent font-bold'
+                    ? 'bg-lavender-accent/15 text-lavender-accent font-bold shadow-xs border border-lavender-accent/25'
                     : 'text-ink-muted hover:text-ink hover:bg-surface'
                 )
               }
             >
-              <TrashIcon size={18} className="text-ink-muted flex-shrink-0" />
-              <span>Recycle Bin</span>
+              <div className="flex items-center gap-3 truncate">
+                <TrashIcon size={18} className="text-ink-subtle flex-shrink-0" />
+                <span className="truncate">Recycle Bin</span>
+              </div>
             </NavLink>
           </div>
         </div>
 
-        {/* User Card & Settings */}
-        <div className="p-3 border-t border-glass-border-subtle">
-          <div className="flex items-center justify-between p-2 rounded-2xl bg-surface border border-glass-border">
-            <div className="flex items-center gap-2.5 truncate">
-              <CoupleAvatar
-                userId={authorizedUser?.id || ''}
-                displayName={authorizedUser?.display_name || ''}
-                size={34}
-              />
-              <div className="flex flex-col truncate">
-                <span className="text-xs font-bold text-ink truncate">
-                  {authorizedUser?.display_name || 'User'}
+        {/* Footer & User Profile Row */}
+        <div className="pt-4 border-t border-glass-border-subtle">
+          <div className="flex items-center justify-between p-2 rounded-2xl bg-surface/60 border border-glass-border-subtle">
+            <div className="flex items-center gap-2.5 min-w-0">
+              {authorizedUser && (
+                <CoupleAvatar
+                  userId={authorizedUser.id}
+                  displayName={authorizedUser.display_name}
+                  size={32}
+                  showOnlineBadge={true}
+                />
+              )}
+              <div className="flex flex-col min-w-0">
+                <span className="font-bold text-xs text-ink truncate">
+                  {authorizedUser?.display_name || 'Authorized'}
                 </span>
-                <span className="text-[10px] text-emerald-500 font-semibold flex items-center gap-1">
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Online
                 </span>
