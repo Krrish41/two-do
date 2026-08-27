@@ -8,7 +8,7 @@ import {
 import { TaskList } from '../components/tasks/TaskList'
 import { GlassCard } from '../components/glass/GlassCard'
 import { GlassButton } from '../components/glass/GlassButton'
-import { CoupleAvatar } from '../components/common/CoupleAvatar'
+import { CreatorFilterTabs } from '../components/common/CreatorFilterTabs'
 import { useTaskStore } from '../stores/taskStore'
 import { useAuthStore } from '../stores/authStore'
 import { cn } from '../lib/utils'
@@ -172,52 +172,13 @@ export const TodayPage: React.FC = () => {
       </GlassCard>
 
       {/* Filter Tabs with Nicknames & Mascot Avatars */}
-      <div className="flex items-center gap-1 p-1 rounded-2xl glass-panel-subtle w-fit border border-glass-border max-w-full overflow-x-auto scrollbar-none">
-        <button
-          type="button"
-          onClick={() => setCreatorFilter('all')}
-          className={cn(
-            'h-8 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center whitespace-nowrap select-none border',
-            creatorFilter === 'all'
-              ? 'bg-surface-elevated text-ink shadow-xs border-glass-border'
-              : 'text-ink-muted hover:text-ink border-transparent'
-          )}
-        >
-          All Tasks
-        </button>
-
-        {authorizedUser && (
-          <button
-            type="button"
-            onClick={() => setCreatorFilter('mine')}
-            className={cn(
-              'h-8 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap select-none border',
-              creatorFilter === 'mine'
-                ? 'bg-surface-elevated text-ink shadow-xs border-glass-border'
-                : 'text-ink-muted hover:text-ink border-transparent'
-            )}
-          >
-            <CoupleAvatar userId={authorizedUser.id} displayName={authorizedUser.display_name} size={16} />
-            <span>{authorizedUser.display_name}</span>
-          </button>
-        )}
-
-        {partnerUser && (
-          <button
-            type="button"
-            onClick={() => setCreatorFilter('partner')}
-            className={cn(
-              'h-8 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap select-none border',
-              creatorFilter === 'partner'
-                ? 'bg-surface-elevated text-ink shadow-xs border-glass-border'
-                : 'text-ink-muted hover:text-ink border-transparent'
-            )}
-          >
-            <CoupleAvatar userId={partnerUser.id} displayName={partnerUser.display_name} size={16} />
-            <span>{partnerUser.display_name}</span>
-          </button>
-        )}
-      </div>
+      <CreatorFilterTabs
+        value={creatorFilter}
+        onChange={setCreatorFilter}
+        allLabel="All Tasks"
+        layoutId="today-creator-bubble"
+        className="w-fit"
+      />
 
       {/* Pending Tasks Section */}
       <TaskList

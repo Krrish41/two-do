@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react'
+import { motion } from 'framer-motion'
 import {
   TrashIcon,
   RestoreIcon,
@@ -81,43 +82,47 @@ export const RecycleBinPage: React.FC = () => {
       </div>
 
       {/* Tabs Switcher */}
-      <div className="flex items-center gap-1.5 p-1 rounded-2xl glass-panel-subtle w-fit border border-glass-border">
+      <div className="relative inline-flex items-center gap-1 p-1 rounded-[22px] bg-slate-200/75 dark:bg-white/[0.05] backdrop-blur-xl border border-black/5 dark:border-white/[0.08] shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] select-none">
         <button
           type="button"
           onClick={() => setActiveTab('notes')}
-          style={
-            activeTab === 'notes'
-              ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
-              : { color: 'var(--color-ink-muted)' }
-          }
           className={cn(
-            'flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all',
-            activeTab === 'notes'
-              ? 'shadow-xs border border-white/20'
-              : 'hover:text-ink hover:bg-surface'
+            'relative h-8 px-4 rounded-[18px] text-xs transition-colors flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer focus:outline-none select-none',
+            activeTab === 'notes' ? 'text-ink font-extrabold' : 'text-ink-muted hover:text-ink font-semibold'
           )}
         >
-          <NotesIcon size={14} />
-          <span>Notes ({deletedNotes.length})</span>
+          {activeTab === 'notes' && (
+            <motion.div
+              layoutId="recycle-bin-tab-bubble"
+              className="absolute inset-0 rounded-[18px] bg-white dark:bg-white/[0.14] backdrop-blur-md border border-white/80 dark:border-white/20 shadow-[0_2px_8px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.22)]"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+            />
+          )}
+          <span className="relative z-10 flex items-center gap-2">
+            <NotesIcon size={14} />
+            <span>Notes ({deletedNotes.length})</span>
+          </span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('tasks')}
-          style={
-            activeTab === 'tasks'
-              ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
-              : { color: 'var(--color-ink-muted)' }
-          }
           className={cn(
-            'flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all',
-            activeTab === 'tasks'
-              ? 'shadow-xs border border-white/20'
-              : 'hover:text-ink hover:bg-surface'
+            'relative h-8 px-4 rounded-[18px] text-xs transition-colors flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer focus:outline-none select-none',
+            activeTab === 'tasks' ? 'text-ink font-extrabold' : 'text-ink-muted hover:text-ink font-semibold'
           )}
         >
-          <CheckCircleIcon size={14} />
-          <span>Tasks ({deletedTasks.length})</span>
+          {activeTab === 'tasks' && (
+            <motion.div
+              layoutId="recycle-bin-tab-bubble"
+              className="absolute inset-0 rounded-[18px] bg-white dark:bg-white/[0.14] backdrop-blur-md border border-white/80 dark:border-white/20 shadow-[0_2px_8px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.22)]"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+            />
+          )}
+          <span className="relative z-10 flex items-center gap-2">
+            <CheckCircleIcon size={14} />
+            <span>Tasks ({deletedTasks.length})</span>
+          </span>
         </button>
       </div>
 
