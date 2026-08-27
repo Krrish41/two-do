@@ -29,12 +29,12 @@ import {
   CalendarIcon,
 } from '../icons'
 import { GlassButton } from '../glass/GlassButton'
-import { GlassInput } from '../glass/GlassInput'
-import { GlassModal } from '../glass/GlassModal'
 import { GlassDropdown } from '../glass/GlassDropdown'
 import { GlassDatePicker } from '../glass/GlassDatePicker'
 import { GlassConfirmDialog } from '../glass/GlassConfirmDialog'
 import { CoupleAvatar } from '../common/CoupleAvatar'
+import { FolderIconRenderer } from '../common/FolderIconRenderer'
+import { CreateFolderModal } from '../common/CreateFolderModal'
 import { useTaskStore } from '../../stores/taskStore'
 import { useAuthStore } from '../../stores/authStore'
 import { useNoteStore } from '../../stores/noteStore'
@@ -126,15 +126,12 @@ export const TaskDetailSheet: React.FC = () => {
   const reorderSubtasks = useTaskStore((s) => s.reorderSubtasks)
 
   const folders = useNoteStore((s) => s.folders)
-  const createFolder = useNoteStore((s) => s.createFolder)
   const allUsers = useAuthStore((s) => s.allUsers)
 
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [subtaskToDelete, setSubtaskToDelete] = useState<string | null>(null)
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
-  const [newFolderName, setNewFolderName] = useState('')
-  const [newFolderIcon, setNewFolderIcon] = useState('📁')
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -169,18 +166,6 @@ export const TaskDetailSheet: React.FC = () => {
     }
   }
 
-  const handleCreateFolder = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newFolderName.trim() || !currentTask) return
-    const newFolder = await createFolder(newFolderName.trim(), newFolderIcon)
-    if (newFolder?.id) {
-      updateTask(currentTask.id, { folder_id: newFolder.id })
-    }
-    setNewFolderName('')
-    setNewFolderIcon('📁')
-    setIsFolderModalOpen(false)
-  }
-
   const isTodayTask = Boolean(currentTask.is_my_day_date)
 
   // Filter out system folders (Bucket List) so it is not repeated in dropdowns (Section 6)
@@ -191,7 +176,7 @@ export const TaskDetailSheet: React.FC = () => {
     ...assignableFolders.map((f) => ({
       value: f.id,
       label: f.name,
-      icon: <span>{f.icon || '📁'}</span>,
+      icon: <FolderIconRenderer icon={f.icon} size={14} className="flex-shrink-0" />,
     })),
   ]
 
@@ -481,58 +466,11 @@ export const TaskDetailSheet: React.FC = () => {
       />
 
       {/* New Folder Modal */}
-      <GlassModal
+      <CreateFolderModal
         isOpen={isFolderModalOpen}
         onClose={() => setIsFolderModalOpen(false)}
-        title="Create New Folder"
-        maxWidth="sm"
-      >
-        <form onSubmit={handleCreateFolder} className="flex flex-col gap-4">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 p-2 rounded-xl bg-surface border border-glass-border">
-              {['📁', '💼', '🏡', '✈️', '🎨', '💡', '📚', '🎯'].map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => setNewFolderIcon(emoji)}
-                  className={cn(
-                    'p-1.5 rounded-lg text-lg transition-transform',
-                    newFolderIcon === emoji ? 'bg-lavender-accent/20 scale-110' : 'hover:bg-surface'
-                  )}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <GlassInput
-            placeholder="Folder name (e.g. Vacation, Finance)..."
-            value={newFolderName}
-            onChange={(e) => setNewFolderName(e.target.value)}
-            autoFocus
-          />
-
-          <div className="flex items-center justify-end gap-2 pt-2">
-            <GlassButton
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsFolderModalOpen(false)}
-            >
-              Cancel
-            </GlassButton>
-            <GlassButton
-              type="submit"
-              variant="primary"
-              size="sm"
-              disabled={!newFolderName.trim()}
-            >
-              Create Folder
-            </GlassButton>
-          </div>
-        </form>
-      </GlassModal>
+        onCreated={(id) => updateTask(currentTask.id, { folder_id: id })}
+      />
     </>
   )
 }

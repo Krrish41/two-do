@@ -7,6 +7,7 @@ import { useAuthStore } from '../../stores/authStore'
 import { useThemeStore } from '../../stores/themeStore'
 import { GlassConfirmDialog } from '../glass/GlassConfirmDialog'
 import { CoupleAvatar } from '../common/CoupleAvatar'
+import { FolderIconRenderer } from '../common/FolderIconRenderer'
 import { cn, formatDate } from '../../lib/utils'
 
 export interface NoteCardProps {
@@ -90,7 +91,7 @@ export const NoteCard: React.FC<NoteCardProps> = ({
                 </h4>
                 {folder && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-surface border border-glass-border flex-shrink-0">
-                    <span>{folder.icon || '📁'}</span>
+                    <FolderIconRenderer icon={folder.icon} size={12} className="flex-shrink-0" />
                     <span>{folder.name}</span>
                   </span>
                 )}
@@ -231,7 +232,7 @@ export const NoteCard: React.FC<NoteCardProps> = ({
           <div className="flex flex-wrap items-center gap-1.5">
             {folder && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-surface border border-glass-border">
-                <span>{folder.icon || '📁'}</span>
+                <FolderIconRenderer icon={folder.icon} size={12} className="flex-shrink-0" />
                 <span>{folder.name}</span>
               </span>
             )}

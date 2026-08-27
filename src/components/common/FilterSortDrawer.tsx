@@ -9,6 +9,7 @@ import {
   FolderIcon,
 } from '../icons'
 import { GlassButton } from '../glass/GlassButton'
+import { FolderIconRenderer } from './FolderIconRenderer'
 import {
   useFilterSortStore,
   type SortField,
@@ -272,7 +273,7 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                               : 'bg-surface text-ink border-glass-border hover:bg-surface-elevated'
                           )}
                         >
-                          <span>{f.icon || '📁'}</span>
+                          <FolderIconRenderer icon={f.icon} size={14} className="flex-shrink-0" />
                           <span>{f.name}</span>
                         </button>
                       )
