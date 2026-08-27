@@ -195,7 +195,7 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                     <CalendarIcon size={14} className="text-lavender-accent" />
                     Due Date
                   </label>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     {[
                       { val: 'all' as DueDateFilter, label: 'All Dates' },
                       { val: 'today' as DueDateFilter, label: 'Due Today' },
@@ -215,7 +215,7 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                               : { color: 'var(--color-ink)' }
                           }
                           className={cn(
-                            'px-3 py-2 rounded-xl text-xs font-bold transition-all border text-center flex-1 min-w-[85px] select-none',
+                            'px-2.5 py-2 rounded-xl text-xs font-bold transition-all border text-center select-none truncate cursor-pointer',
                             isSelected
                               ? 'border-white/20 shadow-xs'
                               : 'bg-surface text-ink border-glass-border hover:bg-surface-elevated'
