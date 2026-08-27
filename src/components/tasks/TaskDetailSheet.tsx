@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   DndContext,
@@ -41,13 +41,31 @@ import { useNoteStore } from '../../stores/noteStore'
 import type { Task } from '../../lib/database.types'
 import { cn } from '../../lib/utils'
 
-// Sortable Subtask Item
+// Sortable Subtask Item with local debounced state
 const SortableSubtaskItem: React.FC<{
   subtask: Task
   onToggle: (id: string) => void
   onUpdate: (id: string, title: string) => void
   onDelete: (id: string) => void
 }> = ({ subtask, onToggle, onUpdate, onDelete }) => {
+  const [localTitle, setLocalTitle] = useState(subtask.title)
+  const inputRef = useRef<HTMLInputElement | null>(null)
+  const debounceRef = useRef<NodeJS.Timeout | null>(null)
+
+  useEffect(() => {
+    if (document.activeElement !== inputRef.current) {
+      setLocalTitle(subtask.title)
+    }
+  }, [subtask.title])
+
+  const handleChange = (newTitle: string) => {
+    setLocalTitle(newTitle)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      onUpdate(subtask.id, newTitle)
+    }, 500)
+  }
+
   const {
     attributes,
     listeners,
@@ -94,9 +112,11 @@ const SortableSubtaskItem: React.FC<{
       </button>
 
       <input
+        ref={inputRef}
         type="text"
-        value={subtask.title}
-        onChange={(e) => onUpdate(subtask.id, e.target.value)}
+        data-task-id={subtask.id}
+        value={localTitle}
+        onChange={(e) => handleChange(e.target.value)}
         className={cn(
           'flex-1 bg-transparent text-ink outline-none font-semibold',
           subtask.is_completed && 'line-through text-ink-muted'
@@ -133,12 +153,100 @@ export const TaskDetailSheet: React.FC = () => {
   const [subtaskToDelete, setSubtaskToDelete] = useState<string | null>(null)
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
 
+  const currentTask = tasks.find((t) => t.id === selectedTaskId && t.deleted_at === null)
+
+  // Local state for Title and Notes (eliminates typing lag and cursor resets)
+  const [localTitle, setLocalTitle] = useState(currentTask?.title || '')
+  const [localNotes, setLocalNotes] = useState(currentTask?.notes || '')
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved')
+
+  const titleTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const notesTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const activeTaskIdRef = useRef<string | null>(selectedTaskId)
+  const titleInputRef = useRef<HTMLInputElement | null>(null)
+  const notesTextareaRef = useRef<HTMLTextAreaElement | null>(null)
+  const requestSeqRef = useRef(0)
+
+  // Keep activeTaskIdRef updated
+  useEffect(() => {
+    activeTaskIdRef.current = selectedTaskId
+  }, [selectedTaskId])
+
+  // Sync from server/store ONLY when selectedTaskId changes or if user isn't actively focused
+  useEffect(() => {
+    if (currentTask) {
+      if (document.activeElement !== titleInputRef.current) {
+        setLocalTitle(currentTask.title)
+      }
+      if (document.activeElement !== notesTextareaRef.current) {
+        setLocalNotes(currentTask.notes || '')
+      }
+    }
+  }, [selectedTaskId, currentTask?.title, currentTask?.notes])
+
+  // Debounced save title
+  const handleTitleChange = (newTitle: string) => {
+    setLocalTitle(newTitle)
+    setSaveStatus('saving')
+    if (titleTimeoutRef.current) clearTimeout(titleTimeoutRef.current)
+
+    const seq = ++requestSeqRef.current
+    titleTimeoutRef.current = setTimeout(async () => {
+      if (activeTaskIdRef.current) {
+        await updateTask(activeTaskIdRef.current, { title: newTitle })
+        if (seq === requestSeqRef.current) {
+          setSaveStatus('saved')
+        }
+      }
+    }, 500)
+  }
+
+  // Debounced save notes
+  const handleNotesChange = (newNotes: string) => {
+    setLocalNotes(newNotes)
+    setSaveStatus('saving')
+    if (notesTimeoutRef.current) clearTimeout(notesTimeoutRef.current)
+
+    const seq = ++requestSeqRef.current
+    notesTimeoutRef.current = setTimeout(async () => {
+      if (activeTaskIdRef.current) {
+        await updateTask(activeTaskIdRef.current, { notes: newNotes.trim() ? newNotes : null })
+        if (seq === requestSeqRef.current) {
+          setSaveStatus('saved')
+        }
+      }
+    }, 500)
+  }
+
+  // Flush pending saves on close
+  const flushSave = useCallback(() => {
+    if (titleTimeoutRef.current) {
+      clearTimeout(titleTimeoutRef.current)
+      titleTimeoutRef.current = null
+    }
+    if (notesTimeoutRef.current) {
+      clearTimeout(notesTimeoutRef.current)
+      notesTimeoutRef.current = null
+    }
+    if (activeTaskIdRef.current) {
+      updateTask(activeTaskIdRef.current, {
+        title: localTitle,
+        notes: localNotes.trim() ? localNotes : null,
+      })
+      setSaveStatus('saved')
+    }
+  }, [localTitle, localNotes, updateTask])
+
+  const handleClose = () => {
+    flushSave()
+    setSelectedTaskId(null)
+  }
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   )
 
-  const currentTask = tasks.find((t) => t.id === selectedTaskId && t.deleted_at === null)
   if (!currentTask) return null
 
   const creatorUser = allUsers.find((u) => u.id === currentTask.created_by)
@@ -168,7 +276,7 @@ export const TaskDetailSheet: React.FC = () => {
 
   const isTodayTask = Boolean(currentTask.is_my_day_date)
 
-  // Filter out system folders (Bucket List) so it is not repeated in dropdowns (Section 6)
+  // Filter out system folders (Bucket List) so it is not repeated in dropdowns
   const assignableFolders = folders.filter((f) => !f.is_system && f.slug !== 'bucket-list')
 
   const folderOptions = [
@@ -199,7 +307,7 @@ export const TaskDetailSheet: React.FC = () => {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               className="fixed inset-0 bg-black/40 backdrop-blur-sm"
-              onClick={() => setSelectedTaskId(null)}
+              onClick={handleClose}
             />
 
             {/* Responsive Sheet */}
@@ -219,10 +327,20 @@ export const TaskDetailSheet: React.FC = () => {
                     <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">
                       Task Details
                     </span>
+                    {/* Saving / Saved Indicator */}
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold transition-all bg-surface/60 border border-glass-border">
+                      <span
+                        className={cn(
+                          'w-1.5 h-1.5 rounded-full transition-colors',
+                          saveStatus === 'saving' ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'
+                        )}
+                      />
+                      <span className="text-ink-muted">{saveStatus === 'saving' ? 'Saving…' : 'Saved'}</span>
+                    </div>
                   </div>
                   <button
                     type="button"
-                    onClick={() => setSelectedTaskId(null)}
+                    onClick={handleClose}
                     className="p-1.5 rounded-xl hover:bg-surface text-ink-muted hover:text-ink transition-colors"
                   >
                     <CloseIcon size={18} />
@@ -245,9 +363,11 @@ export const TaskDetailSheet: React.FC = () => {
                   </button>
 
                   <input
+                    ref={titleInputRef}
                     type="text"
-                    value={currentTask.title}
-                    onChange={(e) => updateTask(currentTask.id, { title: e.target.value })}
+                    data-task-id={currentTask.id}
+                    value={localTitle}
+                    onChange={(e) => handleTitleChange(e.target.value)}
                     className={cn(
                       'w-full bg-transparent font-bold text-base sm:text-lg text-ink focus:outline-none placeholder:text-ink-muted',
                       currentTask.is_completed && 'line-through text-ink-muted'
@@ -282,50 +402,53 @@ export const TaskDetailSheet: React.FC = () => {
                     </div>
                     <GlassDatePicker
                       value={currentTask.due_date}
-                      onChange={(d) => updateTask(currentTask.id, { due_date: d })}
-                      size="sm"
+                      onChange={(date) => updateTask(currentTask.id, { due_date: date })}
                     />
                   </div>
                 </div>
 
-                {/* Folder Picker & Recurrence with Custom GlassDropdown */}
+                {/* Folder & Recurrence Row */}
                 <div className="grid grid-cols-2 gap-2.5">
-                  {/* Folder / Project Custom Dropdown */}
-                  <div className="p-3 rounded-2xl glass-panel-subtle flex flex-col gap-1.5 text-xs">
-                    <label className="font-bold text-ink-muted flex items-center gap-1">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-ink-muted flex items-center gap-1.5">
                       <FolderIcon size={14} className="text-lavender-accent" />
-                      Folder / Project
+                      Folder
                     </label>
-                    <GlassDropdown
-                      className="w-full"
-                      options={folderOptions}
-                      value={currentTask.folder_id || ''}
-                      onChange={(val) => updateTask(currentTask.id, { folder_id: val || null })}
-                      placeholder="No Folder"
-                      actionItem={{
-                        label: 'Create New Folder...',
-                        icon: <PlusIcon size={14} className="text-lavender-accent" />,
-                        onClick: () => setIsFolderModalOpen(true),
-                      }}
-                    />
+                    <div className="flex items-center gap-1">
+                      <div className="flex-1 min-w-0">
+                        <GlassDropdown
+                          options={folderOptions}
+                          value={currentTask.folder_id || ''}
+                          onChange={(val) => updateTask(currentTask.id, { folder_id: val || null })}
+                          placeholder="Select folder..."
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsFolderModalOpen(true)}
+                        className="p-2 rounded-xl bg-surface hover:bg-surface-elevated text-ink-muted hover:text-lavender-accent border border-glass-border transition-colors flex-shrink-0"
+                        title="Create New Folder"
+                      >
+                        <PlusIcon size={14} />
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Recurrence Custom Dropdown */}
-                  <div className="p-3 rounded-2xl glass-panel-subtle flex flex-col gap-1.5 text-xs">
-                    <label className="font-bold text-ink-muted flex items-center gap-1">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-ink-muted flex items-center gap-1.5">
                       <RepeatIcon size={14} className="text-lavender-accent" />
                       Repeat
                     </label>
                     <GlassDropdown
                       options={recurrenceOptions}
                       value={currentTask.recurrence_rule || ''}
-                      onChange={(val) => updateTask(currentTask.id, { recurrence_rule: val || null })}
+                      onChange={(val) => updateTask(currentTask.id, { recurrence_rule: (val as any) || null })}
                       placeholder="Never"
                     />
                   </div>
                 </div>
 
-                {/* Priority Selector with High Contrast Glass Buttons */}
+                {/* High-Contrast Priority Selector */}
                 <div className="p-3.5 rounded-2xl glass-panel-subtle flex flex-col gap-2">
                   <label className="text-xs font-bold text-ink-muted flex items-center gap-1.5">
                     <FlagIcon size={14} className="text-lavender-accent" />
@@ -400,8 +523,10 @@ export const TaskDetailSheet: React.FC = () => {
                     Description & Notes
                   </label>
                   <textarea
-                    value={currentTask.notes || ''}
-                    onChange={(e) => updateTask(currentTask.id, { notes: e.target.value || null })}
+                    ref={notesTextareaRef}
+                    data-task-id={currentTask.id}
+                    value={localNotes}
+                    onChange={(e) => handleNotesChange(e.target.value)}
                     placeholder="Add detailed task notes or links..."
                     rows={3}
                     className="w-full glass-input rounded-xl p-3 text-xs sm:text-sm text-ink outline-none placeholder:text-ink-muted resize-none font-normal leading-relaxed"
@@ -453,7 +578,7 @@ export const TaskDetailSheet: React.FC = () => {
       <GlassConfirmDialog
         isOpen={Boolean(subtaskToDelete)}
         title="Delete Subtask?"
-        description="Are you sure you want to move this subtask to the Recycle Bin?"
+        description="Are you sure you want to delete this subtask?"
         confirmText="Delete"
         variant="danger"
         onConfirm={() => {
@@ -465,11 +590,9 @@ export const TaskDetailSheet: React.FC = () => {
         onCancel={() => setSubtaskToDelete(null)}
       />
 
-      {/* New Folder Modal */}
       <CreateFolderModal
         isOpen={isFolderModalOpen}
         onClose={() => setIsFolderModalOpen(false)}
-        onCreated={(id) => updateTask(currentTask.id, { folder_id: id })}
       />
     </>
   )

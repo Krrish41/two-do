@@ -16,7 +16,7 @@ export interface NoteCardProps {
   viewMode?: 'grid' | 'list'
 }
 
-export const NoteCard: React.FC<NoteCardProps> = ({
+export const NoteCard: React.FC<NoteCardProps> = React.memo(({
   note,
   isRecycleBin = false,
   viewMode = 'grid',
@@ -302,4 +302,4 @@ export const NoteCard: React.FC<NoteCardProps> = ({
       />
     </>
   )
-}
+})
