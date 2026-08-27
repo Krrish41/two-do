@@ -185,14 +185,26 @@ const NoteEditorModalContent: React.FC<NoteEditorModalContentProps> = ({ note, o
   const preset =
     NOTE_COLOR_PRESETS.find((p) => p.hex.toLowerCase() === localColor.toLowerCase()) ||
     NOTE_COLOR_PRESETS[0]
+  const isClear = preset.id === 'clear' || localColor?.startsWith('rgba') || !localColor || localColor === '#FAF8F5'
+
   const bgColor = isDark
-    ? preset.darkBg
-    : localColor === 'rgba(255,255,255,0.4)'
-    ? '#FAF8F5'
+    ? isClear
+      ? 'rgba(22, 16, 36, 0.80)'
+      : preset.darkBg
+    : isClear
+    ? 'rgba(255, 255, 255, 0.68)'
     : localColor
-  const borderColor = isDark ? preset.darkBorder : 'rgba(0,0,0,0.12)'
+  const borderColor = isDark
+    ? isClear
+      ? 'rgba(255, 255, 255, 0.16)'
+      : preset.darkBorder
+    : isClear
+    ? 'rgba(255, 255, 255, 0.90)'
+    : 'rgba(0, 0, 0, 0.12)'
   const modalShadow = isDark
     ? '0 24px 72px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.2)'
+    : isClear
+    ? '0 24px 60px rgba(104,60,184,0.18), 0 4px 20px rgba(0,0,0,0.06), inset 0 1.5px 1.5px rgba(255,255,255,0.95)'
     : '0 24px 60px rgba(104,60,184,0.15), 0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.9)'
 
   // Exclude system folders (Bucket List) so it is not repeated in dropdowns
@@ -227,11 +239,11 @@ const NoteEditorModalContent: React.FC<NoteEditorModalContentProps> = ({ note, o
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 30, scale: 0.98 }}
           transition={{ type: 'spring', stiffness: 350, damping: 28 }}
-          className="relative w-full max-w-3xl h-[100dvh] sm:h-[88vh] sm:max-h-[850px] rounded-t-[32px] sm:rounded-[32px] flex flex-col overflow-hidden z-10 border transition-colors duration-200"
+          className="relative w-full max-w-3xl h-[100dvh] sm:h-[88vh] sm:max-h-[850px] rounded-t-[32px] sm:rounded-[32px] flex flex-col overflow-hidden z-10 border backdrop-blur-2xl transition-colors duration-200"
           style={{ backgroundColor: bgColor, borderColor, boxShadow: modalShadow }}
         >
           {/* HEADER TOOLBAR (Elevated z-30 for pristine dropdown layering) */}
-          <div className="relative z-30 flex-shrink-0 px-6 py-4 border-b border-glass-border-subtle flex items-center justify-between gap-3 bg-surface/75 dark:bg-black/35 backdrop-blur-xl">
+          <div className="relative z-30 flex-shrink-0 px-6 py-4 border-b border-glass-border-subtle flex items-center justify-between gap-3 bg-white/40 dark:bg-black/30 backdrop-blur-xl">
             {/* Left Controls: Done, Folder, Save Status */}
             <div className="flex items-center gap-3">
               <button
