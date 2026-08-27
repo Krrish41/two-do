@@ -65,12 +65,20 @@ const NoteEditorModalContent: React.FC<NoteEditorModalContentProps> = ({ note, o
   // Refs for tracking changes and debounced persistence
   const titleTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const contentTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const titleInputRef = useRef<HTMLInputElement | null>(null)
+  const titleInputRef = useRef<HTMLTextAreaElement | null>(null)
   const latestTitleRef = useRef(localTitle)
   const latestContentRef = useRef<any>(note.content)
   const requestSeqRef = useRef(0)
 
   latestTitleRef.current = localTitle
+
+  // Auto-resize note title textarea
+  useEffect(() => {
+    if (titleInputRef.current) {
+      titleInputRef.current.style.height = 'auto'
+      titleInputRef.current.style.height = `${titleInputRef.current.scrollHeight}px`
+    }
+  }, [localTitle, note.id])
 
   const creatorUser = allUsers.find((u) => u.id === note.created_by)
 
@@ -320,15 +328,19 @@ const NoteEditorModalContent: React.FC<NoteEditorModalContentProps> = ({ note, o
 
           {/* SCROLLABLE EDITOR CONTENT (Unified Apple Notes single canvas) */}
           <div className="flex-1 overflow-y-auto px-6 sm:px-12 py-6 sm:py-8 flex flex-col gap-6">
-            {/* Note Title Input */}
-            <input
+            {/* Note Title Input (Auto-resizing to prevent text cutoff) */}
+            <textarea
               ref={titleInputRef}
-              type="text"
               data-note-id={note.id}
               value={localTitle}
+              rows={1}
               onChange={(e) => {
                 const newTitle = e.target.value
                 setLocalTitle(newTitle)
+                if (titleInputRef.current) {
+                  titleInputRef.current.style.height = 'auto'
+                  titleInputRef.current.style.height = `${titleInputRef.current.scrollHeight}px`
+                }
                 debouncedSaveTitle(newTitle, editor?.getText() || '')
               }}
               onKeyDown={(e) => {
@@ -338,7 +350,7 @@ const NoteEditorModalContent: React.FC<NoteEditorModalContentProps> = ({ note, o
                 }
               }}
               placeholder="Note Title..."
-              className="w-full bg-transparent font-extrabold text-2xl sm:text-3xl text-ink tracking-tight outline-none placeholder:text-ink-muted/50 border-b border-glass-border-subtle pb-3"
+              className="w-full bg-transparent font-extrabold text-2xl sm:text-3xl text-ink tracking-tight outline-none placeholder:text-ink-muted/50 border-b border-glass-border-subtle pb-3 resize-none leading-snug break-words"
             />
 
             {/* Customization Bar: Color Swatches & Tags inside document flow */}
