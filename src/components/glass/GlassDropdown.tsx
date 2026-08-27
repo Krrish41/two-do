@@ -61,7 +61,7 @@ export function GlassDropdown<T extends string = string>({
   }[size]
 
   return (
-    <div ref={dropdownRef} className={cn('relative inline-block text-left select-none', className)}>
+    <div ref={dropdownRef} className={cn('relative w-full text-left select-none', className)}>
       {/* Trigger Button */}
       <button
         type="button"

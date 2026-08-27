@@ -335,28 +335,18 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
 
                 {/* Custom Glass Dropdown for Folder with Create Action */}
                 {viewType === 'all' && (
-                  <div className="flex items-center gap-1">
-                    <GlassDropdown
-                      options={folderDropdownOptions}
-                      value={selectedFolder || ''}
-                      onChange={(val) => setSelectedFolder(val || null)}
-                      placeholder="No Folder"
-                      size="sm"
-                      actionItem={{
-                        label: 'Create New Folder...',
-                        icon: <PlusIcon size={14} className="text-lavender-accent" />,
-                        onClick: () => setIsFolderModalOpen(true),
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setIsFolderModalOpen(true)}
-                      className="p-1.5 rounded-xl text-ink-muted hover:text-lavender-accent hover:bg-surface-elevated border border-glass-border shadow-xs transition-colors flex-shrink-0"
-                      title="Create New Folder"
-                    >
-                      <PlusIcon size={14} />
-                    </button>
-                  </div>
+                  <GlassDropdown
+                    options={folderDropdownOptions}
+                    value={selectedFolder || ''}
+                    onChange={(val) => setSelectedFolder(val || null)}
+                    placeholder="No Folder"
+                    size="sm"
+                    actionItem={{
+                      label: 'Create New Folder...',
+                      icon: <PlusIcon size={14} className="text-lavender-accent" />,
+                      onClick: () => setIsFolderModalOpen(true),
+                    }}
+                  />
                 )}
               </div>
             </div>
