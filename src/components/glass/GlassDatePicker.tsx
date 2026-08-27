@@ -24,6 +24,7 @@ export interface GlassDatePickerProps {
   className?: string
   size?: 'sm' | 'md'
   disabled?: boolean
+  align?: 'left' | 'right'
 }
 
 export const GlassDatePicker: React.FC<GlassDatePickerProps> = ({
@@ -33,6 +34,7 @@ export const GlassDatePicker: React.FC<GlassDatePickerProps> = ({
   className,
   size = 'sm',
   disabled = false,
+  align = 'left',
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [currentMonth, setCurrentMonth] = useState<Date>(
@@ -97,7 +99,7 @@ export const GlassDatePicker: React.FC<GlassDatePickerProps> = ({
   }[size]
 
   return (
-    <div ref={containerRef} className={cn('relative inline-block text-left select-none', className)}>
+    <div ref={containerRef} className={cn('relative inline-block text-left select-none', isOpen && 'z-50', className)}>
       {/* Trigger Button */}
       <button
         type="button"
@@ -147,7 +149,10 @@ export const GlassDatePicker: React.FC<GlassDatePickerProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-            className="absolute right-0 sm:right-auto sm:left-0 top-full mt-2 z-[60] w-72 bg-white dark:bg-[#1B152B] p-4 rounded-3xl shadow-2xl border border-glass-border flex flex-col gap-3"
+            className={cn(
+              'absolute top-full mt-2 z-[70] w-[275px] bg-surface-elevated/98 dark:bg-[#1E1630] backdrop-blur-2xl p-3.5 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.35)] dark:shadow-[0_24px_60px_rgba(0,0,0,0.9)] border border-black/10 dark:border-white/15 flex flex-col gap-2.5',
+              align === 'right' ? 'right-0' : 'left-0'
+            )}
           >
             {/* Month & Year Navigation Header */}
             <div className="flex items-center justify-between px-1">
