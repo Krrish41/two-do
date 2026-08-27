@@ -351,55 +351,111 @@
   display: list-item !important;
 }
 
-/* Task List with Interactive Checkboxes */
+/* Task List with Interactive Apple Glass Checkboxes */
 .tiptap ul[data-type="taskList"] {
   list-style: none !important;
   padding: 0 !important;
-  margin: 0.5rem 0 !important;
+  margin: 0.75rem 0 !important;
 }
 
 .tiptap ul[data-type="taskList"] li {
   display: flex !important;
   align-items: flex-start !important;
-  gap: 0.5rem !important;
-  margin-bottom: 0.35rem !important;
+  gap: 0.65rem !important;
+  margin-bottom: 0.45rem !important;
 }
 
 .tiptap ul[data-type="taskList"] li > label {
   user-select: none;
-  margin-top: 0.2rem;
+  margin-top: 0.18rem;
   display: flex;
   align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .tiptap ul[data-type="taskList"] li > div {
   flex: 1 1 auto;
+  line-height: 1.5;
 }
 
 .tiptap ul[data-type="taskList"] input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
   cursor: pointer;
-  accent-color: var(--color-lavender-accent);
-  width: 1.05rem;
-  height: 1.05rem;
-  border-radius: 0.25rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 6px;
+  border: 1.5px solid rgba(104, 60, 184, 0.4);
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  outline: none;
+  display: grid;
+  place-content: center;
+  margin: 0;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+:root[data-theme="light"] .tiptap ul[data-type="taskList"] input[type="checkbox"] {
+  border-color: rgba(104, 60, 184, 0.45);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 1px 3px rgba(104, 60, 184, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+:root[data-theme="dark"] .tiptap ul[data-type="taskList"] input[type="checkbox"] {
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.tiptap ul[data-type="taskList"] input[type="checkbox"]:hover {
+  border-color: var(--color-lavender-accent);
+  transform: scale(1.08);
+}
+
+.tiptap ul[data-type="taskList"] input[type="checkbox"]::before {
+  content: "";
+  width: 0.55rem;
+  height: 0.32rem;
+  border-left: 2px solid white;
+  border-bottom: 2px solid white;
+  transform: rotate(-45deg) scale(0);
+  transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  margin-top: -0.05rem;
+}
+
+.tiptap ul[data-type="taskList"] input[type="checkbox"]:checked {
+  background: linear-gradient(135deg, #8B5CF6 0%, #683CB8 100%);
+  border-color: #8B5CF6;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.tiptap ul[data-type="taskList"] input[type="checkbox"]:checked::before {
+  transform: rotate(-45deg) scale(1);
 }
 
 .tiptap ul[data-type="taskList"] li[data-checked="true"] > div {
   text-decoration: line-through;
-  opacity: 0.6;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
 }
 
 /* Blockquote */
 .tiptap blockquote {
   border-left: 3px solid var(--color-lavender-accent);
-  padding-left: 0.85rem;
-  margin: 0.6rem 0;
+  padding-left: 0.95rem;
+  margin: 0.75rem 0;
   font-style: italic;
   color: var(--color-ink-muted);
-  background: var(--color-glass-subtle);
-  padding-top: 0.35rem;
-  padding-bottom: 0.35rem;
-  border-radius: 0 0.5rem 0.5rem 0;
+  background: rgba(104, 60, 184, 0.06);
+  padding-top: 0.45rem;
+  padding-bottom: 0.45rem;
+  border-radius: 0 0.75rem 0.75rem 0;
+  border-top: 1px solid rgba(104, 60, 184, 0.08);
+  border-right: 1px solid rgba(104, 60, 184, 0.08);
+  border-bottom: 1px solid rgba(104, 60, 184, 0.08);
 }
 
 /* Code Block & Inline Code */

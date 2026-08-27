@@ -58,8 +58,9 @@ const NoteEditorModalContent: React.FC<NoteEditorModalContentProps> = ({ note, o
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved')
 
-  // Local state for Title
+  // Local state for Title & Color for instant 0ms feedback
   const [localTitle, setLocalTitle] = useState(note.title || '')
+  const [localColor, setLocalColor] = useState(note.color || '#FAF8F5')
 
   // Refs for tracking changes and debounced persistence
   const titleTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -111,6 +112,11 @@ const NoteEditorModalContent: React.FC<NoteEditorModalContentProps> = ({ note, o
     },
     [note.id, updateNote, extractAndSyncTags]
   )
+
+  const handleColorChange = (newHex: string) => {
+    setLocalColor(newHex)
+    updateNote(note.id, { color: newHex })
+  }
 
   // Flush any pending save immediately
   const flushSave = useCallback(() => {
@@ -177,10 +183,17 @@ const NoteEditorModalContent: React.FC<NoteEditorModalContentProps> = ({ note, o
   }, [])
 
   const preset =
-    NOTE_COLOR_PRESETS.find((p) => p.hex.toLowerCase() === note.color?.toLowerCase()) ||
+    NOTE_COLOR_PRESETS.find((p) => p.hex.toLowerCase() === localColor.toLowerCase()) ||
     NOTE_COLOR_PRESETS[0]
-  const bgColor = isDark ? preset.darkBg : note.color || '#FAF8F5'
-  const borderColor = isDark ? preset.darkBorder : 'rgba(255,255,255,0.6)'
+  const bgColor = isDark
+    ? preset.darkBg
+    : localColor === 'rgba(255,255,255,0.4)'
+    ? '#FAF8F5'
+    : localColor
+  const borderColor = isDark ? preset.darkBorder : 'rgba(0,0,0,0.12)'
+  const modalShadow = isDark
+    ? '0 24px 72px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.2)'
+    : '0 24px 60px rgba(104,60,184,0.15), 0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.9)'
 
   // Exclude system folders (Bucket List) so it is not repeated in dropdowns
   const assignableFolders = folders.filter((f) => !f.is_system && f.slug !== 'bucket-list')
@@ -214,11 +227,11 @@ const NoteEditorModalContent: React.FC<NoteEditorModalContentProps> = ({ note, o
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 30, scale: 0.98 }}
           transition={{ type: 'spring', stiffness: 350, damping: 28 }}
-          className="relative w-full max-w-3xl h-[100dvh] sm:h-[88vh] sm:max-h-[850px] rounded-t-[32px] sm:rounded-[32px] flex flex-col overflow-hidden shadow-2xl z-10 border border-glass-border"
-          style={{ backgroundColor: bgColor, borderColor }}
+          className="relative w-full max-w-3xl h-[100dvh] sm:h-[88vh] sm:max-h-[850px] rounded-t-[32px] sm:rounded-[32px] flex flex-col overflow-hidden z-10 border transition-colors duration-200"
+          style={{ backgroundColor: bgColor, borderColor, boxShadow: modalShadow }}
         >
-          {/* HEADER TOOLBAR */}
-          <div className="flex-shrink-0 px-6 py-4 border-b border-glass-border-subtle flex items-center justify-between gap-3 bg-surface/60 dark:bg-black/30 backdrop-blur-xl">
+          {/* HEADER TOOLBAR (Elevated z-30 for pristine dropdown layering) */}
+          <div className="relative z-30 flex-shrink-0 px-6 py-4 border-b border-glass-border-subtle flex items-center justify-between gap-3 bg-surface/75 dark:bg-black/35 backdrop-blur-xl">
             {/* Left Controls: Done, Folder, Save Status */}
             <div className="flex items-center gap-3">
               <button
@@ -318,11 +331,11 @@ const NoteEditorModalContent: React.FC<NoteEditorModalContentProps> = ({ note, o
 
             {/* Customization Bar: Color Swatches & Tags inside document flow */}
             <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-glass-border-subtle/60">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">Tint:</span>
                 <ColorSwatchPicker
-                  selectedColor={note.color || '#FAF8F5'}
-                  onSelectColor={(color) => updateNote(note.id, { color })}
+                  selectedColor={localColor}
+                  onSelectColor={handleColorChange}
                 />
               </div>
 
@@ -337,203 +350,189 @@ const NoteEditorModalContent: React.FC<NoteEditorModalContentProps> = ({ note, o
             </div>
           </div>
 
-          {/* DOCKED FLOATING FORMATTING TOOLBAR (Always pinned at bottom with frosted blur) */}
-          <div className="flex-shrink-0 p-3 sm:p-4 bg-surface/80 dark:bg-black/40 backdrop-blur-xl border-t border-glass-border-subtle flex items-center justify-center">
-            <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto max-w-full px-2 py-1 scrollbar-none">
-              {/* Bold */}
-              <button
-                type="button"
-                onClick={() => editor?.chain().focus().toggleBold().run()}
-                className={cn(
-                  'p-2 rounded-xl transition-all cursor-pointer',
-                  editor?.isActive('bold')
-                    ? 'bg-lavender-accent text-white shadow-xs'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
-                )}
-                title="Bold"
-              >
-                <Bold size={15} />
-              </button>
+          {/* DOCKED FLOATING FORMATTING TOOLBAR (Segmented Cluster Pills) */}
+          <div className="flex-shrink-0 p-3 sm:p-4 bg-surface/85 dark:bg-black/50 backdrop-blur-xl border-t border-glass-border-subtle flex items-center justify-center">
+            <div className="flex items-center gap-2 overflow-x-auto max-w-full px-2 py-1 scrollbar-none">
+              {/* Cluster 1: Text Marks (Bold, Italic, Strike, Highlight) */}
+              <div className="flex items-center p-0.5 rounded-xl bg-black/5 dark:bg-white/[0.04] border border-glass-border-subtle/70">
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().toggleBold().run()}
+                  className={cn(
+                    'p-1.5 rounded-lg transition-all cursor-pointer',
+                    editor?.isActive('bold')
+                      ? 'bg-lavender-accent text-white shadow-xs font-bold'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
+                  )}
+                  title="Bold"
+                >
+                  <Bold size={15} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().toggleItalic().run()}
+                  className={cn(
+                    'p-1.5 rounded-lg transition-all cursor-pointer',
+                    editor?.isActive('italic')
+                      ? 'bg-lavender-accent text-white shadow-xs font-bold'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
+                  )}
+                  title="Italic"
+                >
+                  <Italic size={15} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().toggleStrike().run()}
+                  className={cn(
+                    'p-1.5 rounded-lg transition-all cursor-pointer',
+                    editor?.isActive('strike')
+                      ? 'bg-lavender-accent text-white shadow-xs font-bold'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
+                  )}
+                  title="Strikethrough"
+                >
+                  <Strikethrough size={15} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().toggleHighlight().run()}
+                  className={cn(
+                    'p-1.5 rounded-lg transition-all cursor-pointer',
+                    editor?.isActive('highlight')
+                      ? 'bg-lavender-accent text-white shadow-xs font-bold'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
+                  )}
+                  title="Highlight"
+                >
+                  <Highlighter size={15} />
+                </button>
+              </div>
 
-              {/* Italic */}
-              <button
-                type="button"
-                onClick={() => editor?.chain().focus().toggleItalic().run()}
-                className={cn(
-                  'p-2 rounded-xl transition-all cursor-pointer',
-                  editor?.isActive('italic')
-                    ? 'bg-lavender-accent text-white shadow-xs'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
-                )}
-                title="Italic"
-              >
-                <Italic size={15} />
-              </button>
+              {/* Cluster 2: Headings (H1, H2) */}
+              <div className="flex items-center p-0.5 rounded-xl bg-black/5 dark:bg-white/[0.04] border border-glass-border-subtle/70">
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
+                  className={cn(
+                    'p-1.5 rounded-lg transition-all cursor-pointer',
+                    editor?.isActive('heading', { level: 1 })
+                      ? 'bg-lavender-accent text-white shadow-xs font-bold'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
+                  )}
+                  title="Heading 1"
+                >
+                  <Heading1 size={15} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+                  className={cn(
+                    'p-1.5 rounded-lg transition-all cursor-pointer',
+                    editor?.isActive('heading', { level: 2 })
+                      ? 'bg-lavender-accent text-white shadow-xs font-bold'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
+                  )}
+                  title="Heading 2"
+                >
+                  <Heading2 size={15} />
+                </button>
+              </div>
 
-              {/* Strikethrough */}
-              <button
-                type="button"
-                onClick={() => editor?.chain().focus().toggleStrike().run()}
-                className={cn(
-                  'p-2 rounded-xl transition-all cursor-pointer',
-                  editor?.isActive('strike')
-                    ? 'bg-lavender-accent text-white shadow-xs'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
-                )}
-                title="Strikethrough"
-              >
-                <Strikethrough size={15} />
-              </button>
+              {/* Cluster 3: Lists (Bullet, Numbered, Checklist) */}
+              <div className="flex items-center p-0.5 rounded-xl bg-black/5 dark:bg-white/[0.04] border border-glass-border-subtle/70">
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                  className={cn(
+                    'p-1.5 rounded-lg transition-all cursor-pointer',
+                    editor?.isActive('bulletList')
+                      ? 'bg-lavender-accent text-white shadow-xs font-bold'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
+                  )}
+                  title="Bullet List"
+                >
+                  <List size={15} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                  className={cn(
+                    'p-1.5 rounded-lg transition-all cursor-pointer',
+                    editor?.isActive('orderedList')
+                      ? 'bg-lavender-accent text-white shadow-xs font-bold'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
+                  )}
+                  title="Numbered List"
+                >
+                  <ListOrdered size={15} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().toggleTaskList().run()}
+                  className={cn(
+                    'p-1.5 rounded-lg transition-all cursor-pointer',
+                    editor?.isActive('taskList')
+                      ? 'bg-lavender-accent text-white shadow-xs font-bold'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
+                  )}
+                  title="Checklist"
+                >
+                  <CheckSquare size={15} />
+                </button>
+              </div>
 
-              {/* Highlight */}
-              <button
-                type="button"
-                onClick={() => editor?.chain().focus().toggleHighlight().run()}
-                className={cn(
-                  'p-2 rounded-xl transition-all cursor-pointer',
-                  editor?.isActive('highlight')
-                    ? 'bg-lavender-accent text-white shadow-xs'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
-                )}
-                title="Highlight"
-              >
-                <Highlighter size={15} />
-              </button>
+              {/* Cluster 4: Blocks (Quote, Code) */}
+              <div className="flex items-center p-0.5 rounded-xl bg-black/5 dark:bg-white/[0.04] border border-glass-border-subtle/70">
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().toggleBlockquote().run()}
+                  className={cn(
+                    'p-1.5 rounded-lg transition-all cursor-pointer',
+                    editor?.isActive('blockquote')
+                      ? 'bg-lavender-accent text-white shadow-xs font-bold'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
+                  )}
+                  title="Blockquote"
+                >
+                  <Quote size={15} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().toggleCodeBlock().run()}
+                  className={cn(
+                    'p-1.5 rounded-lg transition-all cursor-pointer',
+                    editor?.isActive('codeBlock')
+                      ? 'bg-lavender-accent text-white shadow-xs font-bold'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
+                  )}
+                  title="Code Block"
+                >
+                  <Code size={15} />
+                </button>
+              </div>
 
-              <div className="w-[1px] h-5 bg-glass-border mx-1" />
-
-              {/* Heading 1 */}
-              <button
-                type="button"
-                onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
-                className={cn(
-                  'p-2 rounded-xl transition-all cursor-pointer',
-                  editor?.isActive('heading', { level: 1 })
-                    ? 'bg-lavender-accent text-white shadow-xs'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
-                )}
-                title="Heading 1"
-              >
-                <Heading1 size={15} />
-              </button>
-
-              {/* Heading 2 */}
-              <button
-                type="button"
-                onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-                className={cn(
-                  'p-2 rounded-xl transition-all cursor-pointer',
-                  editor?.isActive('heading', { level: 2 })
-                    ? 'bg-lavender-accent text-white shadow-xs'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
-                )}
-                title="Heading 2"
-              >
-                <Heading2 size={15} />
-              </button>
-
-              <div className="w-[1px] h-5 bg-glass-border mx-1" />
-
-              {/* Bullet List */}
-              <button
-                type="button"
-                onClick={() => editor?.chain().focus().toggleBulletList().run()}
-                className={cn(
-                  'p-2 rounded-xl transition-all cursor-pointer',
-                  editor?.isActive('bulletList')
-                    ? 'bg-lavender-accent text-white shadow-xs'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
-                )}
-                title="Bullet List"
-              >
-                <List size={15} />
-              </button>
-
-              {/* Numbered List */}
-              <button
-                type="button"
-                onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-                className={cn(
-                  'p-2 rounded-xl transition-all cursor-pointer',
-                  editor?.isActive('orderedList')
-                    ? 'bg-lavender-accent text-white shadow-xs'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
-                )}
-                title="Numbered List"
-              >
-                <ListOrdered size={15} />
-              </button>
-
-              {/* Task List / Checklist */}
-              <button
-                type="button"
-                onClick={() => editor?.chain().focus().toggleTaskList().run()}
-                className={cn(
-                  'p-2 rounded-xl transition-all cursor-pointer',
-                  editor?.isActive('taskList')
-                    ? 'bg-lavender-accent text-white shadow-xs'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
-                )}
-                title="Checklist"
-              >
-                <CheckSquare size={15} />
-              </button>
-
-              <div className="w-[1px] h-5 bg-glass-border mx-1" />
-
-              {/* Quote */}
-              <button
-                type="button"
-                onClick={() => editor?.chain().focus().toggleBlockquote().run()}
-                className={cn(
-                  'p-2 rounded-xl transition-all cursor-pointer',
-                  editor?.isActive('blockquote')
-                    ? 'bg-lavender-accent text-white shadow-xs'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
-                )}
-                title="Blockquote"
-              >
-                <Quote size={15} />
-              </button>
-
-              {/* Code Block */}
-              <button
-                type="button"
-                onClick={() => editor?.chain().focus().toggleCodeBlock().run()}
-                className={cn(
-                  'p-2 rounded-xl transition-all cursor-pointer',
-                  editor?.isActive('codeBlock')
-                    ? 'bg-lavender-accent text-white shadow-xs'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
-                )}
-                title="Code Block"
-              >
-                <Code size={15} />
-              </button>
-
-              <div className="w-[1px] h-5 bg-glass-border mx-1" />
-
-              {/* Undo */}
-              <button
-                type="button"
-                onClick={() => editor?.chain().focus().undo().run()}
-                disabled={!editor?.can().undo()}
-                className="p-2 rounded-xl text-ink-muted hover:text-ink hover:bg-surface-elevated disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer"
-                title="Undo"
-              >
-                <Undo size={15} />
-              </button>
-
-              {/* Redo */}
-              <button
-                type="button"
-                onClick={() => editor?.chain().focus().redo().run()}
-                disabled={!editor?.can().redo()}
-                className="p-2 rounded-xl text-ink-muted hover:text-ink hover:bg-surface-elevated disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer"
-                title="Redo"
-              >
-                <Redo size={15} />
-              </button>
+              {/* Cluster 5: History (Undo, Redo) */}
+              <div className="flex items-center p-0.5 rounded-xl bg-black/5 dark:bg-white/[0.04] border border-glass-border-subtle/70">
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().undo().run()}
+                  disabled={!editor?.can().undo()}
+                  className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-surface-elevated disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer"
+                  title="Undo"
+                >
+                  <Undo size={15} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().redo().run()}
+                  disabled={!editor?.can().redo()}
+                  className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-surface-elevated disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer"
+                  title="Redo"
+                >
+                  <Redo size={15} />
+                </button>
+              </div>
             </div>
           </div>
         </motion.div>
