@@ -44,7 +44,7 @@ export const GlassModal: React.FC<GlassModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-3 sm:p-6 overflow-y-auto overscroll-contain">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -62,12 +62,12 @@ export const GlassModal: React.FC<GlassModalProps> = ({
             exit={{ opacity: 0, scale: 0.95, y: 8 }}
             transition={{ type: 'spring', stiffness: 300, damping: 24 }}
             className={cn(
-              'relative w-full glass-panel-elevated p-6 sm:p-7 z-10 my-8 shadow-2xl',
+              'relative w-full glass-panel-elevated p-5 sm:p-7 z-10 my-auto sm:my-8 shadow-2xl max-h-[calc(100dvh-1.5rem)] sm:max-h-[88vh] flex flex-col overflow-hidden',
               maxWidthClass
             )}
           >
             {(title || showCloseButton) && (
-              <div className="flex items-start justify-between gap-4 mb-4">
+              <div className="flex items-start justify-between gap-4 mb-4 flex-shrink-0">
                 <div>
                   {title && <h2 className="text-xl font-bold text-ink tracking-tight">{title}</h2>}
                   {description && <p className="text-xs sm:text-sm text-ink/60 mt-0.5">{description}</p>}
@@ -82,7 +82,9 @@ export const GlassModal: React.FC<GlassModalProps> = ({
                 )}
               </div>
             )}
-            {children}
+            <div className="flex-1 overflow-y-auto overscroll-contain -mx-1 px-1">
+              {children}
+            </div>
           </motion.div>
         </div>
       )}

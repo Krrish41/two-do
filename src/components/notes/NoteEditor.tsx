@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import TaskList from '@tiptap/extension-task-list'
@@ -57,6 +57,79 @@ export const NoteEditor: React.FC = () => {
   const currentNote = notes.find((n) => n.id === selectedNoteId)
   const creatorUser = allUsers.find((u) => u.id === currentNote?.created_by)
 
+  // Local state for title to eliminate typing lag and cursor jumping
+  const [localTitle, setLocalTitle] = useState(currentNote?.title || '')
+
+  // Refs for tracking active note and debouncing saves
+  const activeNoteIdRef = useRef<string | null>(selectedNoteId)
+  const titleTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const contentTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const latestTitleRef = useRef(localTitle)
+  const latestContentRef = useRef<any>(currentNote?.content)
+  const isInternalUpdateRef = useRef(false)
+
+  latestTitleRef.current = localTitle
+
+  // Keep activeNoteIdRef updated
+  useEffect(() => {
+    activeNoteIdRef.current = selectedNoteId
+  }, [selectedNoteId])
+
+  // Debounced content save function
+  const debouncedSaveContent = useCallback(
+    (noteId: string, json: any, text: string) => {
+      latestContentRef.current = json
+      if (contentTimeoutRef.current) {
+        clearTimeout(contentTimeoutRef.current)
+      }
+      contentTimeoutRef.current = setTimeout(() => {
+        isInternalUpdateRef.current = true
+        updateNote(noteId, { content: json })
+        extractAndSyncTags(noteId, `${latestTitleRef.current} ${text}`)
+        setTimeout(() => {
+          isInternalUpdateRef.current = false
+        }, 100)
+      }, 350)
+    },
+    [updateNote, extractAndSyncTags]
+  )
+
+  // Debounced title save function
+  const debouncedSaveTitle = useCallback(
+    (noteId: string, newTitle: string, editorText: string) => {
+      if (titleTimeoutRef.current) {
+        clearTimeout(titleTimeoutRef.current)
+      }
+      titleTimeoutRef.current = setTimeout(() => {
+        isInternalUpdateRef.current = true
+        updateNote(noteId, { title: newTitle })
+        extractAndSyncTags(noteId, `${newTitle} ${editorText}`)
+        setTimeout(() => {
+          isInternalUpdateRef.current = false
+        }, 100)
+      }, 300)
+    },
+    [updateNote, extractAndSyncTags]
+  )
+
+  // Flush any pending save immediately
+  const flushSave = useCallback(() => {
+    if (titleTimeoutRef.current) {
+      clearTimeout(titleTimeoutRef.current)
+      titleTimeoutRef.current = null
+    }
+    if (contentTimeoutRef.current) {
+      clearTimeout(contentTimeoutRef.current)
+      contentTimeoutRef.current = null
+    }
+    if (activeNoteIdRef.current && currentNote) {
+      updateNote(activeNoteIdRef.current, {
+        title: latestTitleRef.current,
+        content: latestContentRef.current,
+      })
+    }
+  }, [currentNote, updateNote])
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -72,29 +145,45 @@ export const NoteEditor: React.FC = () => {
     ],
     content: (currentNote?.content as any) || '',
     onUpdate: ({ editor }) => {
-      if (currentNote) {
-        updateNote(currentNote.id, { content: editor.getJSON() })
-        const text = editor.getText()
-        extractAndSyncTags(currentNote.id, `${currentNote.title} ${text}`)
+      if (activeNoteIdRef.current) {
+        debouncedSaveContent(activeNoteIdRef.current, editor.getJSON(), editor.getText())
       }
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose-base focus:outline-none min-h-[220px] max-h-[500px] overflow-y-auto px-1 text-ink font-normal',
+        class: 'prose prose-sm sm:prose-base focus:outline-none min-h-[220px] px-1 text-ink font-normal',
       },
     },
   })
 
-  // Synchronize editor content when selected note changes
+  // Synchronize editor content ONLY when selected note ID changes (not on every keystroke)
   useEffect(() => {
-    if (editor && currentNote) {
-      const currentJSON = JSON.stringify(editor.getJSON())
-      const noteJSON = JSON.stringify(currentNote.content)
-      if (currentJSON !== noteJSON) {
-        editor.commands.setContent((currentNote.content as any) || '')
+    if (selectedNoteId && currentNote) {
+      setLocalTitle(currentNote.title || '')
+      latestTitleRef.current = currentNote.title || ''
+      latestContentRef.current = currentNote.content
+
+      if (editor && !isInternalUpdateRef.current) {
+        const currentJSON = JSON.stringify(editor.getJSON())
+        const noteJSON = JSON.stringify(currentNote.content)
+        if (currentJSON !== noteJSON) {
+          editor.commands.setContent((currentNote.content as any) || '')
+        }
       }
     }
-  }, [selectedNoteId, editor, currentNote])
+  }, [selectedNoteId])
+
+  // Clean up and flush save on unmount or when note closes
+  useEffect(() => {
+    return () => {
+      flushSave()
+    }
+  }, [flushSave])
+
+  const handleClose = () => {
+    flushSave()
+    setSelectedNoteId(null)
+  }
 
   if (!currentNote) return null
 
@@ -118,28 +207,35 @@ export const NoteEditor: React.FC = () => {
     <>
       <GlassModal
         isOpen={Boolean(selectedNoteId)}
-        onClose={() => setSelectedNoteId(null)}
+        onClose={handleClose}
         maxWidth="2xl"
-        showCloseButton={true}
+        showCloseButton={false}
       >
         <div
-          className="flex flex-col gap-4 -m-6 sm:-m-7 p-6 sm:p-7 rounded-3xl transition-colors duration-300 border border-glass-border"
+          className="flex flex-col gap-3.5 sm:gap-4 -m-5 sm:-m-7 p-4 sm:p-7 rounded-3xl transition-colors duration-300 border border-glass-border min-h-full"
           style={{ backgroundColor: bgColor }}
         >
-          {/* Header Controls: Title & Pin/Delete */}
-          <div className="flex items-start justify-between gap-4 border-b border-glass-border-subtle pb-3">
+          {/* Header Controls: Title & Pin/Delete/Close */}
+          <div className="flex items-start justify-between gap-3 border-b border-glass-border-subtle pb-3">
             <input
               type="text"
-              value={currentNote.title}
+              value={localTitle}
               onChange={(e) => {
-                updateNote(currentNote.id, { title: e.target.value })
-                extractAndSyncTags(currentNote.id, e.target.value)
+                const newTitle = e.target.value
+                setLocalTitle(newTitle)
+                if (activeNoteIdRef.current) {
+                  debouncedSaveTitle(
+                    activeNoteIdRef.current,
+                    newTitle,
+                    editor?.getText() || ''
+                  )
+                }
               }}
               placeholder="Note title (supports #tags)..."
               className="w-full bg-transparent font-bold text-xl sm:text-2xl text-ink outline-none placeholder:text-ink-muted tracking-tight"
             />
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-shrink-0">
               <button
                 type="button"
                 onClick={() => togglePin(currentNote.id)}
@@ -161,6 +257,15 @@ export const NoteEditor: React.FC = () => {
                 title="Move to Recycle Bin"
               >
                 <TrashIcon size={16} />
+              </button>
+
+              <button
+                type="button"
+                onClick={handleClose}
+                className="p-2 rounded-xl text-ink-muted hover:text-ink hover:bg-surface transition-all"
+                title="Close"
+              >
+                ✕
               </button>
             </div>
           </div>
