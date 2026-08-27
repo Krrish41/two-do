@@ -150,7 +150,7 @@ export const GlassDatePicker: React.FC<GlassDatePickerProps> = ({
             exit={{ opacity: 0, y: 4, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 400, damping: 28 }}
             className={cn(
-              'absolute top-full mt-2 z-[70] w-[275px] bg-surface-elevated/98 dark:bg-[#1E1630] backdrop-blur-2xl p-3.5 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.35)] dark:shadow-[0_24px_60px_rgba(0,0,0,0.9)] border border-black/10 dark:border-white/15 flex flex-col gap-2.5',
+              'absolute top-full mt-2 z-[70] w-[275px] bg-white dark:bg-[#1E1630] p-3.5 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.25)] dark:shadow-[0_24px_60px_rgba(0,0,0,0.9)] border border-black/10 dark:border-white/15 flex flex-col gap-2.5',
               align === 'right' ? 'right-0' : 'left-0'
             )}
           >
