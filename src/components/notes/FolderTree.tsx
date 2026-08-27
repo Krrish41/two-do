@@ -75,11 +75,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({ className }) => {
             ) : (
               <div className="w-3" />
             )}
-            {isSelected ? (
-              <FolderOpen className="w-3.5 h-3.5 text-lavender-accent flex-shrink-0" />
-            ) : (
-              <FolderIcon className="w-3.5 h-3.5 text-ink-muted flex-shrink-0" />
-            )}
+            <span className="text-sm flex-shrink-0">{folder.icon || '📁'}</span>
             <span className="truncate">{folder.name}</span>
           </div>
 

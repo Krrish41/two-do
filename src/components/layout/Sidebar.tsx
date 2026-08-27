@@ -230,11 +230,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         )
                       }
                     >
-                      {folder.icon && folder.icon !== '📁' && folder.icon !== '📂' ? (
-                        <span className="text-base flex-shrink-0">{folder.icon}</span>
-                      ) : (
-                        <FolderIcon size={18} className="text-amber-500 flex-shrink-0" />
-                      )}
+                      <span className="text-base flex-shrink-0">{folder.icon || '📁'}</span>
                       <span className="truncate">{folder.name}</span>
                     </NavLink>
 
