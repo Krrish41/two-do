@@ -38,11 +38,14 @@ import { useNoteStore, NOTE_COLOR_PRESETS } from '../../stores/noteStore'
 import { useAuthStore } from '../../stores/authStore'
 import { useThemeStore } from '../../stores/themeStore'
 import { cn } from '../../lib/utils'
+import type { Note } from '../../lib/database.types'
 
-export const NoteEditor: React.FC = () => {
-  const selectedNoteId = useNoteStore((s) => s.selectedNoteId)
-  const setSelectedNoteId = useNoteStore((s) => s.setSelectedNoteId)
-  const notes = useNoteStore((s) => s.notes)
+interface NoteEditorModalContentProps {
+  note: Note
+  onClose: () => void
+}
+
+const NoteEditorModalContent: React.FC<NoteEditorModalContentProps> = ({ note, onClose }) => {
   const updateNote = useNoteStore((s) => s.updateNote)
   const softDeleteNote = useNoteStore((s) => s.softDeleteNote)
   const togglePin = useNoteStore((s) => s.togglePin)
@@ -55,32 +58,24 @@ export const NoteEditor: React.FC = () => {
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved')
 
-  const currentNote = notes.find((n) => n.id === selectedNoteId)
-  const creatorUser = allUsers.find((u) => u.id === currentNote?.created_by)
+  // Local state for Title
+  const [localTitle, setLocalTitle] = useState(note.title || '')
 
-  // Local state for title to eliminate typing lag and cursor jumping
-  const [localTitle, setLocalTitle] = useState(currentNote?.title || '')
-
-  // Refs for tracking active note and debouncing saves
-  const activeNoteIdRef = useRef<string | null>(selectedNoteId)
+  // Refs for tracking changes and debounced persistence
   const titleTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const contentTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const titleInputRef = useRef<HTMLInputElement | null>(null)
   const latestTitleRef = useRef(localTitle)
-  const latestContentRef = useRef<any>(currentNote?.content)
-  const isInternalUpdateRef = useRef(false)
+  const latestContentRef = useRef<any>(note.content)
   const requestSeqRef = useRef(0)
 
   latestTitleRef.current = localTitle
 
-  // Keep activeNoteIdRef updated
-  useEffect(() => {
-    activeNoteIdRef.current = selectedNoteId
-  }, [selectedNoteId])
+  const creatorUser = allUsers.find((u) => u.id === note.created_by)
 
-  // Debounced content save function (500ms)
+  // Debounced content save function (400ms)
   const debouncedSaveContent = useCallback(
-    (noteId: string, json: any, text: string) => {
+    (json: any, text: string) => {
       latestContentRef.current = json
       setSaveStatus('saving')
       if (contentTimeoutRef.current) {
@@ -88,41 +83,33 @@ export const NoteEditor: React.FC = () => {
       }
       const seq = ++requestSeqRef.current
       contentTimeoutRef.current = setTimeout(async () => {
-        isInternalUpdateRef.current = true
-        await updateNote(noteId, { content: json })
-        await extractAndSyncTags(noteId, `${latestTitleRef.current} ${text}`)
+        await updateNote(note.id, { content: json })
+        await extractAndSyncTags(note.id, `${latestTitleRef.current} ${text}`)
         if (seq === requestSeqRef.current) {
           setSaveStatus('saved')
         }
-        setTimeout(() => {
-          isInternalUpdateRef.current = false
-        }, 100)
-      }, 500)
+      }, 400)
     },
-    [updateNote, extractAndSyncTags]
+    [note.id, updateNote, extractAndSyncTags]
   )
 
-  // Debounced title save function (500ms)
+  // Debounced title save function (400ms)
   const debouncedSaveTitle = useCallback(
-    (noteId: string, newTitle: string, editorText: string) => {
+    (newTitle: string, editorText: string) => {
       setSaveStatus('saving')
       if (titleTimeoutRef.current) {
         clearTimeout(titleTimeoutRef.current)
       }
       const seq = ++requestSeqRef.current
       titleTimeoutRef.current = setTimeout(async () => {
-        isInternalUpdateRef.current = true
-        await updateNote(noteId, { title: newTitle })
-        await extractAndSyncTags(noteId, `${newTitle} ${editorText}`)
+        await updateNote(note.id, { title: newTitle })
+        await extractAndSyncTags(note.id, `${newTitle} ${editorText}`)
         if (seq === requestSeqRef.current) {
           setSaveStatus('saved')
         }
-        setTimeout(() => {
-          isInternalUpdateRef.current = false
-        }, 100)
-      }, 500)
+      }, 400)
     },
-    [updateNote, extractAndSyncTags]
+    [note.id, updateNote, extractAndSyncTags]
   )
 
   // Flush any pending save immediately
@@ -135,14 +122,12 @@ export const NoteEditor: React.FC = () => {
       clearTimeout(contentTimeoutRef.current)
       contentTimeoutRef.current = null
     }
-    if (activeNoteIdRef.current && currentNote) {
-      updateNote(activeNoteIdRef.current, {
-        title: latestTitleRef.current,
-        content: latestContentRef.current,
-      })
-      setSaveStatus('saved')
-    }
-  }, [currentNote, updateNote])
+    updateNote(note.id, {
+      title: latestTitleRef.current,
+      content: latestContentRef.current,
+    })
+    setSaveStatus('saved')
+  }, [note.id, updateNote])
 
   const editor = useEditor({
     extensions: [
@@ -157,11 +142,9 @@ export const NoteEditor: React.FC = () => {
         placeholder: 'Write thoughts, meeting notes, lists, or plans (use #tags)...',
       }),
     ],
-    content: (currentNote?.content as any) || '',
-    onUpdate: ({ editor }) => {
-      if (activeNoteIdRef.current) {
-        debouncedSaveContent(activeNoteIdRef.current, editor.getJSON(), editor.getText())
-      }
+    content: (note.content as any) || '',
+    onUpdate: ({ editor: ed }) => {
+      debouncedSaveContent(ed.getJSON(), ed.getText())
     },
     editorProps: {
       attributes: {
@@ -170,54 +153,33 @@ export const NoteEditor: React.FC = () => {
     },
   })
 
-  // Synchronize editor content ONLY when not focused and content differs
-  useEffect(() => {
-    if (selectedNoteId && currentNote) {
-      if (document.activeElement !== titleInputRef.current) {
-        setLocalTitle(currentNote.title || '')
-        latestTitleRef.current = currentNote.title || ''
-      }
-      latestContentRef.current = currentNote.content
-
-      if (editor && !editor.isFocused && !isInternalUpdateRef.current) {
-        const currentJSON = JSON.stringify(editor.getJSON())
-        const noteJSON = JSON.stringify(currentNote.content)
-        if (currentJSON !== noteJSON) {
-          editor.commands.setContent((currentNote.content as any) || '')
-        }
-      }
-    }
-  }, [selectedNoteId, currentNote?.title, currentNote?.content])
-
-  // Clean up and flush save on unmount or when note closes
+  // Clean up and flush save on unmount
   useEffect(() => {
     return () => {
       flushSave()
     }
   }, [flushSave])
 
-  const handleClose = () => {
+  const handleCloseModal = () => {
     flushSave()
-    setSelectedNoteId(null)
+    onClose()
   }
 
   // Handle escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && selectedNoteId) {
-        handleClose()
+      if (e.key === 'Escape') {
+        handleCloseModal()
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedNoteId])
-
-  if (!selectedNoteId || !currentNote) return null
+  }, [])
 
   const preset =
-    NOTE_COLOR_PRESETS.find((p) => p.hex.toLowerCase() === currentNote.color?.toLowerCase()) ||
+    NOTE_COLOR_PRESETS.find((p) => p.hex.toLowerCase() === note.color?.toLowerCase()) ||
     NOTE_COLOR_PRESETS[0]
-  const bgColor = isDark ? preset.darkBg : currentNote.color || '#FAF8F5'
+  const bgColor = isDark ? preset.darkBg : note.color || '#FAF8F5'
   const borderColor = isDark ? preset.darkBorder : 'rgba(255,255,255,0.6)'
 
   // Exclude system folders (Bucket List) so it is not repeated in dropdowns
@@ -232,20 +194,22 @@ export const NoteEditor: React.FC = () => {
   ]
 
   return (
-    <AnimatePresence>
+    <>
       <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 overflow-hidden">
         {/* Backdrop */}
         <motion.div
+          key="note-backdrop"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
           className="fixed inset-0 bg-ink/40 backdrop-blur-md"
-          onClick={handleClose}
+          onClick={handleCloseModal}
         />
 
         {/* Modal Container */}
         <motion.div
+          key="note-modal-card"
           initial={{ opacity: 0, y: 30, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 30, scale: 0.98 }}
@@ -253,74 +217,76 @@ export const NoteEditor: React.FC = () => {
           className="relative w-full max-w-3xl h-[100dvh] sm:h-[88vh] sm:max-h-[850px] rounded-t-[32px] sm:rounded-[32px] flex flex-col overflow-hidden shadow-2xl z-10 border border-glass-border"
           style={{ backgroundColor: bgColor, borderColor }}
         >
-          {/* TOP FIXED NAVIGATION BAR (Never scrolls off, protected header) */}
-          <div className="flex-shrink-0 flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-glass-border-subtle bg-surface/75 dark:bg-black/35 backdrop-blur-xl z-20">
-            {/* Left: Close/Done + Folder Picker + Status Indicator */}
-            <div className="flex items-center gap-2">
+          {/* HEADER TOOLBAR */}
+          <div className="flex-shrink-0 px-6 py-4 border-b border-glass-border-subtle flex items-center justify-between gap-3 bg-surface/60 dark:bg-black/30 backdrop-blur-xl">
+            {/* Left Controls: Done, Folder, Save Status */}
+            <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={handleClose}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-elevated/90 dark:bg-white/10 hover:bg-surface text-ink text-xs font-bold border border-glass-border transition-all shadow-xs"
-                title="Done editing"
+                onClick={handleCloseModal}
+                className="px-4 py-1.5 rounded-full text-xs font-bold bg-surface text-ink hover:bg-surface-elevated transition-all border border-glass-border shadow-xs cursor-pointer"
               >
-                <span>Done</span>
+                Done
               </button>
 
-              <div className="w-36 sm:w-48">
+              <div className="w-36 sm:w-44">
                 <GlassDropdown
                   options={folderDropdownOptions}
-                  value={currentNote.folder_id || ''}
-                  onChange={(val) => updateNote(currentNote.id, { folder_id: val || null })}
-                  placeholder="No Folder"
-                  size="sm"
+                  value={note.folder_id || ''}
+                  onChange={(folderId) => updateNote(note.id, { folder_id: folderId || null })}
+                  placeholder="Folder"
                   actionItem={{
-                    label: 'Create New Folder...',
-                    icon: <PlusIcon size={14} className="text-lavender-accent" />,
+                    label: 'New Folder',
+                    icon: <PlusIcon size={14} />,
                     onClick: () => setIsFolderModalOpen(true),
                   }}
                 />
               </div>
 
-              {/* Real-time Saving / Saved Status Pill */}
-              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold transition-all bg-surface/60 border border-glass-border">
+              {/* Real-time Debounced Save Status Indicator */}
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-elevated/70 dark:bg-white/[0.06] border border-glass-border text-[11px] font-semibold text-ink-muted">
                 <span
                   className={cn(
                     'w-1.5 h-1.5 rounded-full transition-colors',
-                    saveStatus === 'saving' ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'
+                    saveStatus === 'saving'
+                      ? 'bg-amber-400 animate-pulse'
+                      : 'bg-emerald-500'
                   )}
                 />
-                <span className="text-ink-muted">{saveStatus === 'saving' ? 'Saving…' : 'Saved'}</span>
+                <span className="capitalize">{saveStatus}</span>
               </div>
             </div>
 
-            {/* Right: Creator Mascot + Pin + Delete */}
-            <div className="flex items-center gap-1 sm:gap-1.5">
+            {/* Right Controls: Creator Tag, Pin, Delete */}
+            <div className="flex items-center gap-2">
               {creatorUser && (
-                <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-surface-subtle/80 dark:bg-white/5 text-[11px] font-semibold text-ink border border-glass-border">
-                  <CoupleAvatar userId={creatorUser.id} displayName={creatorUser.display_name} size={16} />
-                  <span>Added by {creatorUser.display_name}</span>
+                <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-elevated/60 dark:bg-white/[0.06] border border-glass-border text-xs text-ink-muted">
+                  <CoupleAvatar userId={creatorUser.id} displayName={creatorUser.display_name} size={14} />
+                  <span className="font-semibold text-[11px]">Added by {creatorUser.display_name}</span>
                 </div>
               )}
 
+              {/* Pin Toggle */}
               <button
                 type="button"
-                onClick={() => togglePin(currentNote.id)}
+                onClick={() => togglePin(note.id)}
                 className={cn(
-                  'p-2 rounded-xl transition-colors border',
-                  currentNote.is_pinned
-                    ? 'bg-amber-500/20 text-amber-600 dark:text-amber-300 border-amber-500/30'
-                    : 'bg-surface-subtle/60 text-ink-muted hover:text-ink border-transparent'
+                  'p-2 rounded-xl transition-all cursor-pointer',
+                  note.is_pinned
+                    ? 'bg-lavender-accent text-white shadow-xs'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
                 )}
-                title={currentNote.is_pinned ? 'Unpin note' : 'Pin note'}
+                title={note.is_pinned ? 'Unpin Note' : 'Pin Note'}
               >
-                <PinIcon size={16} className={currentNote.is_pinned ? 'fill-current' : ''} />
+                <PinIcon size={16} />
               </button>
 
+              {/* Move to Recycle Bin */}
               <button
                 type="button"
                 onClick={() => setIsDeleteConfirmOpen(true)}
-                className="p-2 rounded-xl bg-surface-subtle/60 text-ink-muted hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
-                title="Delete note"
+                className="p-2 rounded-xl text-ink-muted hover:text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer"
+                title="Move to Recycle Bin"
               >
                 <TrashIcon size={16} />
               </button>
@@ -333,13 +299,17 @@ export const NoteEditor: React.FC = () => {
             <input
               ref={titleInputRef}
               type="text"
-              data-note-id={currentNote.id}
+              data-note-id={note.id}
               value={localTitle}
               onChange={(e) => {
                 const newTitle = e.target.value
                 setLocalTitle(newTitle)
-                if (activeNoteIdRef.current) {
-                  debouncedSaveTitle(activeNoteIdRef.current, newTitle, editor?.getText() || '')
+                debouncedSaveTitle(newTitle, editor?.getText() || '')
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  editor?.commands.focus('start')
                 }
               }}
               placeholder="Note Title..."
@@ -351,13 +321,13 @@ export const NoteEditor: React.FC = () => {
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">Tint:</span>
                 <ColorSwatchPicker
-                  selectedColor={currentNote.color || '#FAF8F5'}
-                  onSelectColor={(color) => updateNote(currentNote.id, { color })}
+                  selectedColor={note.color || '#FAF8F5'}
+                  onSelectColor={(color) => updateNote(note.id, { color })}
                 />
               </div>
 
               <div className="flex items-center gap-2">
-                <TagPicker noteId={currentNote.id} />
+                <TagPicker noteId={note.id} />
               </div>
             </div>
 
@@ -375,7 +345,7 @@ export const NoteEditor: React.FC = () => {
                 type="button"
                 onClick={() => editor?.chain().focus().toggleBold().run()}
                 className={cn(
-                  'p-2 rounded-xl transition-all',
+                  'p-2 rounded-xl transition-all cursor-pointer',
                   editor?.isActive('bold')
                     ? 'bg-lavender-accent text-white shadow-xs'
                     : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
@@ -390,7 +360,7 @@ export const NoteEditor: React.FC = () => {
                 type="button"
                 onClick={() => editor?.chain().focus().toggleItalic().run()}
                 className={cn(
-                  'p-2 rounded-xl transition-all',
+                  'p-2 rounded-xl transition-all cursor-pointer',
                   editor?.isActive('italic')
                     ? 'bg-lavender-accent text-white shadow-xs'
                     : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
@@ -405,7 +375,7 @@ export const NoteEditor: React.FC = () => {
                 type="button"
                 onClick={() => editor?.chain().focus().toggleStrike().run()}
                 className={cn(
-                  'p-2 rounded-xl transition-all',
+                  'p-2 rounded-xl transition-all cursor-pointer',
                   editor?.isActive('strike')
                     ? 'bg-lavender-accent text-white shadow-xs'
                     : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
@@ -420,9 +390,9 @@ export const NoteEditor: React.FC = () => {
                 type="button"
                 onClick={() => editor?.chain().focus().toggleHighlight().run()}
                 className={cn(
-                  'p-2 rounded-xl transition-all',
+                  'p-2 rounded-xl transition-all cursor-pointer',
                   editor?.isActive('highlight')
-                    ? 'bg-amber-400 text-amber-950 shadow-xs'
+                    ? 'bg-lavender-accent text-white shadow-xs'
                     : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
                 )}
                 title="Highlight"
@@ -437,7 +407,7 @@ export const NoteEditor: React.FC = () => {
                 type="button"
                 onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
                 className={cn(
-                  'p-2 rounded-xl transition-all',
+                  'p-2 rounded-xl transition-all cursor-pointer',
                   editor?.isActive('heading', { level: 1 })
                     ? 'bg-lavender-accent text-white shadow-xs'
                     : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
@@ -452,7 +422,7 @@ export const NoteEditor: React.FC = () => {
                 type="button"
                 onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
                 className={cn(
-                  'p-2 rounded-xl transition-all',
+                  'p-2 rounded-xl transition-all cursor-pointer',
                   editor?.isActive('heading', { level: 2 })
                     ? 'bg-lavender-accent text-white shadow-xs'
                     : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
@@ -469,7 +439,7 @@ export const NoteEditor: React.FC = () => {
                 type="button"
                 onClick={() => editor?.chain().focus().toggleBulletList().run()}
                 className={cn(
-                  'p-2 rounded-xl transition-all',
+                  'p-2 rounded-xl transition-all cursor-pointer',
                   editor?.isActive('bulletList')
                     ? 'bg-lavender-accent text-white shadow-xs'
                     : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
@@ -479,12 +449,12 @@ export const NoteEditor: React.FC = () => {
                 <List size={15} />
               </button>
 
-              {/* Ordered List */}
+              {/* Numbered List */}
               <button
                 type="button"
                 onClick={() => editor?.chain().focus().toggleOrderedList().run()}
                 className={cn(
-                  'p-2 rounded-xl transition-all',
+                  'p-2 rounded-xl transition-all cursor-pointer',
                   editor?.isActive('orderedList')
                     ? 'bg-lavender-accent text-white shadow-xs'
                     : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
@@ -494,12 +464,12 @@ export const NoteEditor: React.FC = () => {
                 <ListOrdered size={15} />
               </button>
 
-              {/* Checklist */}
+              {/* Task List / Checklist */}
               <button
                 type="button"
                 onClick={() => editor?.chain().focus().toggleTaskList().run()}
                 className={cn(
-                  'p-2 rounded-xl transition-all',
+                  'p-2 rounded-xl transition-all cursor-pointer',
                   editor?.isActive('taskList')
                     ? 'bg-lavender-accent text-white shadow-xs'
                     : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
@@ -516,12 +486,12 @@ export const NoteEditor: React.FC = () => {
                 type="button"
                 onClick={() => editor?.chain().focus().toggleBlockquote().run()}
                 className={cn(
-                  'p-2 rounded-xl transition-all',
+                  'p-2 rounded-xl transition-all cursor-pointer',
                   editor?.isActive('blockquote')
                     ? 'bg-lavender-accent text-white shadow-xs'
                     : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
                 )}
-                title="Quote"
+                title="Blockquote"
               >
                 <Quote size={15} />
               </button>
@@ -531,7 +501,7 @@ export const NoteEditor: React.FC = () => {
                 type="button"
                 onClick={() => editor?.chain().focus().toggleCodeBlock().run()}
                 className={cn(
-                  'p-2 rounded-xl transition-all',
+                  'p-2 rounded-xl transition-all cursor-pointer',
                   editor?.isActive('codeBlock')
                     ? 'bg-lavender-accent text-white shadow-xs'
                     : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
@@ -548,7 +518,7 @@ export const NoteEditor: React.FC = () => {
                 type="button"
                 onClick={() => editor?.chain().focus().undo().run()}
                 disabled={!editor?.can().undo()}
-                className="p-2 rounded-xl text-ink-muted hover:text-ink hover:bg-surface-elevated disabled:opacity-30 disabled:pointer-events-none transition-all"
+                className="p-2 rounded-xl text-ink-muted hover:text-ink hover:bg-surface-elevated disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer"
                 title="Undo"
               >
                 <Undo size={15} />
@@ -559,7 +529,7 @@ export const NoteEditor: React.FC = () => {
                 type="button"
                 onClick={() => editor?.chain().focus().redo().run()}
                 disabled={!editor?.can().redo()}
-                className="p-2 rounded-xl text-ink-muted hover:text-ink hover:bg-surface-elevated disabled:opacity-30 disabled:pointer-events-none transition-all"
+                className="p-2 rounded-xl text-ink-muted hover:text-ink hover:bg-surface-elevated disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer"
                 title="Redo"
               >
                 <Redo size={15} />
@@ -578,7 +548,8 @@ export const NoteEditor: React.FC = () => {
         variant="danger"
         onConfirm={() => {
           setIsDeleteConfirmOpen(false)
-          softDeleteNote(currentNote.id)
+          softDeleteNote(note.id)
+          onClose()
         }}
         onCancel={() => setIsDeleteConfirmOpen(false)}
       />
@@ -587,6 +558,26 @@ export const NoteEditor: React.FC = () => {
         isOpen={isFolderModalOpen}
         onClose={() => setIsFolderModalOpen(false)}
       />
+    </>
+  )
+}
+
+export const NoteEditor: React.FC = () => {
+  const selectedNoteId = useNoteStore((s) => s.selectedNoteId)
+  const setSelectedNoteId = useNoteStore((s) => s.setSelectedNoteId)
+  const notes = useNoteStore((s) => s.notes)
+
+  const currentNote = notes.find((n) => n.id === selectedNoteId && n.deleted_at === null)
+
+  return (
+    <AnimatePresence>
+      {selectedNoteId && currentNote && (
+        <NoteEditorModalContent
+          key={currentNote.id}
+          note={currentNote}
+          onClose={() => setSelectedNoteId(null)}
+        />
+      )}
     </AnimatePresence>
   )
 }

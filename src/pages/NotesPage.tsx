@@ -68,7 +68,7 @@ export const NotesPage: React.FC = () => {
 
   const handleCreateNote = async () => {
     const newNote = await addNote({
-      title: 'Untitled Note',
+      title: '',
       folder_id: selectedFolderId,
     })
     if (newNote) {

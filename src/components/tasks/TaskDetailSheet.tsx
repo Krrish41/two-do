@@ -163,6 +163,7 @@ export const TaskDetailSheet: React.FC = () => {
   const titleTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const notesTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const activeTaskIdRef = useRef<string | null>(selectedTaskId)
+  const lastLoadedTaskIdRef = useRef<string | null>(null)
   const titleInputRef = useRef<HTMLInputElement | null>(null)
   const notesTextareaRef = useRef<HTMLTextAreaElement | null>(null)
   const requestSeqRef = useRef(0)
@@ -172,17 +173,18 @@ export const TaskDetailSheet: React.FC = () => {
     activeTaskIdRef.current = selectedTaskId
   }, [selectedTaskId])
 
-  // Sync from server/store ONLY when selectedTaskId changes or if user isn't actively focused
+  // Sync from server/store ONLY when switching to a different task
   useEffect(() => {
-    if (currentTask) {
-      if (document.activeElement !== titleInputRef.current) {
+    if (selectedTaskId && currentTask) {
+      if (lastLoadedTaskIdRef.current !== selectedTaskId) {
+        lastLoadedTaskIdRef.current = selectedTaskId
         setLocalTitle(currentTask.title)
-      }
-      if (document.activeElement !== notesTextareaRef.current) {
         setLocalNotes(currentTask.notes || '')
       }
+    } else {
+      lastLoadedTaskIdRef.current = null
     }
-  }, [selectedTaskId, currentTask?.title, currentTask?.notes])
+  }, [selectedTaskId, currentTask])
 
   // Debounced save title
   const handleTitleChange = (newTitle: string) => {
