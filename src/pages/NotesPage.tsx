@@ -10,7 +10,8 @@ import {
 import { NoteCard } from '../components/notes/NoteCard'
 import { GlassInput } from '../components/glass/GlassInput'
 import { GlassButton } from '../components/glass/GlassButton'
-import { CoupleAvatar } from '../components/common/CoupleAvatar'
+import { motion } from 'framer-motion'
+import { CreatorFilterTabs } from '../components/common/CreatorFilterTabs'
 import { FolderIconRenderer } from '../components/common/FolderIconRenderer'
 import { CreateFolderModal } from '../components/common/CreateFolderModal'
 import { useNoteStore } from '../stores/noteStore'
@@ -93,40 +94,40 @@ export const NotesPage: React.FC = () => {
         {/* View Mode & New Note Action */}
         <div className="flex items-center gap-2.5">
           {/* View Mode Toggle */}
-          <div className="flex items-center p-1 rounded-2xl bg-surface border border-glass-border">
+          <div className="relative flex items-center p-1 rounded-[18px] bg-slate-200/75 dark:bg-white/[0.05] backdrop-blur-xl border border-black/5 dark:border-white/[0.08] shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)]">
             <button
               onClick={() => setViewMode('grid')}
-              style={
-                viewMode === 'grid'
-                  ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
-                  : {}
-              }
               className={cn(
-                'p-2 rounded-xl transition-all',
-                viewMode === 'grid'
-                  ? 'border border-white/20 shadow-xs'
-                  : 'text-ink-muted hover:text-ink'
+                'relative p-2 rounded-[14px] transition-colors focus:outline-none cursor-pointer',
+                viewMode === 'grid' ? 'text-ink font-bold' : 'text-ink-muted hover:text-ink'
               )}
               title="Grid View"
             >
-              <GridIcon size={16} />
+              {viewMode === 'grid' && (
+                <motion.div
+                  layoutId="notes-viewmode-bubble"
+                  className="absolute inset-0 rounded-[14px] bg-white dark:bg-white/[0.14] backdrop-blur-md border border-white/80 dark:border-white/20 shadow-[0_2px_8px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.22)]"
+                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                />
+              )}
+              <GridIcon size={16} className="relative z-10" />
             </button>
             <button
               onClick={() => setViewMode('list')}
-              style={
-                viewMode === 'list'
-                  ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
-                  : {}
-              }
               className={cn(
-                'p-2 rounded-xl transition-all',
-                viewMode === 'list'
-                  ? 'border border-white/20 shadow-xs'
-                  : 'text-ink-muted hover:text-ink'
+                'relative p-2 rounded-[14px] transition-colors focus:outline-none cursor-pointer',
+                viewMode === 'list' ? 'text-ink font-bold' : 'text-ink-muted hover:text-ink'
               )}
               title="List View"
             >
-              <ListIcon size={16} />
+              {viewMode === 'list' && (
+                <motion.div
+                  layoutId="notes-viewmode-bubble"
+                  className="absolute inset-0 rounded-[14px] bg-white dark:bg-white/[0.14] backdrop-blur-md border border-white/80 dark:border-white/20 shadow-[0_2px_8px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.22)]"
+                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                />
+              )}
+              <ListIcon size={16} className="relative z-10" />
             </button>
           </div>
 
@@ -144,52 +145,12 @@ export const NotesPage: React.FC = () => {
 
       {/* Toolbar: Creator Filter Tabs & Search */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-1 p-1 rounded-2xl glass-panel-subtle border border-glass-border max-w-full overflow-x-auto scrollbar-none">
-          <button
-            type="button"
-            onClick={() => setCreatorFilter('all')}
-            className={cn(
-              'h-8 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center whitespace-nowrap select-none border',
-              creatorFilter === 'all'
-                ? 'bg-surface-elevated text-ink shadow-xs border-glass-border'
-                : 'text-ink-muted hover:text-ink border-transparent'
-            )}
-          >
-            All Notes
-          </button>
-
-          {authorizedUser && (
-            <button
-              type="button"
-              onClick={() => setCreatorFilter('mine')}
-              className={cn(
-                'h-8 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap select-none border',
-                creatorFilter === 'mine'
-                  ? 'bg-surface-elevated text-ink shadow-xs border-glass-border'
-                  : 'text-ink-muted hover:text-ink border-transparent'
-              )}
-            >
-              <CoupleAvatar userId={authorizedUser.id} displayName={authorizedUser.display_name} size={16} />
-              <span>{authorizedUser.display_name}</span>
-            </button>
-          )}
-
-          {partnerUser && (
-            <button
-              type="button"
-              onClick={() => setCreatorFilter('partner')}
-              className={cn(
-                'h-8 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap select-none border',
-                creatorFilter === 'partner'
-                  ? 'bg-surface-elevated text-ink shadow-xs border-glass-border'
-                  : 'text-ink-muted hover:text-ink border-transparent'
-              )}
-            >
-              <CoupleAvatar userId={partnerUser.id} displayName={partnerUser.display_name} size={16} />
-              <span>{partnerUser.display_name}</span>
-            </button>
-          )}
-        </div>
+        <CreatorFilterTabs
+          value={creatorFilter}
+          onChange={setCreatorFilter}
+          allLabel="All Notes"
+          layoutId="notes-creator-bubble"
+        />
 
         {/* Search */}
         <div className="w-full sm:w-64">
@@ -204,19 +165,14 @@ export const NotesPage: React.FC = () => {
       </div>
 
       {/* Folder Chips with + New Folder Button */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
         <button
           type="button"
           onClick={() => setSelectedFolderId(null)}
-          style={
-            selectedFolderId === null
-              ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
-              : {}
-          }
           className={cn(
-            'px-3 py-1.5 rounded-xl text-xs font-bold transition-all border whitespace-nowrap',
+            'h-8 px-3.5 rounded-[16px] text-xs font-bold transition-all border whitespace-nowrap cursor-pointer flex items-center justify-center',
             selectedFolderId === null
-              ? 'border-white/20 shadow-xs'
+              ? 'bg-lavender-accent/25 text-lavender-accent dark:text-[#E4DBF7] border-lavender-accent/40 shadow-xs'
               : 'bg-surface text-ink-muted hover:text-ink border-glass-border hover:bg-surface-elevated'
           )}
         >
@@ -229,15 +185,10 @@ export const NotesPage: React.FC = () => {
               key={folder.id}
               type="button"
               onClick={() => setSelectedFolderId(isSelected ? null : folder.id)}
-              style={
-                isSelected
-                  ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
-                  : {}
-              }
               className={cn(
-                'px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 whitespace-nowrap',
+                'h-8 px-3.5 rounded-[16px] text-xs font-bold transition-all border flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer',
                 isSelected
-                  ? 'border-white/20 shadow-xs'
+                  ? 'bg-lavender-accent/25 text-lavender-accent dark:text-[#E4DBF7] border-lavender-accent/40 shadow-xs'
                   : 'bg-surface text-ink-muted hover:text-ink border-glass-border hover:bg-surface-elevated'
               )}
             >
@@ -250,7 +201,7 @@ export const NotesPage: React.FC = () => {
         <button
           type="button"
           onClick={() => setIsFolderModalOpen(true)}
-          className="px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all border border-dashed border-lavender-accent/40 text-lavender-accent hover:bg-lavender-accent/15 flex items-center gap-1 whitespace-nowrap"
+          className="h-8 px-3 rounded-[16px] text-xs font-bold transition-all border border-dashed border-lavender-accent/40 text-lavender-accent hover:bg-lavender-accent/15 flex items-center justify-center gap-1 whitespace-nowrap cursor-pointer"
           title="Create New Folder"
         >
           <PlusIcon size={13} />
