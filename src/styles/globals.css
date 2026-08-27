@@ -181,80 +181,76 @@
       inset 0 -1.5px 1.5px rgba(0, 0, 0, 0.50);
   }
 
-  /* 3D Liquid Glass Refractive Lens with Chromatic Prism Edge */
+  /* 3D Liquid Glass Refractive Lens with Pure Specular Glare */
   .liquid-glass-lens {
     position: absolute;
-    inset: -3px 0;
+    inset: -2px 0;
     border-radius: 9999px;
-    backdrop-filter: blur(16px) saturate(240%);
-    -webkit-backdrop-filter: blur(16px) saturate(240%);
+    backdrop-filter: blur(20px) saturate(200%);
+    -webkit-backdrop-filter: blur(20px) saturate(200%);
     background: linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0.90) 0%,
-      rgba(235, 226, 255, 0.55) 100%
+      rgba(255, 255, 255, 0.85) 0%,
+      rgba(238, 230, 255, 0.50) 100%
     );
-    border: 1.5px solid rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.90);
     box-shadow:
-      0 8px 24px -3px rgba(104, 60, 184, 0.35),
-      0 2px 8px rgba(0, 0, 0, 0.08),
-      inset 0 2px 3px rgba(255, 255, 255, 1),
-      inset 0 -2px 3px rgba(104, 60, 184, 0.18);
+      0 6px 20px -3px rgba(104, 60, 184, 0.25),
+      0 2px 6px rgba(0, 0, 0, 0.05),
+      inset 0 1.5px 2px rgba(255, 255, 255, 1),
+      inset 0 -1.5px 2px rgba(104, 60, 184, 0.12);
     pointer-events: none;
   }
 
-  /* Top chromatic rainbow prism flare */
+  /* Top clean white specular glare line */
   .liquid-glass-lens::before {
     content: "";
     position: absolute;
-    top: -1.5px;
+    top: 1px;
     left: 20%;
     right: 20%;
-    height: 3px;
+    height: 1.5px;
     border-radius: 9999px;
-    background: linear-gradient(90deg, #FF6584 0%, #FFD166 28%, #06D6A0 55%, #118AB2 78%, #9D4EDD 100%);
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.95) 50%, rgba(255, 255, 255, 0) 100%);
     opacity: 0.90;
-    filter: blur(0.5px);
   }
 
-  /* Bottom chromatic refraction flare */
+  /* Bottom subtle glow highlight */
   .liquid-glass-lens::after {
     content: "";
     position: absolute;
-    bottom: -1.5px;
+    bottom: 1px;
     left: 25%;
     right: 25%;
-    height: 2.5px;
+    height: 1px;
     border-radius: 9999px;
-    background: linear-gradient(90deg, #9D4EDD 0%, #06D6A0 50%, #FFD166 100%);
-    opacity: 0.75;
-    filter: blur(0.5px);
+    background: linear-gradient(90deg, rgba(104, 60, 184, 0) 0%, rgba(104, 60, 184, 0.25) 50%, rgba(104, 60, 184, 0) 100%);
+    opacity: 0.60;
   }
 
   /* Dark mode 3D Liquid Glass Lens */
   :root[data-theme="dark"] .liquid-glass-lens {
     background: linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0.24) 0%,
-      rgba(184, 155, 248, 0.14) 100%
+      rgba(255, 255, 255, 0.20) 0%,
+      rgba(184, 155, 248, 0.10) 100%
     );
-    border: 1.5px solid rgba(255, 255, 255, 0.40);
+    border: 1px solid rgba(255, 255, 255, 0.35);
     box-shadow:
-      0 10px 28px -3px rgba(184, 155, 248, 0.45),
-      0 2px 10px rgba(0, 0, 0, 0.5),
-      inset 0 2px 3px rgba(255, 255, 255, 0.75),
-      inset 0 -2px 3px rgba(0, 0, 0, 0.60);
+      0 6px 20px -3px rgba(184, 155, 248, 0.35),
+      0 2px 8px rgba(0, 0, 0, 0.4),
+      inset 0 1.5px 2px rgba(255, 255, 255, 0.65),
+      inset 0 -1.5px 2px rgba(0, 0, 0, 0.45);
   }
 
   :root[data-theme="dark"] .liquid-glass-lens::before {
-    background: linear-gradient(90deg, #FF758C 0%, #FF7EB3 25%, #70A6FF 65%, #C4AEF0 100%);
-    opacity: 0.95;
-    filter: blur(0.5px);
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.85) 50%, rgba(255, 255, 255, 0) 100%);
+    opacity: 0.85;
   }
 
   :root[data-theme="dark"] .liquid-glass-lens::after {
-    background: linear-gradient(90deg, #70A6FF 0%, #C4AEF0 50%, #FF7EB3 100%);
-    opacity: 0.85;
-    filter: blur(0.5px);
+    background: linear-gradient(90deg, rgba(184, 155, 248, 0) 0%, rgba(184, 155, 248, 0.40) 50%, rgba(184, 155, 248, 0) 100%);
+    opacity: 0.70;
   }
 
   /* Liquid Glass Pill for Segmented Controls & Chips */
