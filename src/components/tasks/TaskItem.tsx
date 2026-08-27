@@ -24,7 +24,7 @@ export interface TaskItemProps {
   hideCompletedDelay?: boolean
 }
 
-export const TaskItem: React.FC<TaskItemProps> = ({
+export const TaskItem: React.FC<TaskItemProps> = React.memo(({
   task,
   isSubtask = false,
   hideCompletedDelay = false,
@@ -182,4 +182,4 @@ export const TaskItem: React.FC<TaskItemProps> = ({
       </motion.div>
     </AnimatePresence>
   )
-}
+})
