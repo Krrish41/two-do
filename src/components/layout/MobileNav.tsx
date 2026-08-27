@@ -1,6 +1,6 @@
 import React from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   SunIcon,
   CheckCircleIcon,
@@ -42,12 +42,12 @@ export const MobileNav: React.FC = () => {
 
   return (
     <nav
-      className="md:hidden fixed bottom-3.5 left-0 right-0 z-40 select-none flex justify-center pointer-events-none px-4"
+      className="md:hidden fixed bottom-3 left-0 right-0 z-40 select-none flex justify-center pointer-events-none px-3"
       style={{
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
     >
-      <div className="liquid-tabbar inline-flex items-center justify-center gap-1 p-1.5 shadow-2xl pointer-events-auto max-w-full">
+      <div className="liquid-tabbar w-full max-w-[390px] flex items-center justify-between p-1.5 shadow-2xl pointer-events-auto rounded-full">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = currentActive === item.to
@@ -57,54 +57,43 @@ export const MobileNav: React.FC = () => {
               key={item.to}
               to={item.to}
               className={cn(
-                'relative flex items-center justify-center transition-colors duration-200 select-none outline-none',
+                'relative flex-1 flex flex-col items-center justify-center py-1 px-0.5 rounded-2xl transition-colors duration-200 select-none outline-none cursor-pointer',
                 isActive
-                  ? 'px-3.5 py-2 rounded-[20px] text-lavender-accent font-bold'
-                  : 'p-2.5 rounded-[20px] text-ink-muted hover:text-ink'
+                  ? 'text-lavender-accent font-bold'
+                  : 'text-ink-muted hover:text-ink font-medium'
               )}
             >
-              {/* Active Morphing Liquid Glass Bubble */}
+              {/* Active Morphing Liquid Glass Bubble (Smooth gliding, 0 width reflows) */}
               {isActive && (
                 <motion.div
-                  layoutId="tab-bubble"
+                  layoutId="mobile-nav-active-bubble"
                   className="tab-bubble"
-                  whileTap={{ scale: 1.06 }}
                   transition={{
                     type: 'spring',
-                    stiffness: 500,
-                    damping: 32,
+                    stiffness: 400,
+                    damping: 28,
                   }}
                 />
               )}
 
               <Icon
-                size={20}
+                size={19}
                 className={cn(
                   'relative z-10 flex-shrink-0 transition-transform duration-200',
                   isActive
-                    ? 'text-lavender-accent scale-105 drop-shadow-[0_2px_8px_rgba(139,92,246,0.35)]'
+                    ? 'scale-110 text-lavender-accent drop-shadow-[0_2px_8px_rgba(139,92,246,0.35)]'
                     : 'text-ink-muted'
                 )}
               />
 
-              <AnimatePresence mode="wait">
-                {isActive && (
-                  <motion.span
-                    layout
-                    initial={{ opacity: 0, width: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, width: 'auto', scale: 1 }}
-                    exit={{ opacity: 0, width: 0, scale: 0.9 }}
-                    transition={{
-                      type: 'spring',
-                      stiffness: 500,
-                      damping: 32,
-                    }}
-                    className="relative z-10 text-[11px] font-extrabold ml-1.5 tracking-tight whitespace-nowrap overflow-hidden text-lavender-accent"
-                  >
-                    {item.label}
-                  </motion.span>
+              <span
+                className={cn(
+                  'relative z-10 text-[10px] mt-0.5 tracking-tight transition-colors duration-200 leading-tight',
+                  isActive ? 'text-lavender-accent font-extrabold' : 'text-ink-muted'
                 )}
-              </AnimatePresence>
+              >
+                {item.label}
+              </span>
             </NavLink>
           )
         })}
