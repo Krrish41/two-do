@@ -8,7 +8,6 @@ import {
   PinIcon,
 } from '../components/icons'
 import { NoteCard } from '../components/notes/NoteCard'
-import { NoteEditor } from '../components/notes/NoteEditor'
 import { GlassInput } from '../components/glass/GlassInput'
 import { GlassButton } from '../components/glass/GlassButton'
 import { CoupleAvatar } from '../components/common/CoupleAvatar'
@@ -314,9 +313,6 @@ export const NotesPage: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Full Modal Rich-Text Note Editor */}
-      <NoteEditor />
 
       {/* New Folder Modal */}
       <CreateFolderModal
