@@ -187,10 +187,11 @@ export const NoteEditor: React.FC = () => {
 
   if (!currentNote) return null
 
-  const preset = NOTE_COLOR_PRESETS.find((p) => p.hex === currentNote.color)
-  const bgColor = isDark
-    ? preset?.darkBg || 'rgba(255,255,255,0.08)'
-    : currentNote.color || '#F4F2EF'
+  const preset =
+    NOTE_COLOR_PRESETS.find((p) => p.hex.toLowerCase() === currentNote.color?.toLowerCase()) ||
+    NOTE_COLOR_PRESETS[0]
+  const bgColor = isDark ? preset.darkBg : currentNote.color || '#F4F2EF'
+  const borderColor = isDark ? preset.darkBorder : undefined
 
   // Exclude system folders (Bucket List) so it is not repeated in dropdowns (Section 6)
   const assignableFolders = folders.filter((f) => !f.is_system && f.slug !== 'bucket-list')
@@ -213,7 +214,7 @@ export const NoteEditor: React.FC = () => {
       >
         <div
           className="flex flex-col gap-3.5 sm:gap-4 -m-5 sm:-m-7 p-4 sm:p-7 rounded-3xl transition-colors duration-300 border border-glass-border min-h-full"
-          style={{ backgroundColor: bgColor }}
+          style={{ backgroundColor: bgColor, borderColor }}
         >
           {/* Header Controls: Title & Pin/Delete/Close */}
           <div className="flex items-start justify-between gap-3 border-b border-glass-border-subtle pb-3">
@@ -271,7 +272,7 @@ export const NoteEditor: React.FC = () => {
           </div>
 
           {/* Folder & Color Palette Settings with Custom GlassDropdown */}
-          <div className="flex flex-wrap items-center justify-between gap-3 bg-surface p-2.5 rounded-2xl border border-glass-border">
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-surface/80 dark:bg-black/25 backdrop-blur-md p-2.5 rounded-2xl border border-glass-border">
             <div className="w-48 sm:w-56">
               <GlassDropdown
                 options={folderDropdownOptions}
@@ -289,7 +290,7 @@ export const NoteEditor: React.FC = () => {
 
             {/* Read-Only Creator Mascot Attribution in Note Editor */}
             {creatorUser && (
-              <div className="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-surface-subtle text-xs font-semibold text-ink border border-glass-border">
+              <div className="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-surface-subtle/80 dark:bg-black/20 text-xs font-semibold text-ink border border-glass-border">
                 <CoupleAvatar userId={creatorUser.id} displayName={creatorUser.display_name} size={16} />
                 <span>Added by {creatorUser.display_name}</span>
               </div>
@@ -306,7 +307,7 @@ export const NoteEditor: React.FC = () => {
 
           {/* Tiptap Formatting Toolbar */}
           {editor && (
-            <div className="flex flex-wrap items-center gap-1 p-1.5 rounded-2xl bg-surface-elevated border border-glass-border shadow-xs">
+            <div className="flex flex-wrap items-center gap-1 p-1.5 rounded-2xl bg-surface-elevated/80 dark:bg-black/30 backdrop-blur-md border border-glass-border shadow-xs">
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
@@ -497,7 +498,7 @@ export const NoteEditor: React.FC = () => {
           )}
 
           {/* Editor Body */}
-          <div className="p-4 rounded-2xl bg-surface-elevated border border-glass-border min-h-[240px] focus-within:ring-2 focus-within:ring-lavender-accent/20 transition-all">
+          <div className="p-4 rounded-2xl bg-surface-elevated/70 dark:bg-black/20 backdrop-blur-md border border-glass-border min-h-[240px] focus-within:ring-2 focus-within:ring-lavender-accent/20 transition-all">
             <EditorContent editor={editor} />
           </div>
         </div>

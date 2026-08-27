@@ -4,11 +4,56 @@ import type { Note, Folder, Tag, NoteTag, Json } from '../lib/database.types'
 import { useAuthStore } from './authStore'
 
 export const NOTE_COLOR_PRESETS = [
-  { id: 'lavender', hex: '#E4DBF7', name: 'Lavender', textClass: 'text-purple-900', darkBg: 'rgba(196, 174, 240, 0.15)' },
-  { id: 'skyblue', hex: '#D6E8FF', name: 'Soft Blue', textClass: 'text-blue-900', darkBg: 'rgba(167, 199, 231, 0.15)' },
-  { id: 'blossom', hex: '#FBDDEA', name: 'Rose Pink', textClass: 'text-pink-900', darkBg: 'rgba(245, 169, 201, 0.15)' },
-  { id: 'mint', hex: '#D9F5E3', name: 'Mint Glow', textClass: 'text-emerald-900', darkBg: 'rgba(94, 217, 158, 0.15)' },
-  { id: 'clear', hex: 'rgba(255,255,255,0.4)', name: 'Glass Clear', textClass: 'text-ink', darkBg: 'rgba(255,255,255,0.07)' },
+  {
+    id: 'lavender',
+    hex: '#E4DBF7',
+    name: 'Lavender',
+    textClass: 'text-purple-900',
+    darkBg: '#231838',
+    darkBorder: 'rgba(167, 139, 250, 0.35)',
+    swatchLight: '#E4DBF7',
+    swatchDark: '#8B5CF6',
+  },
+  {
+    id: 'skyblue',
+    hex: '#D6E8FF',
+    name: 'Soft Blue',
+    textClass: 'text-blue-900',
+    darkBg: '#13233D',
+    darkBorder: 'rgba(96, 165, 250, 0.35)',
+    swatchLight: '#D6E8FF',
+    swatchDark: '#3B82F6',
+  },
+  {
+    id: 'blossom',
+    hex: '#FBDDEA',
+    name: 'Rose Pink',
+    textClass: 'text-pink-900',
+    darkBg: '#361528',
+    darkBorder: 'rgba(244, 114, 182, 0.35)',
+    swatchLight: '#FBDDEA',
+    swatchDark: '#EC4899',
+  },
+  {
+    id: 'mint',
+    hex: '#D9F5E3',
+    name: 'Mint Glow',
+    textClass: 'text-emerald-900',
+    darkBg: '#122B22',
+    darkBorder: 'rgba(52, 211, 153, 0.35)',
+    swatchLight: '#D9F5E3',
+    swatchDark: '#10B981',
+  },
+  {
+    id: 'clear',
+    hex: 'rgba(255,255,255,0.4)',
+    name: 'Glass Clear',
+    textClass: 'text-ink',
+    darkBg: 'rgba(255, 255, 255, 0.05)',
+    darkBorder: 'rgba(255, 255, 255, 0.12)',
+    swatchLight: 'rgba(255,255,255,0.7)',
+    swatchDark: 'rgba(255,255,255,0.18)',
+  },
 ] as const
 
 export type NoteViewMode = 'grid' | 'list'

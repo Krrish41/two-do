@@ -41,10 +41,11 @@ export const NoteCard: React.FC<NoteCardProps> = ({
     .map((nt) => tags.find((t) => t.id === nt.tag_id))
     .filter(Boolean)
 
-  const preset = NOTE_COLOR_PRESETS.find((p) => p.hex === note.color)
-  const bgColor = isDark
-    ? preset?.darkBg || 'rgba(255,255,255,0.07)'
-    : note.color || '#F4F2EF'
+  const preset =
+    NOTE_COLOR_PRESETS.find((p) => p.hex.toLowerCase() === note.color?.toLowerCase()) ||
+    NOTE_COLOR_PRESETS[0]
+  const bgColor = isDark ? preset.darkBg : note.color || '#F4F2EF'
+  const borderColor = isDark ? preset.darkBorder : undefined
 
   const extractTextPreview = (content: any): string => {
     if (!content) return ''
@@ -76,7 +77,7 @@ export const NoteCard: React.FC<NoteCardProps> = ({
           whileTap={{ scale: 0.99 }}
           transition={{ type: 'spring', stiffness: 300, damping: 24 }}
           onClick={() => !isRecycleBin && setSelectedNoteId(note.id)}
-          style={{ backgroundColor: bgColor }}
+          style={{ backgroundColor: bgColor, borderColor }}
           className="group relative flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border border-glass-border shadow-sm cursor-pointer select-none transition-shadow hover:shadow-md gap-4"
         >
           <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -191,7 +192,7 @@ export const NoteCard: React.FC<NoteCardProps> = ({
         whileTap={{ scale: 0.98 }}
         transition={{ type: 'spring', stiffness: 300, damping: 24 }}
         onClick={() => !isRecycleBin && setSelectedNoteId(note.id)}
-        style={{ backgroundColor: bgColor }}
+        style={{ backgroundColor: bgColor, borderColor }}
         className="group relative flex flex-col justify-between p-5 rounded-3xl border border-glass-border shadow-glass cursor-pointer select-none transition-shadow hover:shadow-xl min-h-[170px]"
       >
         <div>
