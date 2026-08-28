@@ -361,9 +361,9 @@ export const TaskDetailSheet: React.FC = () => {
               </div>
 
               {/* SCROLLABLE BODY (Never cuts off content on laptop or phone) */}
-              <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-4.5 overscroll-contain">
+              <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-6 overscroll-contain">
                 {/* Title & Checkbox */}
-                <div className="flex items-start gap-3 p-3.5 rounded-2xl glass-panel-subtle">
+                <div className="flex items-start gap-3.5 p-4 rounded-2xl glass-panel-subtle">
                   <button
                     type="button"
                     onClick={() => toggleComplete(currentTask.id)}
@@ -392,12 +392,12 @@ export const TaskDetailSheet: React.FC = () => {
                 </div>
 
                 {/* Quick Action: Today Focus & Custom Glass Date Picker */}
-                <div className="grid grid-cols-2 gap-2.5 relative z-30">
+                <div className="grid grid-cols-2 gap-3 relative z-30">
                   <button
                     type="button"
                     onClick={() => toggleMyDay(currentTask.id)}
                     className={cn(
-                      'flex items-center gap-2.5 p-3 rounded-2xl border text-xs font-semibold transition-all shadow-xs text-left cursor-pointer',
+                      'flex items-center gap-2.5 p-3.5 rounded-2xl border text-xs font-semibold transition-all shadow-xs text-left cursor-pointer',
                       isTodayTask
                         ? 'bg-amber-500/15 border-amber-500/30 text-amber-700 dark:text-amber-300'
                         : 'glass-panel-subtle hover:bg-surface text-ink'
@@ -410,7 +410,7 @@ export const TaskDetailSheet: React.FC = () => {
                     </div>
                   </button>
 
-                  <div className="p-3 rounded-2xl border glass-panel-subtle flex flex-col justify-center gap-1.5 text-xs relative z-30">
+                  <div className="p-3.5 rounded-2xl border glass-panel-subtle flex flex-col justify-center gap-1.5 text-xs relative z-30">
                     <div className="flex items-center gap-1.5 text-ink-muted font-bold">
                       <CalendarIcon size={14} />
                       <span>Due Date</span>
@@ -424,7 +424,7 @@ export const TaskDetailSheet: React.FC = () => {
                 </div>
 
                 {/* Folder & Recurrence Card */}
-                <div className="p-3.5 rounded-2xl glass-panel-subtle grid grid-cols-2 gap-3 relative z-20">
+                <div className="p-4 rounded-2xl glass-panel-subtle grid grid-cols-2 gap-3.5 relative z-20">
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-bold text-ink-muted flex items-center gap-1.5">
                       <FolderIcon size={14} className="text-lavender-accent" />
@@ -465,7 +465,7 @@ export const TaskDetailSheet: React.FC = () => {
                 </div>
 
                 {/* High-Contrast Priority Selector */}
-                <div className="p-3.5 rounded-2xl glass-panel-subtle flex flex-col gap-2 relative z-10">
+                <div className="p-4 rounded-2xl glass-panel-subtle flex flex-col gap-2.5 relative z-10">
                   <label className="text-xs font-bold text-ink-muted flex items-center gap-1.5">
                     <FlagIcon size={14} className="text-lavender-accent" />
                     Priority Level
@@ -495,7 +495,7 @@ export const TaskDetailSheet: React.FC = () => {
                 </div>
 
                 {/* Subtasks Section with Drag-and-Drop */}
-                <div className="p-4 rounded-2xl glass-panel-subtle flex flex-col gap-3">
+                <div className="p-4.5 rounded-2xl glass-panel-subtle flex flex-col gap-3.5">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-bold text-ink-muted uppercase tracking-wider">
                       Subtasks ({subtasks.filter((s) => s.is_completed).length}/{subtasks.length})
@@ -534,7 +534,7 @@ export const TaskDetailSheet: React.FC = () => {
                 </div>
 
                 {/* Task Description / Plain Notes Area */}
-                <div className="p-4 rounded-2xl glass-panel-subtle flex flex-col gap-2">
+                <div className="p-4.5 rounded-2xl glass-panel-subtle flex flex-col gap-2.5">
                   <label className="text-xs font-bold text-ink-muted uppercase tracking-wider">
                     Description & Notes
                   </label>
@@ -551,7 +551,7 @@ export const TaskDetailSheet: React.FC = () => {
 
                 {/* Read-Only Creator Mascot Attribution (Bottom Metadata Area) */}
                 {creatorUser && (
-                  <div className="p-3 rounded-2xl glass-panel-subtle flex items-center justify-between text-xs">
+                  <div className="p-3.5 rounded-2xl glass-panel-subtle flex items-center justify-between text-xs">
                     <span className="text-ink-muted font-bold">Created By</span>
                     <div className="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-surface border border-glass-border font-bold text-ink">
                       <CoupleAvatar userId={creatorUser.id} displayName={creatorUser.display_name} size={20} />
