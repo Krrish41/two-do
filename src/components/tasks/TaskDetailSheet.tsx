@@ -430,24 +430,17 @@ export const TaskDetailSheet: React.FC = () => {
                       <FolderIcon size={14} className="text-lavender-accent" />
                       Folder
                     </label>
-                    <div className="flex items-center gap-1">
-                      <div className="flex-1 min-w-0">
-                        <GlassDropdown
-                          options={folderOptions}
-                          value={currentTask.folder_id || ''}
-                          onChange={(val) => updateTask(currentTask.id, { folder_id: val || null })}
-                          placeholder="Select folder..."
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setIsFolderModalOpen(true)}
-                        className="p-2 rounded-xl bg-surface hover:bg-surface-elevated text-ink-muted hover:text-lavender-accent border border-glass-border transition-colors flex-shrink-0 cursor-pointer"
-                        title="Create New Folder"
-                      >
-                        <PlusIcon size={14} />
-                      </button>
-                    </div>
+                    <GlassDropdown
+                      options={folderOptions}
+                      value={currentTask.folder_id || ''}
+                      onChange={(val) => updateTask(currentTask.id, { folder_id: val || null })}
+                      placeholder="Select folder..."
+                      actionItem={{
+                        label: 'New Folder',
+                        icon: <PlusIcon size={14} />,
+                        onClick: () => setIsFolderModalOpen(true),
+                      }}
+                    />
                   </div>
 
                   <div className="flex flex-col gap-1.5">
