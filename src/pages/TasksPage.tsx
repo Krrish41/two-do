@@ -329,6 +329,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
                     onChange={(val) => setSelectedFolder(val || null)}
                     placeholder="No Folder"
                     size="sm"
+                    className="w-auto min-w-[130px]"
                     actionItem={{
                       label: 'Create New Folder...',
                       icon: <PlusIcon size={14} className="text-lavender-accent" />,
