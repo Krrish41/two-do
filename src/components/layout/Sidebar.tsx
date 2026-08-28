@@ -126,7 +126,7 @@ export const Sidebar: React.FC<SidebarProps> = () => {
     <>
       <aside
         className={cn(
-          'hidden md:flex flex-col justify-between w-72 p-4 m-3 h-[calc(100vh-1.5rem)] rounded-3xl flex-shrink-0',
+          'hidden md:flex flex-col justify-between w-72 p-4 m-3 sticky top-3 self-start h-[calc(100vh-1.5rem)] rounded-3xl flex-shrink-0 z-30',
           'glass-panel border border-glass-border shadow-glass'
         )}
       >
