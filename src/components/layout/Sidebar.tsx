@@ -157,23 +157,23 @@ export const Sidebar: React.FC<SidebarProps> = () => {
                   to={item.to}
                   className={({ isActive }) =>
                     cn(
-                      'flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200 group select-none',
+                      'flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-colors duration-150 group select-none border',
                       isActive
-                        ? 'bg-lavender-accent/15 text-lavender-accent font-bold shadow-xs border border-lavender-accent/25'
-                        : 'text-ink-muted hover:text-ink hover:bg-surface'
+                        ? 'bg-lavender-accent/15 text-lavender-accent font-bold shadow-xs border-lavender-accent/25'
+                        : 'text-ink-muted hover:text-ink hover:bg-surface border-transparent'
                     )
                   }
                 >
                   {({ isActive }) => (
                     <>
                       <div className="flex items-center gap-3 truncate">
-                        <Icon size={18} className={cn('transition-transform group-hover:scale-110 flex-shrink-0', isActive ? 'text-lavender-accent' : item.color)} />
+                        <Icon size={18} className={cn('flex-shrink-0', isActive ? 'text-lavender-accent' : item.color)} />
                         <span className="truncate">{item.label}</span>
                       </div>
                       {typeof item.count === 'number' && item.count > 0 && (
                         <span
                           className={cn(
-                            'px-2 py-0.5 rounded-full text-xs font-bold transition-all',
+                            'px-2 py-0.5 rounded-full text-xs font-bold transition-colors',
                             isActive
                               ? cn(item.activeBadge, 'shadow-xs font-extrabold')
                               : 'bg-surface-subtle text-ink-muted group-hover:bg-surface-elevated'
@@ -215,10 +215,10 @@ export const Sidebar: React.FC<SidebarProps> = () => {
                   to={`/folder/${folder.id}`}
                   className={({ isActive }) =>
                     cn(
-                      'flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200 group select-none',
+                      'flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-colors duration-150 group select-none border',
                       isActive
-                        ? 'bg-lavender-accent/15 text-lavender-accent font-bold shadow-xs border border-lavender-accent/25'
-                        : 'text-ink-muted hover:text-ink hover:bg-surface'
+                        ? 'bg-lavender-accent/15 text-lavender-accent font-bold shadow-xs border-lavender-accent/25'
+                        : 'text-ink-muted hover:text-ink hover:bg-surface border-transparent'
                     )
                   }
                 >
@@ -233,7 +233,7 @@ export const Sidebar: React.FC<SidebarProps> = () => {
                         {folderTaskCount > 0 && (
                           <span
                             className={cn(
-                              'px-2 py-0.5 rounded-full text-xs font-bold transition-all',
+                              'px-2 py-0.5 rounded-full text-xs font-bold transition-colors',
                               isActive
                                 ? 'bg-lavender-accent/25 text-lavender-accent dark:text-[#E4DBF7] border border-lavender-accent/35 shadow-xs'
                                 : 'bg-surface-subtle text-ink-muted'
@@ -250,7 +250,7 @@ export const Sidebar: React.FC<SidebarProps> = () => {
                             e.stopPropagation()
                             setFolderToDelete({ id: folder.id, name: folder.name })
                           }}
-                          className="p-1 rounded-md text-ink-subtle hover:text-rose-500 hover:bg-rose-500/10 transition-colors opacity-0 group-hover:opacity-100"
+                          className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-ink-muted hover:text-rose-500 hover:bg-surface transition-all"
                           title="Delete Folder"
                         >
                           <TrashIcon size={13} />
@@ -269,10 +269,10 @@ export const Sidebar: React.FC<SidebarProps> = () => {
               to="/recycle-bin"
               className={({ isActive }) =>
                 cn(
-                  'flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all duration-200 group select-none',
+                  'flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-colors duration-150 group select-none border',
                   isActive
-                    ? 'bg-lavender-accent/15 text-lavender-accent font-bold shadow-xs border border-lavender-accent/25'
-                    : 'text-ink-muted hover:text-ink hover:bg-surface'
+                    ? 'bg-lavender-accent/15 text-lavender-accent font-bold shadow-xs border-lavender-accent/25'
+                    : 'text-ink-muted hover:text-ink hover:bg-surface border-transparent'
                 )
               }
             >
