@@ -488,7 +488,7 @@ export const TaskDetailSheet: React.FC = () => {
                 </div>
 
                 {/* Subtasks Section with Drag-and-Drop */}
-                <div className="p-4.5 rounded-2xl glass-panel-subtle flex flex-col gap-3.5">
+                <div className="p-4 rounded-2xl glass-panel-subtle flex flex-col gap-3">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-bold text-ink-muted uppercase tracking-wider">
                       Subtasks ({subtasks.filter((s) => s.is_completed).length}/{subtasks.length})
@@ -512,22 +512,27 @@ export const TaskDetailSheet: React.FC = () => {
                   </DndContext>
 
                   {/* Add Subtask Form */}
-                  <form onSubmit={handleAddSubtask} className="flex items-center gap-2 mt-1">
+                  <form onSubmit={handleAddSubtask} className="flex items-center gap-2 pt-1">
                     <input
                       type="text"
                       placeholder="Add a subtask..."
                       value={newSubtaskTitle}
                       onChange={(e) => setNewSubtaskTitle(e.target.value)}
-                      className="w-full glass-input rounded-xl px-3 py-1.5 text-xs text-ink outline-none placeholder:text-ink-muted font-medium"
+                      className="flex-1 bg-surface/70 dark:bg-white/[0.06] border border-glass-border-subtle rounded-xl px-3.5 py-2 text-xs text-ink outline-none placeholder:text-ink-muted/50 font-medium focus:border-lavender-accent transition-colors"
                     />
-                    <GlassButton type="submit" size="sm" variant="secondary">
+                    <button
+                      type="submit"
+                      disabled={!newSubtaskTitle.trim()}
+                      className="p-2 rounded-xl bg-lavender-accent text-white hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex-shrink-0 shadow-xs"
+                      title="Add Subtask"
+                    >
                       <PlusIcon size={14} />
-                    </GlassButton>
+                    </button>
                   </form>
                 </div>
 
                 {/* Task Description / Plain Notes Area */}
-                <div className="p-4.5 rounded-2xl glass-panel-subtle flex flex-col gap-2.5">
+                <div className="p-4 rounded-2xl glass-panel-subtle flex flex-col gap-2">
                   <label className="text-xs font-bold text-ink-muted uppercase tracking-wider">
                     Description & Notes
                   </label>
@@ -537,8 +542,8 @@ export const TaskDetailSheet: React.FC = () => {
                     value={localNotes}
                     onChange={(e) => handleNotesChange(e.target.value)}
                     placeholder="Add detailed task notes or links..."
-                    rows={3}
-                    className="w-full glass-input rounded-xl p-3 text-xs sm:text-sm text-ink outline-none placeholder:text-ink-muted resize-none font-normal leading-relaxed"
+                    rows={4}
+                    className="w-full bg-transparent border-0 p-0 text-xs sm:text-sm text-ink outline-none placeholder:text-ink-muted/50 resize-none font-normal leading-relaxed focus:outline-none focus:ring-0"
                   />
                 </div>
 
