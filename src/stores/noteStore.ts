@@ -89,6 +89,8 @@ interface NoteState {
   updateFolder: (id: string, updates: Partial<Folder>) => Promise<void>
   deleteFolder: (id: string) => Promise<void>
   createTag: (name: string, color?: string) => Promise<Tag | null>
+  updateTag: (id: string, updates: Partial<Pick<Tag, 'name' | 'color'>>) => Promise<void>
+  deleteTag: (id: string) => Promise<void>
   toggleNoteTag: (noteId: string, tagId: string) => Promise<void>
   extractAndSyncTags: (noteId: string, plainText: string) => Promise<void>
   setSelectedNoteId: (id: string | null) => void
@@ -106,6 +108,16 @@ interface NoteState {
     eventType: 'INSERT' | 'UPDATE' | 'DELETE'
     new: Folder | null
     old: { id: string } | null
+  }) => void
+  receiveRealtimeTag: (payload: {
+    eventType: 'INSERT' | 'UPDATE' | 'DELETE'
+    new: Tag | null
+    old: { id: string } | null
+  }) => void
+  receiveRealtimeNoteTag: (payload: {
+    eventType: 'INSERT' | 'UPDATE' | 'DELETE'
+    new: NoteTag | null
+    old: { note_id: string; tag_id: string } | null
   }) => void
 }
 
@@ -530,6 +542,49 @@ export const useNoteStore = create<NoteState>((set, get) => ({
     return newTag
   },
 
+  updateTag: async (id, updates) => {
+    // If updating name, sanitize it
+    const sanitizedUpdates = { ...updates }
+    if (sanitizedUpdates.name) {
+      sanitizedUpdates.name = sanitizedUpdates.name.trim().replace(/^#/, '').toLowerCase()
+    }
+
+    set({
+      tags: get().tags.map((t) => (t.id === id ? { ...t, ...sanitizedUpdates } : t)),
+    })
+
+    if (!isSupabaseConfigured) return
+
+    try {
+      const { error } = await supabase
+        .from('tags')
+        .update(sanitizedUpdates)
+        .eq('id', id)
+
+      if (error) throw error
+    } catch (err) {
+      console.error('Failed to update tag:', err)
+    }
+  },
+
+  deleteTag: async (id) => {
+    // Optimistically remove tag and associations
+    set({
+      tags: get().tags.filter((t) => t.id !== id),
+      noteTags: get().noteTags.filter((nt) => nt.tag_id !== id),
+      selectedTagIds: get().selectedTagIds.filter((tid) => tid !== id),
+    })
+
+    if (!isSupabaseConfigured) return
+
+    try {
+      const { error } = await supabase.from('tags').delete().eq('id', id)
+      if (error) throw error
+    } catch (err) {
+      console.error('Failed to delete tag:', err)
+    }
+  },
+
   toggleNoteTag: async (noteId, tagId) => {
     const current = get().noteTags
     const exists = current.some((nt) => nt.note_id === noteId && nt.tag_id === tagId)
@@ -617,6 +672,40 @@ export const useNoteStore = create<NoteState>((set, get) => ({
     } else if (eventType === 'DELETE' && oldRecord) {
       set({
         folders: current.filter((f) => f.id !== oldRecord.id),
+      })
+    }
+  },
+
+  receiveRealtimeTag: ({ eventType, new: newRecord, old: oldRecord }) => {
+    const current = get().tags
+    if (eventType === 'INSERT' && newRecord) {
+      if (!current.some((t) => t.id === newRecord.id)) {
+        set({ tags: [...current, newRecord] })
+      }
+    } else if (eventType === 'UPDATE' && newRecord) {
+      set({
+        tags: current.map((t) => (t.id === newRecord.id ? newRecord : t)),
+      })
+    } else if (eventType === 'DELETE' && oldRecord) {
+      set({
+        tags: current.filter((t) => t.id !== oldRecord.id),
+        noteTags: get().noteTags.filter((nt) => nt.tag_id !== oldRecord.id),
+        selectedTagIds: get().selectedTagIds.filter((tid) => tid !== oldRecord.id),
+      })
+    }
+  },
+
+  receiveRealtimeNoteTag: ({ eventType, new: newRecord, old: oldRecord }) => {
+    const current = get().noteTags
+    if (eventType === 'INSERT' && newRecord) {
+      if (!current.some((nt) => nt.note_id === newRecord.note_id && nt.tag_id === newRecord.tag_id)) {
+        set({ noteTags: [...current, newRecord] })
+      }
+    } else if (eventType === 'DELETE' && oldRecord) {
+      set({
+        noteTags: current.filter(
+          (nt) => !(nt.note_id === oldRecord.note_id && nt.tag_id === oldRecord.tag_id)
+        ),
       })
     }
   },

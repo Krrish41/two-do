@@ -11,11 +11,13 @@ import {
   PlusIcon,
   LogOutIcon,
 } from '../icons'
+import { SlidersHorizontal } from 'lucide-react'
 import { CoupleAvatar } from '../common/CoupleAvatar'
 import { ThemeToggle } from './ThemeToggle'
 import { GlassConfirmDialog } from '../glass/GlassConfirmDialog'
 import { FolderIconRenderer } from '../common/FolderIconRenderer'
 import { CreateFolderModal } from '../common/CreateFolderModal'
+import { ManageTagsModal } from '../notes/ManageTagsModal'
 import { useTaskStore } from '../../stores/taskStore'
 import { useNoteStore } from '../../stores/noteStore'
 import { useAuthStore } from '../../stores/authStore'
@@ -31,13 +33,20 @@ export const Sidebar: React.FC<SidebarProps> = () => {
   const tasks = useTaskStore((s) => s.tasks)
   const notes = useNoteStore((s) => s.notes)
   const folders = useNoteStore((s) => s.folders)
+  const tags = useNoteStore((s) => s.tags)
+  const noteTags = useNoteStore((s) => s.noteTags)
   const deleteFolder = useNoteStore((s) => s.deleteFolder)
+  const deleteTag = useNoteStore((s) => s.deleteTag)
+  const toggleTagFilter = useNoteStore((s) => s.toggleTagFilter)
+  const selectedTagIds = useNoteStore((s) => s.selectedTagIds)
 
   const authorizedUser = useAuthStore((s) => s.authorizedUser)
   const signOut = useAuthStore((s) => s.signOut)
 
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
+  const [isTagModalOpen, setIsTagModalOpen] = useState(false)
   const [folderToDelete, setFolderToDelete] = useState<{ id: string; name: string } | null>(null)
+  const [tagToDelete, setTagToDelete] = useState<{ id: string; name: string } | null>(null)
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false)
 
   const todayStr = new Date().toISOString().split('T')[0]
@@ -263,6 +272,82 @@ export const Sidebar: React.FC<SidebarProps> = () => {
             })}
           </div>
 
+          {/* Tags Section */}
+          <div className="flex flex-col gap-1 pt-2 border-t border-glass-border-subtle">
+            <div className="flex items-center justify-between px-3 py-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-ink-subtle">
+                Tags
+              </span>
+              <div className="flex items-center gap-1">
+                {tags.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setIsTagModalOpen(true)}
+                    className="p-1 rounded-lg text-ink-muted hover:text-ink hover:bg-surface transition-colors"
+                    title="Manage Tags"
+                  >
+                    <SlidersHorizontal size={12} />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setIsTagModalOpen(true)}
+                  className="p-1 rounded-lg text-ink-muted hover:text-lavender-accent hover:bg-surface transition-colors"
+                  title="Create New Tag"
+                >
+                  <PlusIcon size={14} />
+                </button>
+              </div>
+            </div>
+
+            {tags.map((tag) => {
+              const isSelected = selectedTagIds.includes(tag.id)
+              const count = noteTags.filter((nt) => nt.tag_id === tag.id).length
+
+              return (
+                <div
+                  key={tag.id}
+                  onClick={() => {
+                    toggleTagFilter(tag.id)
+                    navigate('/notes')
+                  }}
+                  className={cn(
+                    'flex items-center justify-between px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-semibold transition-colors duration-150 group select-none border cursor-pointer',
+                    isSelected
+                      ? 'bg-lavender-accent/15 text-lavender-accent font-bold shadow-xs border-lavender-accent/25'
+                      : 'text-ink-muted hover:text-ink hover:bg-surface border-transparent'
+                  )}
+                >
+                  <div className="flex items-center gap-2.5 truncate">
+                    <span
+                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: tag.color || '#8B5CF6' }}
+                    />
+                    <span className="truncate">#{tag.name}</span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 opacity-80 group-hover:opacity-100">
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-surface-subtle text-ink-muted">
+                      {count}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setTagToDelete({ id: tag.id, name: tag.name })
+                      }}
+                      className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-ink-muted hover:text-rose-500 hover:bg-surface transition-all"
+                      title="Delete Tag"
+                    >
+                      <TrashIcon size={13} />
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
           {/* Recycle Bin Navigation */}
           <div className="flex flex-col gap-1 pt-2 border-t border-glass-border-subtle">
             <NavLink
@@ -356,6 +441,32 @@ export const Sidebar: React.FC<SidebarProps> = () => {
           handleSignOut()
         }}
         onCancel={() => setIsLogoutConfirmOpen(false)}
+      />
+
+      {/* Manage Tags Modal */}
+      <ManageTagsModal
+        isOpen={isTagModalOpen}
+        onClose={() => setIsTagModalOpen(false)}
+      />
+
+      {/* Delete Tag Confirmation Dialog */}
+      <GlassConfirmDialog
+        isOpen={Boolean(tagToDelete)}
+        title={`Delete #${tagToDelete?.name || ''}?`}
+        description={
+          tagToDelete
+            ? `Are you sure you want to delete #${tagToDelete.name}? It will be removed from all notes.`
+            : ''
+        }
+        confirmText="Delete Tag"
+        variant="danger"
+        onConfirm={async () => {
+          if (tagToDelete) {
+            await deleteTag(tagToDelete.id)
+            setTagToDelete(null)
+          }
+        }}
+        onCancel={() => setTagToDelete(null)}
       />
     </>
   )
