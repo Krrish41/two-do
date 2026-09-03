@@ -26,21 +26,21 @@
 }
 
 :root[data-theme="dark"] {
-  --color-bg: #120E1C;
-  --color-bg-mesh-1: #1B152B;
-  --color-bg-mesh-2: #22172B;
-  --color-bg-mesh-3: #181226;
-  --color-glass-surface: rgba(255, 255, 255, 0.08);
-  --color-glass-subtle: rgba(255, 255, 255, 0.05);
-  --color-glass-elevated: rgba(30, 24, 48, 0.94);
-  --color-glass-border: rgba(255, 255, 255, 0.18);
-  --color-glass-border-subtle: rgba(255, 255, 255, 0.10);
-  --color-glass-input: rgba(255, 255, 255, 0.08);
-  --color-glass-input-focus: rgba(255, 255, 255, 0.16);
-  --color-checkbox-border: rgba(255, 255, 255, 0.50);
-  --color-ink: #F8F6FC;
-  --color-ink-muted: #CBC2E3;
-  --color-ink-subtle: #988BAF;
+  --color-bg: #0D0A16;
+  --color-bg-mesh-1: #150E22;
+  --color-bg-mesh-2: #1B112B;
+  --color-bg-mesh-3: #110B1C;
+  --color-glass-surface: rgba(255, 255, 255, 0.045);
+  --color-glass-subtle: rgba(255, 255, 255, 0.025);
+  --color-glass-elevated: rgba(26, 20, 42, 0.94);
+  --color-glass-border: rgba(255, 255, 255, 0.09);
+  --color-glass-border-subtle: rgba(255, 255, 255, 0.05);
+  --color-glass-input: rgba(255, 255, 255, 0.05);
+  --color-glass-input-focus: rgba(255, 255, 255, 0.10);
+  --color-checkbox-border: rgba(255, 255, 255, 0.35);
+  --color-ink: #F9F8FC;
+  --color-ink-muted: #C0B7D8;
+  --color-ink-subtle: #897B9F;
   --color-lavender-accent: #B89BF8;
   --color-skyblue-accent: #93C5FD;
   --color-blossom-accent: #F472B6;
@@ -97,14 +97,14 @@
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid var(--color-glass-border);
-    border-radius: 1.5rem;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.55);
+    border-radius: 1.125rem;
+    box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.05),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.45);
   }
 
   :root[data-theme="dark"] .glass-panel {
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.35),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
   }
 
   .glass-panel-subtle {
@@ -112,13 +112,14 @@
     backdrop-filter: blur(16px) saturate(160%);
     -webkit-backdrop-filter: blur(16px) saturate(160%);
     border: 1px solid var(--color-glass-border-subtle);
-    box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.04),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.40);
+    border-radius: 1rem;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.03),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.30);
   }
 
   :root[data-theme="dark"] .glass-panel-subtle {
-    box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.35),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+    box-shadow: 0 2px 14px 0 rgba(0, 0, 0, 0.25),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
   }
 
   .glass-panel-elevated {
@@ -126,15 +127,15 @@
     backdrop-filter: blur(24px) saturate(190%);
     -webkit-backdrop-filter: blur(24px) saturate(190%);
     border: 1px solid var(--color-glass-border);
-    border-radius: 1.5rem;
-    box-shadow: 0 16px 48px 0 rgba(0, 0, 0, 0.16),
+    border-radius: 1.25rem;
+    box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.12),
                 inset 0 1px 0 0 rgba(255, 255, 255, 0.65);
   }
 
   :root[data-theme="dark"] .glass-panel-elevated {
-    background: #1B152B;
-    box-shadow: 0 16px 48px 0 rgba(0, 0, 0, 0.75),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.10);
+    background: #181226;
+    box-shadow: 0 14px 40px 0 rgba(0, 0, 0, 0.65),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
   }
 
   .glass-input {

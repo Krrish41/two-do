@@ -6,8 +6,6 @@ import {
   CheckCheckIcon,
 } from '../components/icons'
 import { TaskList } from '../components/tasks/TaskList'
-import { GlassCard } from '../components/glass/GlassCard'
-import { GlassButton } from '../components/glass/GlassButton'
 import { CreatorFilterTabs } from '../components/common/CreatorFilterTabs'
 import { useTaskStore } from '../stores/taskStore'
 import { useAuthStore } from '../stores/authStore'
@@ -75,15 +73,15 @@ export const TodayPage: React.FC = () => {
   }).format(new Date())
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl mx-auto pb-12">
+    <div className="flex flex-col gap-3.5 sm:gap-5 max-w-4xl mx-auto pb-32 sm:pb-16">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2 text-amber-500 font-bold text-xs uppercase tracking-wider mb-1">
+          <div className="hidden sm:flex items-center gap-2 text-amber-500 font-bold text-xs uppercase tracking-wider mb-1">
             <SunIcon size={16} />
             <span>Daily Focus</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">
+          <h1 className="text-xl sm:text-3xl font-extrabold text-ink tracking-tight">
             Today
           </h1>
           <p className="text-xs sm:text-sm text-ink-muted mt-0.5">{currentDateFormatted}</p>
@@ -91,85 +89,89 @@ export const TodayPage: React.FC = () => {
 
         {/* Daily Progress Gauge */}
         {todayTasks.length > 0 && (
-          <div className="flex items-center gap-3 glass-panel-subtle p-3 rounded-2xl border border-glass-border">
+          <div className="flex items-center gap-3 glass-panel-subtle p-2.5 sm:p-3 rounded-2xl border border-glass-border self-start sm:self-auto">
             <div className="flex flex-col text-right">
               <div className="flex items-center justify-between text-xs font-bold text-ink mb-1">
                 <span>Daily Completion</span>
                 <span className="text-lavender-accent ml-2">{completionPercent}%</span>
               </div>
-              <div className="w-36 h-2 rounded-full bg-surface overflow-hidden border border-glass-border-subtle">
+              <div className="w-32 sm:w-36 h-2 rounded-full bg-surface overflow-hidden border border-glass-border-subtle">
                 <div
                   className="h-full bg-gradient-to-r from-lavender-accent to-skyblue-accent transition-all duration-500 rounded-full"
                   style={{ width: `${completionPercent}%` }}
                 />
               </div>
             </div>
-            <div className="w-9 h-9 rounded-xl bg-lavender-accent/15 flex items-center justify-center text-lavender-accent">
-              <SparklesIcon size={18} />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-lavender-accent/15 flex items-center justify-center text-lavender-accent flex-shrink-0">
+              <SparklesIcon size={16} />
             </div>
           </div>
         )}
       </div>
 
       {/* Quick Add Form */}
-      <GlassCard variant="default" className="relative z-30 p-4 shadow-glass border border-glass-border">
-        <form onSubmit={handleCreateTask} className="flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <PlusIcon size={20} className="text-amber-500 flex-shrink-0" />
+      <div className="relative z-30 p-3 sm:p-4 rounded-2xl bg-white/[0.7] dark:bg-[#181226]/75 backdrop-blur-xl border border-white/80 dark:border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25)]">
+        <form onSubmit={handleCreateTask} className="flex flex-col gap-2.5">
+          <div className="flex items-center gap-2.5">
+            <div className="w-5 h-5 rounded-full border-2 border-dashed border-amber-500/60 flex items-center justify-center flex-shrink-0 text-amber-500">
+              <PlusIcon size={13} className="stroke-[2.5]" />
+            </div>
             <input
               type="text"
               placeholder="What do you want to accomplish today?"
               value={newTaskTitle}
               onChange={(e) => setNewTaskTitle(e.target.value)}
-              className="w-full bg-transparent text-sm sm:text-base font-semibold text-ink placeholder:text-ink-muted outline-none"
+              className="w-full bg-transparent text-sm sm:text-base font-semibold text-ink placeholder:text-ink-muted/50 outline-none"
             />
-            <GlassButton type="submit" size="sm" variant="primary" disabled={!newTaskTitle.trim()}>
-              Add to Today
-            </GlassButton>
+            <button
+              type="submit"
+              disabled={!newTaskTitle.trim()}
+              className={cn(
+                'px-3.5 py-1.5 rounded-xl font-bold text-xs transition-all duration-200 select-none flex-shrink-0 cursor-pointer shadow-xs',
+                newTaskTitle.trim()
+                  ? 'bg-amber-500 text-white hover:opacity-95 active:scale-95 shadow-amber-500/25'
+                  : 'bg-surface text-ink-muted/40 border border-glass-border cursor-not-allowed opacity-50'
+              )}
+            >
+              Add
+            </button>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2 pt-2.5 border-t border-glass-border-subtle text-xs">
-            <div className="flex items-center gap-2">
-              {/* High Contrast Priority Selector */}
-              <div className="flex items-center gap-1 bg-surface p-1 rounded-xl border border-glass-border">
-                {[
-                  { val: 0, label: 'P0' },
-                  { val: 1, label: 'P1' },
-                  { val: 2, label: 'P2' },
-                  { val: 3, label: 'P3' },
-                ].map((p) => {
-                  const isSelected = selectedPriority === p.val
-                  return (
-                    <button
-                      key={p.val}
-                      type="button"
-                      onClick={() => setSelectedPriority(p.val)}
-                      style={
-                        isSelected
-                          ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
-                          : { color: 'var(--color-ink)' }
-                      }
-                      className={cn(
-                        'px-2.5 py-1 rounded-lg font-extrabold transition-all text-xs border',
-                        isSelected
-                          ? 'border-white/20 shadow-xs'
-                          : 'bg-surface border-transparent hover:bg-surface-elevated text-ink'
-                      )}
-                    >
-                      {p.label}
-                    </button>
-                  )
-                })}
-              </div>
+          <div className="flex items-center justify-between gap-2 pt-2 border-t border-glass-border-subtle text-xs select-none">
+            {/* Priority Micro-Segmented Control */}
+            <div className="flex items-center gap-0.5 p-0.5 rounded-lg bg-surface/80 border border-glass-border flex-shrink-0">
+              {[
+                { val: 0, label: 'P0' },
+                { val: 1, label: 'P1' },
+                { val: 2, label: 'P2' },
+                { val: 3, label: 'P3' },
+              ].map((p) => {
+                const isSelected = selectedPriority === p.val
+                return (
+                  <button
+                    key={p.val}
+                    type="button"
+                    onClick={() => setSelectedPriority(p.val)}
+                    className={cn(
+                      'h-6 px-2 rounded-md font-bold text-[11px] transition-all cursor-pointer',
+                      isSelected
+                        ? 'bg-amber-500 text-white shadow-xs'
+                        : 'text-ink-muted hover:text-ink'
+                    )}
+                  >
+                    {p.label}
+                  </button>
+                )
+              })}
             </div>
 
-            <div className="text-xs font-semibold text-ink-muted flex items-center gap-1.5">
-              <SunIcon size={14} className="text-amber-500" />
-              <span>Automatically scheduled for today</span>
+            <div className="text-[11px] font-semibold text-ink-muted flex items-center gap-1.5">
+              <SunIcon size={12} className="text-amber-500" />
+              <span className="hidden xs:inline">Scheduled for today</span>
             </div>
           </div>
         </form>
-      </GlassCard>
+      </div>
 
       {/* Filter Tabs with Nicknames & Mascot Avatars */}
       <CreatorFilterTabs
