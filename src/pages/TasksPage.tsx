@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
+import { ChevronLeft } from 'lucide-react'
 import {
   CheckCircleIcon,
   PlusIcon,
@@ -29,6 +30,7 @@ export interface TasksPageProps {
 
 export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
   const { folderId } = useParams<{ folderId?: string }>()
+  const navigate = useNavigate()
 
   const tasks = useTaskStore((s) => s.tasks)
   const addTask = useTaskStore((s) => s.addTask)
@@ -230,8 +232,24 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
 
   const { badge, icon: HeaderIcon, color, title, subtitle } = getHeaderInfo()
 
+  const isSubView = viewType === 'important' || viewType === 'completed' || viewType === 'folder'
+
   return (
     <div className="flex flex-col gap-3.5 sm:gap-5 max-w-4xl mx-auto pb-32 sm:pb-16">
+      {/* Back to Menu Navigation Button for Sub-Views */}
+      {isSubView && (
+        <div className="-mb-1">
+          <button
+            type="button"
+            onClick={() => navigate('/menu')}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface/80 hover:bg-surface-elevated text-ink font-bold text-xs border border-glass-border shadow-xs transition-all hover:scale-[1.02] active:scale-95 group cursor-pointer select-none"
+          >
+            <ChevronLeft size={16} className="text-lavender-accent group-hover:-translate-x-0.5 transition-transform" />
+            <span>Back to Menu</span>
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
