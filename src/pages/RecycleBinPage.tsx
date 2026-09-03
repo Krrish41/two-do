@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ChevronLeft } from 'lucide-react'
 import { motion } from 'framer-motion'
 import {
   TrashIcon,
@@ -16,6 +18,7 @@ import { useAuthStore } from '../stores/authStore'
 import { cn, formatDate } from '../lib/utils'
 
 export const RecycleBinPage: React.FC = () => {
+  const navigate = useNavigate()
   const notes = useNoteStore((s) => s.notes)
   const emptyNotesRecycleBin = useNoteStore((s) => s.emptyRecycleBin)
 
@@ -41,7 +44,19 @@ export const RecycleBinPage: React.FC = () => {
   }, [tasks])
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl mx-auto pb-12">
+    <div className="flex flex-col gap-4 sm:gap-6 max-w-4xl mx-auto pb-32 sm:pb-16">
+      {/* Back to Menu Navigation Button */}
+      <div className="-mb-1">
+        <button
+          type="button"
+          onClick={() => navigate('/menu')}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface/80 hover:bg-surface-elevated text-ink font-bold text-xs border border-glass-border shadow-xs transition-all hover:scale-[1.02] active:scale-95 group cursor-pointer select-none"
+        >
+          <ChevronLeft size={16} className="text-lavender-accent group-hover:-translate-x-0.5 transition-transform" />
+          <span>Back to Menu</span>
+        </button>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
