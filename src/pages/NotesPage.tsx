@@ -79,16 +79,16 @@ export const NotesPage: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-5xl mx-auto pb-12">
+    <div className="flex flex-col gap-4 sm:gap-6 max-w-5xl mx-auto pb-32 sm:pb-16">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2 text-skyblue-accent font-bold text-xs uppercase tracking-wider mb-1">
+          <div className="hidden sm:flex items-center gap-2 text-skyblue-accent font-bold text-xs uppercase tracking-wider mb-1">
             <NotesIcon size={16} />
             <span>Shared Workspace</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">Notes</h1>
-          <p className="text-xs sm:text-sm text-ink-muted mt-0.5">
+          <h1 className="text-xl sm:text-3xl font-extrabold text-ink tracking-tight">Notes</h1>
+          <p className="hidden sm:block text-xs sm:text-sm text-ink-muted mt-0.5">
             Rich-text documents, meeting notes, recipes, and ideas.
           </p>
         </div>

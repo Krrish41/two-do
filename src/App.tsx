@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { LoginPage } from './pages/LoginPage'
 import { TodayPage } from './pages/TodayPage'
 import { TasksPage } from './pages/TasksPage'
@@ -17,11 +17,9 @@ import { supabase, isSupabaseConfigured } from './lib/supabaseClient'
 
 export const App: React.FC = () => {
   const { session, loading, initializeAuth } = useAuthStore()
-  const location = useLocation()
 
   const fetchTasks = useTaskStore((s) => s.fetchTasks)
   const fetchNotes = useNoteStore((s) => s.fetchNotes)
-  const folders = useNoteStore((s) => s.folders)
   const receiveRealtimeTask = useTaskStore((s) => s.receiveRealtimeTask)
   const receiveRealtimeNote = useNoteStore((s) => s.receiveRealtimeNote)
   const receiveRealtimeFolder = useNoteStore((s) => s.receiveRealtimeFolder)
@@ -107,26 +105,6 @@ export const App: React.FC = () => {
     }
   }, [session, receiveRealtimeTask, receiveRealtimeNote, receiveRealtimeFolder, receiveRealtimeTag, receiveRealtimeNoteTag])
 
-  // Helper to determine the current page title for minimal mobile top app bar
-  const getPageTitle = (pathname: string): string => {
-    if (pathname === '/today' || pathname === '/') return 'Today'
-    if (pathname === '/tasks') return 'All Tasks'
-    if (pathname === '/important') return 'Important'
-    if (pathname === '/completed') return 'Completed'
-    if (pathname === '/bucket-list') return 'Bucket List'
-    if (pathname === '/notes') return 'Notes'
-    if (pathname === '/recycle-bin') return 'Recycle Bin'
-    if (pathname === '/menu') return 'Menu'
-    if (pathname.startsWith('/folder/')) {
-      const folderId = pathname.replace('/folder/', '')
-      const folder = folders.find((f) => f.id === folderId)
-      return folder ? folder.name : 'Folder'
-    }
-    return 'Two-Do'
-  }
-
-  const pageTitle = getPageTitle(location.pathname)
-
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
@@ -150,18 +128,6 @@ export const App: React.FC = () => {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen max-w-[1600px] mx-auto w-full relative">
-      {/* Minimal Mobile Top App Bar (Title only, zero persistent floating icons) */}
-      <header className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-surface/85 backdrop-blur-xl border-b border-glass-border-subtle shadow-xs select-none">
-        <div className="flex items-center gap-2.5">
-          <img
-            src="./logo.svg"
-            alt="Two-Do"
-            className="w-6 h-6 drop-shadow-sm"
-          />
-          <h1 className="font-extrabold text-base text-ink tracking-tight">{pageTitle}</h1>
-        </div>
-      </header>
-
       {/* Desktop/Tablet Sidebar (hidden on mobile, static on desktop) */}
       <Sidebar />
 

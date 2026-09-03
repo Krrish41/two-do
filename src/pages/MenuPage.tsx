@@ -62,7 +62,13 @@ export const MenuPage: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-xl mx-auto pb-16 pt-1">
+    <div className="flex flex-col gap-5 max-w-xl mx-auto pb-32 sm:pb-16">
+      {/* Menu Header */}
+      <div>
+        <h1 className="text-xl sm:text-2xl font-extrabold text-ink tracking-tight">Menu</h1>
+        <p className="text-xs text-ink-muted mt-0.5">Views, folders, tags, and settings</p>
+      </div>
+
       {/* 1. Filtered Views Section (Only items not in 4 primary bottom tabs) */}
       <div className="flex flex-col gap-2">
         <span className="px-1 text-[11px] font-bold uppercase tracking-wider text-ink-subtle">
