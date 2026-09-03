@@ -6,10 +6,12 @@ import './styles/globals.css'
 
 import { useAuthStore } from './stores/authStore'
 import { useNoteStore } from './stores/noteStore'
+import { useTaskStore } from './stores/taskStore'
 
 if (import.meta.env.DEV) {
   ;(window as any).useAuthStore = useAuthStore
   ;(window as any).useNoteStore = useNoteStore
+  ;(window as any).useTaskStore = useTaskStore
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

@@ -11,9 +11,7 @@ import {
 } from '../components/icons'
 import { TaskList } from '../components/tasks/TaskList'
 import { FilterSortDrawer } from '../components/common/FilterSortDrawer'
-import { GlassCard } from '../components/glass/GlassCard'
 import { GlassInput } from '../components/glass/GlassInput'
-import { GlassButton } from '../components/glass/GlassButton'
 import { GlassDatePicker } from '../components/glass/GlassDatePicker'
 import { GlassDropdown } from '../components/glass/GlassDropdown'
 import { CreatorFilterTabs } from '../components/common/CreatorFilterTabs'
@@ -68,7 +66,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
   // Exclude system folders from dropdown options to prevent repetition (Section 6)
   const assignableFolders = folders.filter((f) => !f.is_system && f.slug !== 'bucket-list')
   const folderDropdownOptions = [
-    { value: '', label: 'No Folder', icon: <FolderIcon size={14} className="text-ink-muted" /> },
+    { value: '', label: 'Folder', icon: <FolderIcon size={14} className="text-ink-muted" /> },
     ...assignableFolders.map((f) => ({
       value: f.id,
       label: f.name,
@@ -233,16 +231,16 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
   const { badge, icon: HeaderIcon, color, title, subtitle } = getHeaderInfo()
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl mx-auto pb-12">
+    <div className="flex flex-col gap-3.5 sm:gap-5 max-w-4xl mx-auto pb-32 sm:pb-16">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <div className={cn('flex items-center gap-2 font-bold text-xs uppercase tracking-wider mb-1', color)}>
+          <div className={cn('hidden sm:flex items-center gap-2 font-bold text-xs uppercase tracking-wider mb-1', color)}>
             <HeaderIcon size={16} />
             <span>{badge}</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">{title}</h1>
-          <p className="text-xs sm:text-sm text-ink-muted mt-0.5">{subtitle}</p>
+          <h1 className="text-xl sm:text-3xl font-extrabold text-ink tracking-tight">{title}</h1>
+          <p className="hidden sm:block text-xs sm:text-sm text-ink-muted mt-0.5">{subtitle}</p>
         </div>
 
         {/* Search */}
@@ -252,103 +250,108 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
             placeholder="Search tasks..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            icon={<SearchIcon size={16} />}
+            icon={<SearchIcon size={15} />}
           />
         </div>
       </div>
 
       {/* Quick Add Task */}
       {viewType !== 'completed' && (
-        <GlassCard variant="default" className="relative z-30 p-4 shadow-glass border border-glass-border">
-          <form onSubmit={handleCreateTask} className="flex flex-col gap-3">
-            <div className="flex items-center gap-3">
-              <PlusIcon size={20} className="text-lavender-accent flex-shrink-0" />
+        <div className="relative z-30 p-3 sm:p-4 rounded-2xl bg-white/[0.7] dark:bg-[#181226]/75 backdrop-blur-xl border border-white/80 dark:border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25)]">
+          <form onSubmit={handleCreateTask} className="flex flex-col gap-2.5">
+            <div className="flex items-center gap-2.5">
+              <div className="w-5 h-5 rounded-full border-2 border-dashed border-lavender-accent/60 flex items-center justify-center flex-shrink-0 text-lavender-accent">
+                <PlusIcon size={13} className="stroke-[2.5]" />
+              </div>
               <input
                 type="text"
                 placeholder={
                   viewType === 'bucket-list'
                     ? 'Add a new dream to the list...'
-                    : 'Add a new task...'
+                    : 'Add a task...'
                 }
                 value={newTaskTitle}
                 onChange={(e) => setNewTaskTitle(e.target.value)}
-                className="w-full bg-transparent text-sm sm:text-base font-semibold text-ink placeholder:text-ink-muted outline-none"
+                className="w-full bg-transparent text-sm sm:text-base font-semibold text-ink placeholder:text-ink-muted/50 outline-none"
               />
-              <GlassButton type="submit" size="sm" variant="primary" disabled={!newTaskTitle.trim()}>
-                Add Task
-              </GlassButton>
+              <button
+                type="submit"
+                disabled={!newTaskTitle.trim()}
+                className={cn(
+                  'px-3.5 py-1.5 rounded-xl font-bold text-xs transition-all duration-200 select-none flex-shrink-0 cursor-pointer shadow-xs',
+                  newTaskTitle.trim()
+                    ? 'bg-lavender-accent text-white hover:opacity-95 active:scale-95 shadow-lavender-accent/25'
+                    : 'bg-surface text-ink-muted/40 border border-glass-border cursor-not-allowed opacity-50'
+                )}
+              >
+                Add
+              </button>
             </div>
 
-            {/* Quick Options: High Contrast Priority Chips & Glass Custom Pickers */}
-            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2.5 border-t border-glass-border-subtle text-xs">
-              <div className="flex flex-wrap items-center gap-2">
-                {/* Priority Selector with High Contrast Styling */}
-                <div className="flex items-center gap-1 bg-surface p-1 rounded-xl border border-glass-border">
-                  {[
-                    { val: 0, label: 'P0' },
-                    { val: 1, label: 'P1' },
-                    { val: 2, label: 'P2' },
-                    { val: 3, label: 'P3' },
-                  ].map((p) => {
-                    const isSelected = selectedPriority === p.val
-                    return (
-                      <button
-                        key={p.val}
-                        type="button"
-                        onClick={() => setSelectedPriority(p.val)}
-                        style={
-                          isSelected
-                            ? { background: 'linear-gradient(135deg, #683CB8 0%, #1B6CB5 100%)', color: '#FFFFFF' }
-                            : { color: 'var(--color-ink)' }
-                        }
-                        className={cn(
-                          'px-2.5 py-1 rounded-lg font-extrabold transition-all text-xs border',
-                          isSelected
-                            ? 'border-white/20 shadow-xs'
-                            : 'bg-surface border-transparent hover:bg-surface-elevated text-ink'
-                        )}
-                      >
-                        {p.label}
-                      </button>
-                    )
-                  })}
-                </div>
-
-                {/* Custom Glass Date Picker */}
-                <GlassDatePicker
-                  value={selectedDueDate}
-                  onChange={(d) => setSelectedDueDate(d)}
-                  size="sm"
-                />
-
-                {/* Custom Glass Dropdown for Folder with Create Action */}
-                {viewType === 'all' && (
-                  <GlassDropdown
-                    options={folderDropdownOptions}
-                    value={selectedFolder || ''}
-                    onChange={(val) => setSelectedFolder(val || null)}
-                    placeholder="No Folder"
-                    size="sm"
-                    className="w-auto min-w-[130px]"
-                    actionItem={{
-                      label: 'Create New Folder...',
-                      icon: <PlusIcon size={14} className="text-lavender-accent" />,
-                      onClick: () => setIsFolderModalOpen(true),
-                    }}
-                  />
-                )}
+            {/* Quick Options: Single Clean Inline Row */}
+            <div className="flex items-center gap-2 pt-2 border-t border-glass-border-subtle overflow-x-auto scrollbar-none select-none">
+              {/* Priority Micro-Segmented Control */}
+              <div className="flex items-center gap-0.5 p-0.5 rounded-lg bg-surface/80 border border-glass-border flex-shrink-0">
+                {[
+                  { val: 0, label: 'P0' },
+                  { val: 1, label: 'P1' },
+                  { val: 2, label: 'P2' },
+                  { val: 3, label: 'P3' },
+                ].map((p) => {
+                  const isSelected = selectedPriority === p.val
+                  return (
+                    <button
+                      key={p.val}
+                      type="button"
+                      onClick={() => setSelectedPriority(p.val)}
+                      className={cn(
+                        'h-6 px-2 rounded-md font-bold text-[11px] transition-all cursor-pointer',
+                        isSelected
+                          ? 'bg-lavender-accent text-white shadow-xs'
+                          : 'text-ink-muted hover:text-ink'
+                      )}
+                    >
+                      {p.label}
+                    </button>
+                  )
+                })}
               </div>
+
+              {/* Custom Glass Date Picker */}
+              <GlassDatePicker
+                value={selectedDueDate}
+                onChange={(d) => setSelectedDueDate(d)}
+                size="sm"
+                className="flex-shrink-0"
+              />
+
+              {/* Custom Glass Dropdown for Folder */}
+              {viewType === 'all' && (
+                <GlassDropdown
+                  options={folderDropdownOptions}
+                  value={selectedFolder || ''}
+                  onChange={(val) => setSelectedFolder(val || null)}
+                  placeholder="Folder"
+                  size="sm"
+                  className="flex-shrink-0 max-w-[130px]"
+                  actionItem={{
+                    label: 'Create New Folder...',
+                    icon: <PlusIcon size={14} className="text-lavender-accent" />,
+                    onClick: () => setIsFolderModalOpen(true),
+                  }}
+                />
+              )}
             </div>
           </form>
-        </GlassCard>
+        </div>
       )}
 
-      {/* Toolbar: Creator Filter Tabs with Mascot Avatars + Filter & Sort Drawer */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      {/* Toolbar: Creator Filter Tabs + Filter & Sort on ONE row */}
+      <div className="flex items-center justify-between gap-2 overflow-x-auto scrollbar-none pb-0.5">
         <CreatorFilterTabs
           value={creatorFilter}
           onChange={setCreatorFilter}
-          allLabel="All Tasks"
+          allLabel="All"
           layoutId="tasks-creator-bubble"
         />
 
