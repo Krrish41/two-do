@@ -7,10 +7,12 @@ import {
   PlusIcon,
   LogOutIcon,
 } from '../components/icons'
+import { SlidersHorizontal } from 'lucide-react'
 import { CoupleAvatar } from '../components/common/CoupleAvatar'
 import { ThemeToggle } from '../components/layout/ThemeToggle'
 import { FolderIconRenderer } from '../components/common/FolderIconRenderer'
 import { CreateFolderModal } from '../components/common/CreateFolderModal'
+import { ManageTagsModal } from '../components/notes/ManageTagsModal'
 import { GlassConfirmDialog } from '../components/glass/GlassConfirmDialog'
 import { useTaskStore } from '../stores/taskStore'
 import { useNoteStore } from '../stores/noteStore'
@@ -22,14 +24,20 @@ export const MenuPage: React.FC = () => {
   const tasks = useTaskStore((s) => s.tasks)
   const notes = useNoteStore((s) => s.notes)
   const folders = useNoteStore((s) => s.folders)
+  const tags = useNoteStore((s) => s.tags)
+  const noteTags = useNoteStore((s) => s.noteTags)
   const deleteFolder = useNoteStore((s) => s.deleteFolder)
+  const deleteTag = useNoteStore((s) => s.deleteTag)
+  const toggleTagFilter = useNoteStore((s) => s.toggleTagFilter)
 
   const authorizedUser = useAuthStore((s) => s.authorizedUser)
   const session = useAuthStore((s) => s.session)
   const signOut = useAuthStore((s) => s.signOut)
 
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
+  const [isTagModalOpen, setIsTagModalOpen] = useState(false)
   const [folderToDelete, setFolderToDelete] = useState<{ id: string; name: string } | null>(null)
+  const [tagToDelete, setTagToDelete] = useState<{ id: string; name: string } | null>(null)
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false)
 
   // Counts for views not in primary 4 tabs
@@ -183,6 +191,89 @@ export const MenuPage: React.FC = () => {
         )}
       </div>
 
+      {/* Tags Section */}
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between px-1">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-ink-subtle">
+            Tags
+          </span>
+          <div className="flex items-center gap-1.5">
+            {tags.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setIsTagModalOpen(true)}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold text-ink-muted hover:text-ink hover:bg-surface transition-colors border border-glass-border"
+                title="Manage and edit tags"
+              >
+                <SlidersHorizontal size={12} />
+                <span>Manage</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setIsTagModalOpen(true)}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold text-lavender-accent hover:bg-lavender-accent/15 transition-colors border border-lavender-accent/20"
+            >
+              <PlusIcon size={13} />
+              <span>New</span>
+            </button>
+          </div>
+        </div>
+
+        {tags.length === 0 ? (
+          <div className="p-5 rounded-2xl bg-surface/50 border border-glass-border text-center">
+            <p className="text-xs text-ink-muted">
+              No tags created yet. Create tags to organize your notes with custom topics.
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {tags.map((tag) => {
+              const taggedNotesCount = noteTags.filter((nt) => nt.tag_id === tag.id).length
+
+              return (
+                <div
+                  key={tag.id}
+                  className="flex items-center justify-between p-3.5 rounded-2xl bg-surface/80 hover:bg-surface-elevated border border-glass-border transition-colors group"
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      toggleTagFilter(tag.id)
+                      navigate('/notes')
+                    }}
+                    className="flex items-center gap-3 flex-1 min-w-0 text-left cursor-pointer"
+                  >
+                    <span
+                      className="w-3.5 h-3.5 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: tag.color || '#8B5CF6' }}
+                    />
+                    <span className="text-sm font-semibold text-ink truncate">
+                      #{tag.name}
+                    </span>
+                  </button>
+
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-surface-subtle text-ink-muted">
+                      {taggedNotesCount} {taggedNotesCount === 1 ? 'note' : 'notes'}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() => setTagToDelete({ id: tag.id, name: tag.name })}
+                      className="p-1.5 rounded-lg text-ink-muted hover:text-rose-500 hover:bg-rose-500/10 transition-colors opacity-70 group-hover:opacity-100 cursor-pointer"
+                      title="Delete Tag"
+                    >
+                      <TrashIcon size={14} />
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
       {/* 3. Utilities Section (Recycle Bin) */}
       <div className="flex flex-col gap-2">
         <span className="px-1 text-[11px] font-bold uppercase tracking-wider text-ink-subtle">
@@ -292,6 +383,32 @@ export const MenuPage: React.FC = () => {
           handleSignOut()
         }}
         onCancel={() => setIsLogoutConfirmOpen(false)}
+      />
+
+      {/* Manage Tags Modal */}
+      <ManageTagsModal
+        isOpen={isTagModalOpen}
+        onClose={() => setIsTagModalOpen(false)}
+      />
+
+      {/* Delete Tag Confirmation Dialog */}
+      <GlassConfirmDialog
+        isOpen={Boolean(tagToDelete)}
+        title={`Delete #${tagToDelete?.name || ''}?`}
+        description={
+          tagToDelete
+            ? `Are you sure you want to delete #${tagToDelete.name}? It will be removed from all notes.`
+            : ''
+        }
+        confirmText="Delete Tag"
+        variant="danger"
+        onConfirm={async () => {
+          if (tagToDelete) {
+            await deleteTag(tagToDelete.id)
+            setTagToDelete(null)
+          }
+        }}
+        onCancel={() => setTagToDelete(null)}
       />
     </div>
   )

@@ -14,6 +14,7 @@ import { motion } from 'framer-motion'
 import { CreatorFilterTabs } from '../components/common/CreatorFilterTabs'
 import { FolderIconRenderer } from '../components/common/FolderIconRenderer'
 import { CreateFolderModal } from '../components/common/CreateFolderModal'
+import { TagPillBar } from '../components/notes/TagPillBar'
 import { useNoteStore } from '../stores/noteStore'
 import { useAuthStore } from '../stores/authStore'
 import { cn } from '../lib/utils'
@@ -22,6 +23,7 @@ export const NotesPage: React.FC = () => {
   const notes = useNoteStore((s) => s.notes)
   const folders = useNoteStore((s) => s.folders)
   const noteTags = useNoteStore((s) => s.noteTags)
+  const selectedTagIds = useNoteStore((s) => s.selectedTagIds)
   const addNote = useNoteStore((s) => s.addNote)
   const setSelectedNoteId = useNoteStore((s) => s.setSelectedNoteId)
 
@@ -29,7 +31,6 @@ export const NotesPage: React.FC = () => {
   const partnerUser = useAuthStore((s) => s.partnerUser)
 
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedTagId] = useState<string | null>(null)
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null)
   const [creatorFilter, setCreatorFilter] = useState<'all' | 'mine' | 'partner'>('all')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
@@ -51,9 +52,10 @@ export const NotesPage: React.FC = () => {
 
       if (selectedFolderId && n.folder_id !== selectedFolderId) return false
 
-      if (selectedTagId) {
-        const hasTag = noteTags.some((nt) => nt.note_id === n.id && nt.tag_id === selectedTagId)
-        if (!hasTag) return false
+      if (selectedTagIds.length > 0) {
+        const thisNoteTagIds = noteTags.filter((nt) => nt.note_id === n.id).map((nt) => nt.tag_id)
+        const matchesTag = selectedTagIds.some((id) => thisNoteTagIds.includes(id))
+        if (!matchesTag) return false
       }
 
       if (creatorFilter === 'mine' && n.created_by !== authorizedUser?.id) return false
@@ -61,7 +63,7 @@ export const NotesPage: React.FC = () => {
 
       return true
     })
-  }, [notes, searchQuery, selectedFolderId, selectedTagId, creatorFilter, authorizedUser, partnerUser, noteTags])
+  }, [notes, searchQuery, selectedFolderId, selectedTagIds, creatorFilter, authorizedUser, partnerUser, noteTags])
 
   const pinnedNotes = useMemo(() => filteredNotes.filter((n) => n.is_pinned), [filteredNotes])
   const otherNotes = useMemo(() => filteredNotes.filter((n) => !n.is_pinned), [filteredNotes])
@@ -209,6 +211,9 @@ export const NotesPage: React.FC = () => {
         </button>
       </div>
 
+      {/* Tags Filter Bar */}
+      <TagPillBar className="pt-0.5" />
+
       {/* Pinned Notes Section */}
       {pinnedNotes.length > 0 && (
         <div className="flex flex-col gap-3">
@@ -246,7 +251,7 @@ export const NotesPage: React.FC = () => {
             </div>
             <h3 className="text-sm font-bold text-ink">No notes found</h3>
             <p className="text-xs text-ink-muted mt-1 max-w-xs">
-              {searchQuery || selectedFolderId || selectedTagId || creatorFilter !== 'all'
+              {searchQuery || selectedFolderId || selectedTagIds.length > 0 || creatorFilter !== 'all'
                 ? 'Try adjusting your filters or search query.'
                 : 'Capture your thoughts, ideas, lists, and stories together.'}
             </p>

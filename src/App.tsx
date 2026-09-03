@@ -25,6 +25,8 @@ export const App: React.FC = () => {
   const receiveRealtimeTask = useTaskStore((s) => s.receiveRealtimeTask)
   const receiveRealtimeNote = useNoteStore((s) => s.receiveRealtimeNote)
   const receiveRealtimeFolder = useNoteStore((s) => s.receiveRealtimeFolder)
+  const receiveRealtimeTag = useNoteStore((s) => s.receiveRealtimeTag)
+  const receiveRealtimeNoteTag = useNoteStore((s) => s.receiveRealtimeNoteTag)
 
   useEffect(() => {
     initializeAuth()
@@ -76,12 +78,34 @@ export const App: React.FC = () => {
           })
         }
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'tags' },
+        (payload: any) => {
+          receiveRealtimeTag({
+            eventType: payload.eventType,
+            new: payload.new,
+            old: payload.old,
+          })
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'note_tags' },
+        (payload: any) => {
+          receiveRealtimeNoteTag({
+            eventType: payload.eventType,
+            new: payload.new,
+            old: payload.old,
+          })
+        }
+      )
       .subscribe()
 
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [session, receiveRealtimeTask, receiveRealtimeNote, receiveRealtimeFolder])
+  }, [session, receiveRealtimeTask, receiveRealtimeNote, receiveRealtimeFolder, receiveRealtimeTag, receiveRealtimeNoteTag])
 
   // Helper to determine the current page title for minimal mobile top app bar
   const getPageTitle = (pathname: string): string => {
