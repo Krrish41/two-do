@@ -18,6 +18,7 @@ import { useTaskStore } from '../stores/taskStore'
 import { useNoteStore } from '../stores/noteStore'
 import { useAuthStore } from '../stores/authStore'
 import { cn } from '../lib/utils'
+import { MenuBrandHeader } from '../components/layout/MenuBrandHeader'
 
 export const MenuPage: React.FC = () => {
   const navigate = useNavigate()
@@ -63,6 +64,9 @@ export const MenuPage: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-5 max-w-xl mx-auto pb-32 sm:pb-16">
+      {/* Website Logo & Brand Header */}
+      <MenuBrandHeader />
+
       {/* Menu Header */}
       <div>
         <h1 className="text-xl sm:text-2xl font-extrabold text-ink tracking-tight">Menu</h1>

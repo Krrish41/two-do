@@ -82,7 +82,8 @@ export const TaskItem: React.FC<TaskItemProps> = React.memo(({
       exit={{ opacity: 0, height: 0, marginTop: 0, marginBottom: 0, overflow: 'hidden' }}
       transition={{ type: 'spring', stiffness: 300, damping: 24 }}
       onClick={() => setSelectedTaskId(task.id)}
-        className={cn(
+      data-task-item="true"
+      className={cn(
           'group relative flex items-center gap-3 p-3 sm:p-3.5 rounded-2xl transition-all duration-200 cursor-pointer select-none border',
           isChecked
             ? 'opacity-60 bg-surface-subtle/50 border-glass-border-subtle'

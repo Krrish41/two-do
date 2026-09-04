@@ -23,6 +23,7 @@ import { useAuthStore } from '../stores/authStore'
 import { useNoteStore } from '../stores/noteStore'
 import { useFilterSortStore } from '../stores/filterSortStore'
 import { cn } from '../lib/utils'
+import { MenuBrandHeader } from '../components/layout/MenuBrandHeader'
 
 export interface TasksPageProps {
   viewType?: 'all' | 'important' | 'completed' | 'bucket-list' | 'folder'
@@ -236,6 +237,9 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
 
   return (
     <div className="flex flex-col gap-3.5 sm:gap-5 max-w-4xl mx-auto pb-32 sm:pb-16">
+      {/* Website Logo & Brand Header */}
+      <MenuBrandHeader />
+
       {/* Back to Menu Navigation Button for Sub-Views */}
       {isSubView && (
         <div className="-mb-1">

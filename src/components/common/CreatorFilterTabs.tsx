@@ -74,7 +74,7 @@ export const CreatorFilterTabs: React.FC<CreatorFilterTabsProps> = ({
             type="button"
             onClick={() => onChange(item.id)}
             className={cn(
-              'relative h-8 px-3.5 rounded-[18px] text-xs transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer focus:outline-none select-none',
+              'relative h-8 px-2.5 sm:px-3.5 rounded-[18px] text-xs transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer focus:outline-none select-none',
               isSelected ? 'text-ink font-extrabold' : 'text-ink-muted hover:text-ink font-semibold'
             )}
           >

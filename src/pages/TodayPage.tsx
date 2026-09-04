@@ -10,6 +10,7 @@ import { CreatorFilterTabs } from '../components/common/CreatorFilterTabs'
 import { useTaskStore } from '../stores/taskStore'
 import { useAuthStore } from '../stores/authStore'
 import { cn } from '../lib/utils'
+import { MenuBrandHeader } from '../components/layout/MenuBrandHeader'
 
 export const TodayPage: React.FC = () => {
   const tasks = useTaskStore((s) => s.tasks)
@@ -74,6 +75,9 @@ export const TodayPage: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-3.5 sm:gap-5 max-w-4xl mx-auto pb-32 sm:pb-16">
+      {/* Website Logo & Brand Header */}
+      <MenuBrandHeader />
+
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -118,7 +122,7 @@ export const TodayPage: React.FC = () => {
             </div>
             <input
               type="text"
-              placeholder="What do you want to accomplish today?"
+              placeholder="What do you want to accomplish?"
               value={newTaskTitle}
               onChange={(e) => setNewTaskTitle(e.target.value)}
               className="w-full bg-transparent text-sm sm:text-base font-semibold text-ink placeholder:text-ink-muted/50 outline-none"
@@ -199,7 +203,7 @@ export const TodayPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-2">
             {suggestedTasks.map((t) => (
               <div
                 key={t.id}
