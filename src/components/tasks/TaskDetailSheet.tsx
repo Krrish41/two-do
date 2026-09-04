@@ -251,10 +251,20 @@ export const TaskDetailSheet: React.FC = () => {
     }
   }, [localTitle, localNotes, updateTask])
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     flushSave()
     setSelectedTaskId(null)
-  }
+  }, [flushSave, setSelectedTaskId])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleClose])
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -354,6 +364,8 @@ export const TaskDetailSheet: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleClose}
+                  data-testid="close-task-detail"
+                  aria-label="Close task details"
                   className="p-1.5 rounded-xl hover:bg-surface text-ink-muted hover:text-ink transition-colors cursor-pointer"
                 >
                   <CloseIcon size={18} />

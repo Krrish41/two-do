@@ -16,6 +16,7 @@ import { useNoteStore } from '../stores/noteStore'
 import { useTaskStore } from '../stores/taskStore'
 import { useAuthStore } from '../stores/authStore'
 import { cn, formatDate } from '../lib/utils'
+import { MenuBrandHeader } from '../components/layout/MenuBrandHeader'
 
 export const RecycleBinPage: React.FC = () => {
   const navigate = useNavigate()
@@ -45,6 +46,9 @@ export const RecycleBinPage: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6 max-w-4xl mx-auto pb-32 sm:pb-16">
+      {/* Website Logo & Brand Header */}
+      <MenuBrandHeader />
+
       {/* Back to Menu Navigation Button */}
       <div className="-mb-1">
         <button

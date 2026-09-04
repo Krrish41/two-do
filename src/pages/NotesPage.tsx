@@ -18,6 +18,7 @@ import { TagPillBar } from '../components/notes/TagPillBar'
 import { useNoteStore } from '../stores/noteStore'
 import { useAuthStore } from '../stores/authStore'
 import { cn } from '../lib/utils'
+import { MenuBrandHeader } from '../components/layout/MenuBrandHeader'
 
 export const NotesPage: React.FC = () => {
   const notes = useNoteStore((s) => s.notes)
@@ -80,6 +81,9 @@ export const NotesPage: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6 max-w-5xl mx-auto pb-32 sm:pb-16">
+      {/* Website Logo & Brand Header */}
+      <MenuBrandHeader />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>

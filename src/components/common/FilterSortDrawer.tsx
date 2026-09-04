@@ -55,10 +55,11 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
         variant={hasActiveFilters ? 'primary' : 'secondary'}
         size="sm"
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-1.5 font-bold"
+        className="flex items-center gap-1.5 font-bold flex-shrink-0"
       >
         <FilterIcon size={14} />
-        <span>Sort & Filter</span>
+        <span className="hidden min-[400px]:inline">Sort & Filter</span>
+        <span className="min-[400px]:hidden">Filter</span>
         {hasActiveFilters && (
           <span className="w-2 h-2 rounded-full bg-white ml-0.5 animate-pulse" />
         )}

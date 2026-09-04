@@ -14,6 +14,45 @@
           }
           document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
         } catch (e) {}
+
+        // Suppress benign third-party/extension-injected errors (e.g. Chrome Soft Navigation startTime bug and contentscript EventEmitter warnings)
+        window.addEventListener('error', function (event) {
+          var msg = event.message || '';
+          var filename = event.filename || '';
+          if (
+            msg.indexOf('startTime') !== -1 ||
+            msg.indexOf('reportAllChanges') !== -1 ||
+            filename.indexOf('contentscript') !== -1
+          ) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+            return true;
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function (event) {
+          var reason = (event.reason && (event.reason.message || event.reason.stack)) || '';
+          if (typeof reason === 'string' && (reason.indexOf('startTime') !== -1 || reason.indexOf('reportAllChanges') !== -1)) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+          }
+        }, true);
+
+        // Filter out known noisy third-party extension logs in console.warn/error
+        var origWarn = console.warn;
+        console.warn = function () {
+          var firstArg = arguments[0];
+          if (typeof firstArg === 'string') {
+            if (
+              firstArg.indexOf('MaxListenersExceededWarning') !== -1 ||
+              firstArg.indexOf('ObjectMultiplex') !== -1 ||
+              firstArg.indexOf('contentscript') !== -1
+            ) {
+              return;
+            }
+          }
+          origWarn.apply(console, arguments);
+        };
       })();
     </script>
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
