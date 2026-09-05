@@ -143,11 +143,11 @@ export const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<Navigate to="/today" replace />} />
           <Route path="/today" element={<TodayPage />} />
-          <Route path="/tasks" element={<TasksPage viewType="all" />} />
-          <Route path="/important" element={<TasksPage viewType="important" />} />
-          <Route path="/completed" element={<TasksPage viewType="completed" />} />
-          <Route path="/bucket-list" element={<TasksPage viewType="bucket-list" />} />
-          <Route path="/folder/:folderId" element={<TasksPage viewType="folder" />} />
+          <Route path="/tasks" element={<TasksPage key="tasks-all" viewType="all" />} />
+          <Route path="/important" element={<TasksPage key="tasks-important" viewType="important" />} />
+          <Route path="/completed" element={<TasksPage key="tasks-completed" viewType="completed" />} />
+          <Route path="/bucket-list" element={<TasksPage key="tasks-bucket" viewType="bucket-list" />} />
+          <Route path="/folder/:folderId" element={<TasksPage key="tasks-folder" viewType="folder" />} />
           <Route path="/notes" element={<NotesPage />} />
           <Route path="/recycle-bin" element={<RecycleBinPage />} />
           <Route path="/menu" element={<MenuPage />} />

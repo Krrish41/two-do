@@ -129,6 +129,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         }
 
         await get().fetchAuthorizedUsers()
+
+        // Eagerly trigger tasks and notes fetches for the newly authorized session
+        import('./taskStore').then((m) => m.useTaskStore.getState().fetchTasks())
+        import('./noteStore').then((m) => m.useNoteStore.getState().fetchNotes())
+
         return { success: true }
       }
 

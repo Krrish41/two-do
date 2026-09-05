@@ -57,6 +57,9 @@ export const MobileNav: React.FC = () => {
             <NavLink
               key={item.to}
               to={item.to}
+              onClick={(e) => {
+                if (isActive) e.preventDefault()
+              }}
               className={cn(
                 'relative flex-1 h-full flex flex-col items-center justify-center select-none outline-none cursor-pointer rounded-[20px] transition-colors duration-150',
                 isActive

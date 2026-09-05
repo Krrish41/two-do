@@ -79,18 +79,18 @@ export const TodayPage: React.FC = () => {
       <CollapsingHeader title="Today" />
 
       {/* Main Page Content */}
-      <div className="flex flex-col gap-3.5 sm:gap-5 px-3.5 sm:px-0 pt-2 sm:pt-0">
+      <div className="flex flex-col gap-2.5 sm:gap-4 px-3.5 sm:px-0 pt-1 sm:pt-0">
         {/* Header Banner */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-3">
           <div>
-            <div className="hidden sm:flex items-center gap-2 text-amber-500 font-bold text-xs uppercase tracking-wider mb-1">
+            <div className="hidden sm:flex items-center gap-2 text-lavender-accent font-bold text-xs uppercase tracking-wider mb-1">
               <SunIcon size={16} />
               <span>Daily Focus</span>
             </div>
             <h1 className="hidden md:block text-xl sm:text-3xl font-extrabold text-ink tracking-tight">
               Today
             </h1>
-            <p className="text-xs sm:text-sm text-ink-muted mt-0.5">{currentDateFormatted}</p>
+            <p className="text-xs text-ink-muted">{currentDateFormatted}</p>
           </div>
 
         {/* Daily Progress Gauge */}
@@ -119,7 +119,7 @@ export const TodayPage: React.FC = () => {
       <div className="relative z-30 p-3 sm:p-4 rounded-2xl bg-white/[0.7] dark:bg-[#181226]/75 backdrop-blur-xl border border-white/80 dark:border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25)]">
         <form onSubmit={handleCreateTask} className="flex flex-col gap-2.5">
           <div className="flex items-center gap-2.5">
-            <div className="w-5 h-5 rounded-full border-2 border-dashed border-amber-500/60 flex items-center justify-center flex-shrink-0 text-amber-500">
+            <div className="w-5 h-5 rounded-full border-2 border-dashed border-lavender-accent/60 flex items-center justify-center flex-shrink-0 text-lavender-accent">
               <PlusIcon size={13} className="stroke-[2.5]" />
             </div>
             <input
@@ -135,7 +135,7 @@ export const TodayPage: React.FC = () => {
               className={cn(
                 'px-3.5 py-1.5 rounded-xl font-bold text-xs transition-all duration-200 select-none flex-shrink-0 cursor-pointer shadow-xs',
                 newTaskTitle.trim()
-                  ? 'bg-amber-500 text-white hover:opacity-95 active:scale-95 shadow-amber-500/25'
+                  ? 'bg-lavender-accent text-white hover:opacity-95 active:scale-95 shadow-lavender-accent/25'
                   : 'bg-surface text-ink-muted/40 border border-glass-border cursor-not-allowed opacity-50'
               )}
             >
@@ -161,7 +161,7 @@ export const TodayPage: React.FC = () => {
                     className={cn(
                       'h-6 px-2 rounded-md font-bold text-[11px] transition-all cursor-pointer',
                       isSelected
-                        ? 'bg-amber-500 text-white shadow-xs'
+                        ? 'bg-lavender-accent text-white shadow-xs'
                         : 'text-ink-muted hover:text-ink'
                     )}
                   >
@@ -172,7 +172,7 @@ export const TodayPage: React.FC = () => {
             </div>
 
             <div className="text-[11px] font-semibold text-ink-muted flex items-center gap-1.5">
-              <SunIcon size={12} className="text-amber-500" />
+              <SunIcon size={12} className="text-lavender-accent" />
               <span className="hidden xs:inline">Scheduled for today</span>
             </div>
           </div>
@@ -185,7 +185,8 @@ export const TodayPage: React.FC = () => {
         onChange={setCreatorFilter}
         allLabel="All Tasks"
         layoutId="today-creator-bubble"
-        className="w-fit"
+        fullWidth
+        className="w-full"
       />
 
       {/* Pending Tasks Section */}

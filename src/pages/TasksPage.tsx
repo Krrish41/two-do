@@ -241,7 +241,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
       <CollapsingHeader title={title} />
 
       {/* Main Page Content */}
-      <div className="flex flex-col gap-3.5 sm:gap-5 px-3.5 sm:px-0 pt-2 sm:pt-0">
+      <div className="flex flex-col gap-2.5 sm:gap-4 px-3.5 sm:px-0 pt-1 sm:pt-0">
         {/* Back to Menu Navigation Button for Sub-Views */}
         {isSubView && (
           <div className="-mb-1">
@@ -257,14 +257,14 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
         )}
 
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <div className={cn('hidden sm:flex items-center gap-2 font-bold text-xs uppercase tracking-wider mb-1', color)}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3">
+          <div className="hidden sm:block">
+            <div className={cn('flex items-center gap-2 font-bold text-xs uppercase tracking-wider mb-1', color)}>
               <HeaderIcon size={16} />
               <span>{badge}</span>
             </div>
             <h1 className="hidden md:block text-xl sm:text-3xl font-extrabold text-ink tracking-tight">{title}</h1>
-            <p className="hidden sm:block text-xs sm:text-sm text-ink-muted mt-0.5">{subtitle}</p>
+            <p className="text-xs sm:text-sm text-ink-muted mt-0.5">{subtitle}</p>
           </div>
 
         {/* Search & Sort / Filter */}

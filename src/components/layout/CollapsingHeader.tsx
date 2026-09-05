@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import { cn } from '../../lib/utils'
 
 export interface CollapsingHeaderProps {
@@ -16,35 +16,25 @@ export const CollapsingHeader: React.FC<CollapsingHeaderProps> = ({
 }) => {
   const { scrollY } = useScroll(containerRef ? { container: containerRef as any } : undefined)
 
-  // Spring-smoothed scroll position:
-  // Cushions velocity spikes during quick flicks or scrolling up/down quickly,
-  // ensuring the header expands and contracts at the speed of scrolling smoothly without stutter.
-  const smoothScrollY = useSpring(scrollY, {
-    stiffness: 400,
-    damping: 38,
-    mass: 0.3,
-    restDelta: 0.5,
-  })
+  // Direct 1:1 scroll tracking:
+  // Tracks the user's touch movement directly with 0 artificial spring lag or delayed bounce,
+  // ensuring the header expands and contracts naturally in real-time.
+  const brandWordmarkOpacity = useTransform(scrollY, [0, 20], [1, 0], { clamp: true })
+  const brandWordmarkY = useTransform(scrollY, [0, 20], [0, -4], { clamp: true })
 
-  // Top bar brand wordmark: fades out smoothly over initial scroll (0 -> 28px)
-  const brandWordmarkOpacity = useTransform(smoothScrollY, [0, 28], [1, 0], { clamp: true })
-  const brandWordmarkY = useTransform(smoothScrollY, [0, 28], [0, -6], { clamp: true })
+  // Large title row collapse: fades out and collapses height over 0 -> 48px
+  const largeTitleOpacity = useTransform(scrollY, [0, 26], [1, 0], { clamp: true })
+  const largeTitleHeight = useTransform(scrollY, [0, 48], [32, 0], { clamp: true })
+  const largeTitleScale = useTransform(scrollY, [0, 36], [1, 0.94], { clamp: true })
+  const largeTitleY = useTransform(scrollY, [0, 36], [0, -4], { clamp: true })
 
-  // Large title row collapse: fades out and collapses height over 0 -> 68px
-  // The natural scroll range (68px) ensures that quick or slow scroll tracks
-  // the user's finger continuously across multiple frames instead of snapping in a single frame.
-  const largeTitleOpacity = useTransform(smoothScrollY, [0, 36], [1, 0], { clamp: true })
-  const largeTitleHeight = useTransform(smoothScrollY, [0, 68], [38, 0], { clamp: true })
-  const largeTitleScale = useTransform(smoothScrollY, [0, 44], [1, 0.90], { clamp: true })
-  const largeTitleY = useTransform(smoothScrollY, [0, 44], [0, -6], { clamp: true })
-
-  // Compact page title: smoothly fades in as the large title vanishes (36 -> 68px)
-  const compactTitleOpacity = useTransform(smoothScrollY, [36, 68], [0, 1], { clamp: true })
-  const compactTitleY = useTransform(smoothScrollY, [36, 68], [5, 0], { clamp: true })
+  // Compact page title: smoothly fades in as the large title vanishes
+  const compactTitleOpacity = useTransform(scrollY, [24, 48], [0, 1], { clamp: true })
+  const compactTitleY = useTransform(scrollY, [24, 48], [4, 0], { clamp: true })
 
   // Header bottom padding and hairline divider
-  const headerPaddingBottom = useTransform(smoothScrollY, [0, 68], [12, 10], { clamp: true })
-  const dividerOpacity = useTransform(smoothScrollY, [42, 70], [0, 1], { clamp: true })
+  const headerPaddingBottom = useTransform(scrollY, [0, 48], [6, 4], { clamp: true })
+  const dividerOpacity = useTransform(scrollY, [30, 50], [0, 1], { clamp: true })
 
   return (
     <header
@@ -56,7 +46,7 @@ export const CollapsingHeader: React.FC<CollapsingHeaderProps> = ({
     >
       <motion.div
         style={{ paddingBottom: headerPaddingBottom }}
-        className="px-4 pt-3 flex flex-col justify-center"
+        className="px-3.5 pt-2 flex flex-col justify-center"
       >
         {/* Row 1: Logo + [Two-Do (at top) -> Page Title (scrolled)] */}
         <div className="flex items-center gap-2 h-7 min-w-0">
