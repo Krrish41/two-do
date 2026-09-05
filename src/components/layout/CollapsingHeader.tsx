@@ -16,21 +16,21 @@ export const CollapsingHeader: React.FC<CollapsingHeaderProps> = ({
 }) => {
   const { scrollY } = useScroll(containerRef ? { container: containerRef as any } : undefined)
 
-  // Top bar label transition: "Two-Do" fades out, page title fades in beside the logo
-  const brandWordmarkOpacity = useTransform(scrollY, [0, 30], [1, 0])
-  const brandWordmarkY = useTransform(scrollY, [0, 30], [0, -6])
-  const compactTitleOpacity = useTransform(scrollY, [20, 50], [0, 1])
-  const compactTitleY = useTransform(scrollY, [20, 50], [6, 0])
+  // Top bar label transition: "Two-Do" fades out first, page title fades in beside the logo (non-overlapping)
+  const brandWordmarkOpacity = useTransform(scrollY, [0, 18], [1, 0])
+  const brandWordmarkY = useTransform(scrollY, [0, 18], [0, -6])
+  const compactTitleOpacity = useTransform(scrollY, [22, 44], [0, 1])
+  const compactTitleY = useTransform(scrollY, [22, 44], [6, 0])
 
   // Large title row collapse: fades and collapses height to 0
-  const largeTitleOpacity = useTransform(scrollY, [0, 35], [1, 0])
-  const largeTitleHeight = useTransform(scrollY, [0, 50], [38, 0])
-  const largeTitleScale = useTransform(scrollY, [0, 40], [1, 0.92])
-  const largeTitleY = useTransform(scrollY, [0, 40], [0, -6])
+  const largeTitleOpacity = useTransform(scrollY, [0, 25], [1, 0])
+  const largeTitleHeight = useTransform(scrollY, [0, 44], [38, 0])
+  const largeTitleScale = useTransform(scrollY, [0, 30], [1, 0.94])
+  const largeTitleY = useTransform(scrollY, [0, 30], [0, -4])
 
   // Header bottom padding and hairline divider
-  const headerPaddingBottom = useTransform(scrollY, [0, 50], [12, 10])
-  const dividerOpacity = useTransform(scrollY, [35, 55], [0, 1])
+  const headerPaddingBottom = useTransform(scrollY, [0, 44], [12, 10])
+  const dividerOpacity = useTransform(scrollY, [28, 48], [0, 1])
 
   return (
     <header
