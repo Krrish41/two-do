@@ -139,7 +139,7 @@ export const App: React.FC = () => {
       <Sidebar />
 
       {/* Main Workspace View */}
-      <main className="flex-1 px-0 pt-0 pb-4 sm:p-6 md:p-8 mb-24 md:mb-4 overflow-y-auto max-w-full">
+      <main className="flex-1 px-0 pt-0 pb-4 sm:p-6 md:p-8 mb-24 md:mb-4 overflow-x-clip md:overflow-y-auto max-w-full">
         <Routes>
           <Route path="/" element={<Navigate to="/today" replace />} />
           <Route path="/today" element={<TodayPage />} />
