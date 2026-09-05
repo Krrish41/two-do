@@ -18,7 +18,7 @@ import { useTaskStore } from '../stores/taskStore'
 import { useNoteStore } from '../stores/noteStore'
 import { useAuthStore } from '../stores/authStore'
 import { cn } from '../lib/utils'
-import { MenuBrandHeader } from '../components/layout/MenuBrandHeader'
+import { CollapsingHeader } from '../components/layout/CollapsingHeader'
 
 export const MenuPage: React.FC = () => {
   const navigate = useNavigate()
@@ -63,15 +63,17 @@ export const MenuPage: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col gap-5 max-w-xl mx-auto pb-32 sm:pb-16">
-      {/* Website Logo & Brand Header */}
-      <MenuBrandHeader />
+    <div className="flex flex-col max-w-xl mx-auto pb-32 sm:pb-16">
+      {/* Mobile Collapsing Large-Title Header (<768px) */}
+      <CollapsingHeader title="Menu" />
 
-      {/* Menu Header */}
-      <div>
-        <h1 className="text-xl sm:text-2xl font-extrabold text-ink tracking-tight">Menu</h1>
-        <p className="text-xs text-ink-muted mt-0.5">Views, folders, tags, and settings</p>
-      </div>
+      {/* Main Page Content */}
+      <div className="flex flex-col gap-5 px-3.5 sm:px-0 pt-2 sm:pt-0">
+        {/* Menu Header */}
+        <div>
+          <h1 className="hidden md:block text-xl sm:text-2xl font-extrabold text-ink tracking-tight">Menu</h1>
+          <p className="text-xs text-ink-muted mt-0.5">Views, folders, tags, and settings</p>
+        </div>
 
       {/* 1. Filtered Views Section (Only items not in 4 primary bottom tabs) */}
       <div className="flex flex-col gap-2">
@@ -420,6 +422,7 @@ export const MenuPage: React.FC = () => {
         }}
         onCancel={() => setTagToDelete(null)}
       />
+      </div>
     </div>
   )
 }

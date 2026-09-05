@@ -16,7 +16,7 @@ import { useNoteStore } from '../stores/noteStore'
 import { useTaskStore } from '../stores/taskStore'
 import { useAuthStore } from '../stores/authStore'
 import { cn, formatDate } from '../lib/utils'
-import { MenuBrandHeader } from '../components/layout/MenuBrandHeader'
+import { CollapsingHeader } from '../components/layout/CollapsingHeader'
 
 export const RecycleBinPage: React.FC = () => {
   const navigate = useNavigate()
@@ -45,34 +45,36 @@ export const RecycleBinPage: React.FC = () => {
   }, [tasks])
 
   return (
-    <div className="flex flex-col gap-4 sm:gap-6 max-w-4xl mx-auto pb-32 sm:pb-16">
-      {/* Website Logo & Brand Header */}
-      <MenuBrandHeader />
+    <div className="flex flex-col max-w-4xl mx-auto pb-32 sm:pb-16">
+      {/* Mobile Collapsing Large-Title Header (<768px) */}
+      <CollapsingHeader title="Recycle Bin" />
 
-      {/* Back to Menu Navigation Button */}
-      <div className="-mb-1">
-        <button
-          type="button"
-          onClick={() => navigate('/menu')}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface/80 hover:bg-surface-elevated text-ink font-bold text-xs border border-glass-border shadow-xs transition-all hover:scale-[1.02] active:scale-95 group cursor-pointer select-none"
-        >
-          <ChevronLeft size={16} className="text-lavender-accent group-hover:-translate-x-0.5 transition-transform" />
-          <span>Back to Menu</span>
-        </button>
-      </div>
-
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-ink-muted font-bold text-xs uppercase tracking-wider mb-1">
-            <TrashIcon size={16} />
-            <span>Trash & Archive</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">Recycle Bin</h1>
-          <p className="text-xs sm:text-sm text-ink-muted mt-0.5">
-            Items in the bin are automatically purged after 30 days.
-          </p>
+      {/* Main Page Content */}
+      <div className="flex flex-col gap-4 sm:gap-6 px-3.5 sm:px-0 pt-2 sm:pt-0">
+        {/* Back to Menu Navigation Button */}
+        <div className="-mb-1">
+          <button
+            type="button"
+            onClick={() => navigate('/menu')}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface/80 hover:bg-surface-elevated text-ink font-bold text-xs border border-glass-border shadow-xs transition-all hover:scale-[1.02] active:scale-95 group cursor-pointer select-none"
+          >
+            <ChevronLeft size={16} className="text-lavender-accent group-hover:-translate-x-0.5 transition-transform" />
+            <span>Back to Menu</span>
+          </button>
         </div>
+
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 text-ink-muted font-bold text-xs uppercase tracking-wider mb-1">
+              <TrashIcon size={16} />
+              <span>Trash & Archive</span>
+            </div>
+            <h1 className="hidden md:block text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">Recycle Bin</h1>
+            <p className="text-xs sm:text-sm text-ink-muted mt-0.5">
+              Items in the bin are automatically purged after 30 days.
+            </p>
+          </div>
 
         {/* Empty Bin Action */}
         <div>
@@ -283,6 +285,7 @@ export const RecycleBinPage: React.FC = () => {
         }}
         onCancel={() => setTaskToDeleteForever(null)}
       />
+      </div>
     </div>
   )
 }

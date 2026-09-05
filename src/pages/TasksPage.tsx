@@ -23,7 +23,7 @@ import { useAuthStore } from '../stores/authStore'
 import { useNoteStore } from '../stores/noteStore'
 import { useFilterSortStore } from '../stores/filterSortStore'
 import { cn } from '../lib/utils'
-import { MenuBrandHeader } from '../components/layout/MenuBrandHeader'
+import { CollapsingHeader } from '../components/layout/CollapsingHeader'
 
 export interface TasksPageProps {
   viewType?: 'all' | 'important' | 'completed' | 'bucket-list' | 'folder'
@@ -236,34 +236,36 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
   const isSubView = viewType === 'important' || viewType === 'completed' || viewType === 'folder'
 
   return (
-    <div className="flex flex-col gap-3.5 sm:gap-5 max-w-4xl mx-auto pb-32 sm:pb-16">
-      {/* Website Logo & Brand Header */}
-      <MenuBrandHeader />
+    <div className="flex flex-col max-w-4xl mx-auto pb-32 sm:pb-16">
+      {/* Mobile Collapsing Large-Title Header (<768px) */}
+      <CollapsingHeader title={title} />
 
-      {/* Back to Menu Navigation Button for Sub-Views */}
-      {isSubView && (
-        <div className="-mb-1">
-          <button
-            type="button"
-            onClick={() => navigate('/menu')}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface/80 hover:bg-surface-elevated text-ink font-bold text-xs border border-glass-border shadow-xs transition-all hover:scale-[1.02] active:scale-95 group cursor-pointer select-none"
-          >
-            <ChevronLeft size={16} className="text-lavender-accent group-hover:-translate-x-0.5 transition-transform" />
-            <span>Back to Menu</span>
-          </button>
-        </div>
-      )}
-
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <div className={cn('hidden sm:flex items-center gap-2 font-bold text-xs uppercase tracking-wider mb-1', color)}>
-            <HeaderIcon size={16} />
-            <span>{badge}</span>
+      {/* Main Page Content */}
+      <div className="flex flex-col gap-3.5 sm:gap-5 px-3.5 sm:px-0 pt-2 sm:pt-0">
+        {/* Back to Menu Navigation Button for Sub-Views */}
+        {isSubView && (
+          <div className="-mb-1">
+            <button
+              type="button"
+              onClick={() => navigate('/menu')}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface/80 hover:bg-surface-elevated text-ink font-bold text-xs border border-glass-border shadow-xs transition-all hover:scale-[1.02] active:scale-95 group cursor-pointer select-none"
+            >
+              <ChevronLeft size={16} className="text-lavender-accent group-hover:-translate-x-0.5 transition-transform" />
+              <span>Back to Menu</span>
+            </button>
           </div>
-          <h1 className="text-xl sm:text-3xl font-extrabold text-ink tracking-tight">{title}</h1>
-          <p className="hidden sm:block text-xs sm:text-sm text-ink-muted mt-0.5">{subtitle}</p>
-        </div>
+        )}
+
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div className={cn('hidden sm:flex items-center gap-2 font-bold text-xs uppercase tracking-wider mb-1', color)}>
+              <HeaderIcon size={16} />
+              <span>{badge}</span>
+            </div>
+            <h1 className="hidden md:block text-xl sm:text-3xl font-extrabold text-ink tracking-tight">{title}</h1>
+            <p className="hidden sm:block text-xs sm:text-sm text-ink-muted mt-0.5">{subtitle}</p>
+          </div>
 
         {/* Search */}
         <div className="w-full sm:w-64">
@@ -436,6 +438,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
         onClose={() => setIsFolderModalOpen(false)}
         onCreated={(id) => setSelectedFolder(id)}
       />
+      </div>
     </div>
   )
 }
