@@ -10,6 +10,7 @@ export interface CreatorFilterTabsProps {
   allLabel?: string
   layoutId?: string
   className?: string
+  fullWidth?: boolean
 }
 
 export const CreatorFilterTabs: React.FC<CreatorFilterTabsProps> = ({
@@ -18,6 +19,7 @@ export const CreatorFilterTabs: React.FC<CreatorFilterTabsProps> = ({
   allLabel = 'All Tasks',
   layoutId = 'creator-filter-bubble',
   className,
+  fullWidth = false,
 }) => {
   const authorizedUser = useAuthStore((s) => s.authorizedUser)
   const partnerUser = useAuthStore((s) => s.partnerUser)
@@ -62,6 +64,7 @@ export const CreatorFilterTabs: React.FC<CreatorFilterTabsProps> = ({
     <div
       className={cn(
         'relative inline-flex items-center gap-1 p-1 rounded-[22px] bg-slate-200/75 dark:bg-white/[0.05] backdrop-blur-xl border border-black/5 dark:border-white/[0.08] shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] max-w-full overflow-x-auto scrollbar-none select-none',
+        fullWidth && 'w-full flex justify-between',
         className
       )}
     >
@@ -75,6 +78,7 @@ export const CreatorFilterTabs: React.FC<CreatorFilterTabsProps> = ({
             onClick={() => onChange(item.id)}
             className={cn(
               'relative h-8 px-2.5 sm:px-3.5 rounded-[18px] text-xs transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer focus:outline-none select-none',
+              fullWidth && 'flex-1 text-center min-w-0 px-1 sm:px-3',
               isSelected ? 'text-ink font-extrabold' : 'text-ink-muted hover:text-ink font-semibold'
             )}
           >

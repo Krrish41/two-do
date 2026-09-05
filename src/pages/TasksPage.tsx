@@ -267,15 +267,18 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
             <p className="hidden sm:block text-xs sm:text-sm text-ink-muted mt-0.5">{subtitle}</p>
           </div>
 
-        {/* Search */}
-        <div className="w-full sm:w-64">
-          <GlassInput
-            type="text"
-            placeholder="Search tasks..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            icon={<SearchIcon size={15} />}
-          />
+        {/* Search & Sort / Filter */}
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex-1 sm:w-64">
+            <GlassInput
+              type="text"
+              placeholder="Search tasks..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              icon={<SearchIcon size={15} />}
+            />
+          </div>
+          <FilterSortDrawer showDueDateFilter={true} showFolderFilter={viewType === 'all'} />
         </div>
       </div>
 
@@ -370,16 +373,16 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
         </div>
       )}
 
-      {/* Toolbar: Creator Filter Tabs + Filter & Sort on ONE row */}
-      <div className="flex items-center justify-between gap-2 overflow-x-auto scrollbar-none pb-0.5">
+      {/* Centralized Full-Width Creator Filter Tabs */}
+      <div className="w-full flex justify-center pb-0.5">
         <CreatorFilterTabs
           value={creatorFilter}
           onChange={setCreatorFilter}
           allLabel="All"
           layoutId="tasks-creator-bubble"
+          fullWidth
+          className="w-full"
         />
-
-        <FilterSortDrawer showDueDateFilter={true} showFolderFilter={viewType === 'all'} />
       </div>
 
       {/* Pending Tasks List */}
