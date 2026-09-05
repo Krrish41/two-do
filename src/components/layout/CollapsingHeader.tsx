@@ -16,21 +16,23 @@ export const CollapsingHeader: React.FC<CollapsingHeaderProps> = ({
 }) => {
   const { scrollY } = useScroll(containerRef ? { container: containerRef as any } : undefined)
 
-  // Top bar label transition: "Two-Do" fades out first, page title fades in beside the logo (non-overlapping)
-  const brandWordmarkOpacity = useTransform(scrollY, [0, 18], [1, 0])
-  const brandWordmarkY = useTransform(scrollY, [0, 18], [0, -6])
-  const compactTitleOpacity = useTransform(scrollY, [22, 44], [0, 1])
-  const compactTitleY = useTransform(scrollY, [22, 44], [6, 0])
+  // Top bar brand wordmark: fades out smoothly on initial scroll (0 -> 16px)
+  const brandWordmarkOpacity = useTransform(scrollY, [0, 16], [1, 0])
+  const brandWordmarkY = useTransform(scrollY, [0, 16], [0, -4])
 
-  // Large title row collapse: fades and collapses height to 0
-  const largeTitleOpacity = useTransform(scrollY, [0, 25], [1, 0])
-  const largeTitleHeight = useTransform(scrollY, [0, 44], [38, 0])
-  const largeTitleScale = useTransform(scrollY, [0, 30], [1, 0.94])
-  const largeTitleY = useTransform(scrollY, [0, 30], [0, -4])
+  // Large title row collapse: fades out (0 -> 20px) and collapses height (0 -> 32px)
+  const largeTitleOpacity = useTransform(scrollY, [0, 20], [1, 0])
+  const largeTitleHeight = useTransform(scrollY, [0, 32], [38, 0])
+  const largeTitleScale = useTransform(scrollY, [0, 20], [1, 0.94])
+  const largeTitleY = useTransform(scrollY, [0, 20], [0, -4])
+
+  // Compact page title: ONLY fades in AFTER large title and brand wordmark are 100% gone (24 -> 38px)
+  const compactTitleOpacity = useTransform(scrollY, [24, 38], [0, 1])
+  const compactTitleY = useTransform(scrollY, [24, 38], [4, 0])
 
   // Header bottom padding and hairline divider
-  const headerPaddingBottom = useTransform(scrollY, [0, 44], [12, 10])
-  const dividerOpacity = useTransform(scrollY, [28, 48], [0, 1])
+  const headerPaddingBottom = useTransform(scrollY, [0, 32], [12, 10])
+  const dividerOpacity = useTransform(scrollY, [24, 36], [0, 1])
 
   return (
     <header
