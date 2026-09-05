@@ -18,7 +18,7 @@ import { TagPillBar } from '../components/notes/TagPillBar'
 import { useNoteStore } from '../stores/noteStore'
 import { useAuthStore } from '../stores/authStore'
 import { cn } from '../lib/utils'
-import { MenuBrandHeader } from '../components/layout/MenuBrandHeader'
+import { CollapsingHeader } from '../components/layout/CollapsingHeader'
 
 export const NotesPage: React.FC = () => {
   const notes = useNoteStore((s) => s.notes)
@@ -80,22 +80,24 @@ export const NotesPage: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col gap-4 sm:gap-6 max-w-5xl mx-auto pb-32 sm:pb-16">
-      {/* Website Logo & Brand Header */}
-      <MenuBrandHeader />
+    <div className="flex flex-col max-w-5xl mx-auto pb-32 sm:pb-16">
+      {/* Mobile Collapsing Large-Title Header (<768px) */}
+      <CollapsingHeader title="Notes" />
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <div className="hidden sm:flex items-center gap-2 text-skyblue-accent font-bold text-xs uppercase tracking-wider mb-1">
-            <NotesIcon size={16} />
-            <span>Shared Workspace</span>
+      {/* Main Page Content */}
+      <div className="flex flex-col gap-4 sm:gap-6 px-3.5 sm:px-0 pt-2 sm:pt-0">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div className="hidden sm:flex items-center gap-2 text-skyblue-accent font-bold text-xs uppercase tracking-wider mb-1">
+              <NotesIcon size={16} />
+              <span>Shared Workspace</span>
+            </div>
+            <h1 className="hidden md:block text-xl sm:text-3xl font-extrabold text-ink tracking-tight">Notes</h1>
+            <p className="hidden sm:block text-xs sm:text-sm text-ink-muted mt-0.5">
+              Rich-text documents, meeting notes, recipes, and ideas.
+            </p>
           </div>
-          <h1 className="text-xl sm:text-3xl font-extrabold text-ink tracking-tight">Notes</h1>
-          <p className="hidden sm:block text-xs sm:text-sm text-ink-muted mt-0.5">
-            Rich-text documents, meeting notes, recipes, and ideas.
-          </p>
-        </div>
 
         {/* View Mode & New Note Action */}
         <div className="flex items-center gap-2.5">
@@ -280,6 +282,7 @@ export const NotesPage: React.FC = () => {
         onClose={() => setIsFolderModalOpen(false)}
         onCreated={(id) => setSelectedFolderId(id)}
       />
+      </div>
     </div>
   )
 }

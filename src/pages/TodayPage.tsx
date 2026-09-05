@@ -10,7 +10,7 @@ import { CreatorFilterTabs } from '../components/common/CreatorFilterTabs'
 import { useTaskStore } from '../stores/taskStore'
 import { useAuthStore } from '../stores/authStore'
 import { cn } from '../lib/utils'
-import { MenuBrandHeader } from '../components/layout/MenuBrandHeader'
+import { CollapsingHeader } from '../components/layout/CollapsingHeader'
 
 export const TodayPage: React.FC = () => {
   const tasks = useTaskStore((s) => s.tasks)
@@ -74,22 +74,24 @@ export const TodayPage: React.FC = () => {
   }).format(new Date())
 
   return (
-    <div className="flex flex-col gap-3.5 sm:gap-5 max-w-4xl mx-auto pb-32 sm:pb-16">
-      {/* Website Logo & Brand Header */}
-      <MenuBrandHeader />
+    <div className="flex flex-col max-w-4xl mx-auto pb-32 sm:pb-16">
+      {/* Mobile Collapsing Large-Title Header (<768px) */}
+      <CollapsingHeader title="Today" />
 
-      {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <div className="hidden sm:flex items-center gap-2 text-amber-500 font-bold text-xs uppercase tracking-wider mb-1">
-            <SunIcon size={16} />
-            <span>Daily Focus</span>
+      {/* Main Page Content */}
+      <div className="flex flex-col gap-3.5 sm:gap-5 px-3.5 sm:px-0 pt-2 sm:pt-0">
+        {/* Header Banner */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div className="hidden sm:flex items-center gap-2 text-amber-500 font-bold text-xs uppercase tracking-wider mb-1">
+              <SunIcon size={16} />
+              <span>Daily Focus</span>
+            </div>
+            <h1 className="hidden md:block text-xl sm:text-3xl font-extrabold text-ink tracking-tight">
+              Today
+            </h1>
+            <p className="text-xs sm:text-sm text-ink-muted mt-0.5">{currentDateFormatted}</p>
           </div>
-          <h1 className="text-xl sm:text-3xl font-extrabold text-ink tracking-tight">
-            Today
-          </h1>
-          <p className="text-xs sm:text-sm text-ink-muted mt-0.5">{currentDateFormatted}</p>
-        </div>
 
         {/* Daily Progress Gauge */}
         {todayTasks.length > 0 && (
@@ -237,6 +239,7 @@ export const TodayPage: React.FC = () => {
           <TaskList tasks={completedTasks} />
         </div>
       )}
+      </div>
     </div>
   )
 }

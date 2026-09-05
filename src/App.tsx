@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { LoginPage } from './pages/LoginPage'
 import { TodayPage } from './pages/TodayPage'
 import { TasksPage } from './pages/TasksPage'
@@ -17,6 +17,13 @@ import { supabase, isSupabaseConfigured } from './lib/supabaseClient'
 
 export const App: React.FC = () => {
   const { session, loading, initializeAuth } = useAuthStore()
+  const location = useLocation()
+
+  // Reset scroll position on bottom tab / page navigation
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    document.querySelector('main')?.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [location.pathname])
 
   const fetchTasks = useTaskStore((s) => s.fetchTasks)
   const fetchNotes = useNoteStore((s) => s.fetchNotes)
@@ -132,7 +139,7 @@ export const App: React.FC = () => {
       <Sidebar />
 
       {/* Main Workspace View */}
-      <main className="flex-1 p-3.5 sm:p-6 md:p-8 mb-24 md:mb-4 overflow-y-auto max-w-full">
+      <main className="flex-1 px-0 pt-0 pb-4 sm:p-6 md:p-8 mb-24 md:mb-4 overflow-y-auto max-w-full">
         <Routes>
           <Route path="/" element={<Navigate to="/today" replace />} />
           <Route path="/today" element={<TodayPage />} />
