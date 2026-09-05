@@ -246,8 +246,14 @@ const NoteEditorModalContent: React.FC<NoteEditorModalContentProps> = ({ note, o
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.98 }}
           transition={{ type: 'spring', stiffness: 350, damping: 28 }}
-          className="relative w-full h-[100dvh] sm:h-[88vh] sm:max-h-[850px] sm:max-w-3xl rounded-none sm:rounded-[32px] flex flex-col overflow-hidden z-10 border-0 sm:border backdrop-blur-2xl transition-colors duration-200"
-          style={{ backgroundColor: bgColor, borderColor, boxShadow: modalShadow }}
+          className="relative w-full h-[100dvh] sm:h-[88vh] sm:max-h-[850px] sm:max-w-3xl rounded-none sm:rounded-[32px] flex flex-col overflow-hidden z-10 border-0 sm:border backdrop-blur-2xl transition-colors duration-200 shadow-none sm:[box-shadow:var(--modal-shadow)]"
+          style={
+            {
+              backgroundColor: bgColor,
+              borderColor,
+              '--modal-shadow': modalShadow,
+            } as React.CSSProperties
+          }
         >
           {/* HEADER TOOLBAR (Safe area top padding to clear Dynamic Island / notch) */}
           <div
@@ -385,7 +391,7 @@ const NoteEditorModalContent: React.FC<NoteEditorModalContentProps> = ({ note, o
             style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 10px)' }}
             className="flex-shrink-0 px-2 py-2 sm:py-2.5 bg-black/[0.03] dark:bg-white/[0.03] backdrop-blur-xl border-t border-black/[0.06] dark:border-white/[0.08] flex items-center justify-center"
           >
-            <div className="flex items-center justify-center w-full max-w-2xl px-1.5 sm:px-3 py-1 rounded-2xl bg-surface/90 dark:bg-white/[0.06] border border-glass-border shadow-xs gap-0.5 sm:gap-1.5 overflow-x-auto scrollbar-none">
+            <div className="flex items-center justify-start sm:justify-center w-full max-w-2xl px-1.5 sm:px-3 py-1 rounded-2xl bg-surface/90 dark:bg-white/[0.06] border border-glass-border shadow-xs gap-0.5 sm:gap-1.5 overflow-x-auto scrollbar-none">
               {/* Text Marks: Bold, Italic, Strike, Highlight */}
               <button
                 type="button"
