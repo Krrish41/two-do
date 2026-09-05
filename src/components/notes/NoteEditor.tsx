@@ -286,21 +286,22 @@ const NoteEditorModalContent: React.FC<NoteEditorModalContentProps> = ({ note, o
                 />
               </div>
 
-              {/* Real-time Debounced Save Status Indicator */}
-              <div
-                className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full bg-surface-elevated/70 dark:bg-white/[0.06] border border-glass-border text-[10px] font-semibold text-ink-muted flex-shrink-0"
-                title={saveStatus === 'saving' ? 'Saving changes...' : 'All changes saved'}
-              >
-                <span
-                  className={cn(
-                    'w-1.5 h-1.5 rounded-full transition-colors',
-                    saveStatus === 'saving'
-                      ? 'bg-amber-400 animate-pulse'
-                      : 'bg-emerald-500'
-                  )}
-                />
-                <span className="capitalize hidden sm:inline">{saveStatus}</span>
-              </div>
+              {/* Real-time Debounced Save Status Indicator (only shown while actively saving) */}
+              <AnimatePresence>
+                {saveStatus === 'saving' && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.85 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.85 }}
+                    transition={{ duration: 0.15 }}
+                    className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] font-semibold text-amber-500 flex-shrink-0"
+                    title="Saving changes..."
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                    <span>Saving...</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Right Controls: Creator Tag, Pin, Delete */}

@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion, useScroll, useTransform, useSpring } from 'framer-motion'
 import { cn } from '../../lib/utils'
 
 export interface CollapsingHeaderProps {
@@ -16,28 +16,40 @@ export const CollapsingHeader: React.FC<CollapsingHeaderProps> = ({
 }) => {
   const { scrollY } = useScroll(containerRef ? { container: containerRef as any } : undefined)
 
-  // Top bar brand wordmark: fades out smoothly on initial scroll (0 -> 16px)
-  const brandWordmarkOpacity = useTransform(scrollY, [0, 16], [1, 0])
-  const brandWordmarkY = useTransform(scrollY, [0, 16], [0, -4])
+  // Spring-smoothed scroll position:
+  // Cushions velocity spikes during quick flicks or scrolling up/down quickly,
+  // ensuring the header expands and contracts at the speed of scrolling smoothly without stutter.
+  const smoothScrollY = useSpring(scrollY, {
+    stiffness: 400,
+    damping: 38,
+    mass: 0.3,
+    restDelta: 0.5,
+  })
 
-  // Large title row collapse: fades out (0 -> 20px) and collapses height (0 -> 32px)
-  const largeTitleOpacity = useTransform(scrollY, [0, 20], [1, 0])
-  const largeTitleHeight = useTransform(scrollY, [0, 32], [38, 0])
-  const largeTitleScale = useTransform(scrollY, [0, 20], [1, 0.94])
-  const largeTitleY = useTransform(scrollY, [0, 20], [0, -4])
+  // Top bar brand wordmark: fades out smoothly over initial scroll (0 -> 28px)
+  const brandWordmarkOpacity = useTransform(smoothScrollY, [0, 28], [1, 0], { clamp: true })
+  const brandWordmarkY = useTransform(smoothScrollY, [0, 28], [0, -6], { clamp: true })
 
-  // Compact page title: ONLY fades in AFTER large title and brand wordmark are 100% gone (24 -> 38px)
-  const compactTitleOpacity = useTransform(scrollY, [24, 38], [0, 1])
-  const compactTitleY = useTransform(scrollY, [24, 38], [4, 0])
+  // Large title row collapse: fades out and collapses height over 0 -> 68px
+  // The natural scroll range (68px) ensures that quick or slow scroll tracks
+  // the user's finger continuously across multiple frames instead of snapping in a single frame.
+  const largeTitleOpacity = useTransform(smoothScrollY, [0, 36], [1, 0], { clamp: true })
+  const largeTitleHeight = useTransform(smoothScrollY, [0, 68], [38, 0], { clamp: true })
+  const largeTitleScale = useTransform(smoothScrollY, [0, 44], [1, 0.90], { clamp: true })
+  const largeTitleY = useTransform(smoothScrollY, [0, 44], [0, -6], { clamp: true })
+
+  // Compact page title: smoothly fades in as the large title vanishes (36 -> 68px)
+  const compactTitleOpacity = useTransform(smoothScrollY, [36, 68], [0, 1], { clamp: true })
+  const compactTitleY = useTransform(smoothScrollY, [36, 68], [5, 0], { clamp: true })
 
   // Header bottom padding and hairline divider
-  const headerPaddingBottom = useTransform(scrollY, [0, 32], [12, 10])
-  const dividerOpacity = useTransform(scrollY, [24, 36], [0, 1])
+  const headerPaddingBottom = useTransform(smoothScrollY, [0, 68], [12, 10], { clamp: true })
+  const dividerOpacity = useTransform(smoothScrollY, [42, 70], [0, 1], { clamp: true })
 
   return (
     <header
       className={cn(
-        'md:hidden sticky top-0 z-30 w-full select-none',
+        'md:hidden sticky top-0 z-30 w-full select-none transform-gpu',
         'bg-surface/85 dark:bg-[#0D0A16]/85 backdrop-blur-2xl transition-colors',
         className
       )}
