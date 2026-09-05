@@ -247,22 +247,27 @@ const NoteEditorModalContent: React.FC<NoteEditorModalContentProps> = ({ note, o
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 30, scale: 0.98 }}
           transition={{ type: 'spring', stiffness: 350, damping: 28 }}
-          className="relative w-full max-w-3xl h-[100dvh] sm:h-[88vh] sm:max-h-[850px] rounded-t-[32px] sm:rounded-[32px] flex flex-col overflow-hidden z-10 border backdrop-blur-2xl transition-colors duration-200"
+          className="relative w-full max-w-3xl max-h-[92dvh] sm:h-[88vh] sm:max-h-[850px] rounded-t-[28px] sm:rounded-[32px] flex flex-col overflow-hidden z-10 border backdrop-blur-2xl transition-colors duration-200"
           style={{ backgroundColor: bgColor, borderColor, boxShadow: modalShadow }}
         >
+          {/* iOS Sheet Drag Handle (Mobile only) */}
+          <div className="w-full flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
+            <div className="w-10 h-1 rounded-full bg-ink/20 dark:bg-white/20" />
+          </div>
+
           {/* HEADER TOOLBAR (Elevated z-30 for pristine dropdown layering) */}
-          <div className="relative z-30 flex-shrink-0 px-6 py-4 border-b border-glass-border-subtle flex items-center justify-between gap-3 bg-white/40 dark:bg-black/30 backdrop-blur-xl">
+          <div className="relative z-30 flex-shrink-0 px-4 sm:px-6 py-2.5 sm:py-3.5 border-b border-black/[0.06] dark:border-white/[0.08] flex items-center justify-between gap-2 sm:gap-3 bg-black/[0.02] dark:bg-white/[0.03] backdrop-blur-md">
             {/* Left Controls: Done, Folder, Save Status */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <button
                 type="button"
                 onClick={handleCloseModal}
-                className="px-4 py-1.5 rounded-full text-xs font-bold bg-surface text-ink hover:bg-surface-elevated transition-all border border-glass-border shadow-xs cursor-pointer"
+                className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-surface/90 text-ink hover:bg-surface-elevated transition-all border border-glass-border shadow-xs cursor-pointer flex-shrink-0"
               >
                 Done
               </button>
 
-              <div className="w-36 sm:w-44">
+              <div className="w-36 sm:w-44 min-w-0">
                 <GlassDropdown
                   options={folderDropdownOptions}
                   value={note.folder_id || ''}
@@ -277,7 +282,10 @@ const NoteEditorModalContent: React.FC<NoteEditorModalContentProps> = ({ note, o
               </div>
 
               {/* Real-time Debounced Save Status Indicator */}
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-elevated/70 dark:bg-white/[0.06] border border-glass-border text-[11px] font-semibold text-ink-muted">
+              <div
+                className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full bg-surface-elevated/70 dark:bg-white/[0.06] border border-glass-border text-[10px] font-semibold text-ink-muted flex-shrink-0"
+                title={saveStatus === 'saving' ? 'Saving changes...' : 'All changes saved'}
+              >
                 <span
                   className={cn(
                     'w-1.5 h-1.5 rounded-full transition-colors',
@@ -286,14 +294,14 @@ const NoteEditorModalContent: React.FC<NoteEditorModalContentProps> = ({ note, o
                       : 'bg-emerald-500'
                   )}
                 />
-                <span className="capitalize">{saveStatus}</span>
+                <span className="capitalize hidden sm:inline">{saveStatus}</span>
               </div>
             </div>
 
             {/* Right Controls: Creator Tag, Pin, Delete */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
               {creatorUser && (
-                <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-elevated/60 dark:bg-white/[0.06] border border-glass-border text-xs text-ink-muted">
+                <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-elevated/60 dark:bg-white/[0.06] border border-glass-border text-xs text-ink-muted">
                   <CoupleAvatar userId={creatorUser.id} displayName={creatorUser.display_name} size={14} />
                   <span className="font-semibold text-[11px]">Added by {creatorUser.display_name}</span>
                 </div>
@@ -304,7 +312,7 @@ const NoteEditorModalContent: React.FC<NoteEditorModalContentProps> = ({ note, o
                 type="button"
                 onClick={() => togglePin(note.id)}
                 className={cn(
-                  'p-2 rounded-xl transition-all cursor-pointer',
+                  'p-1.5 sm:p-2 rounded-xl transition-all cursor-pointer',
                   note.is_pinned
                     ? 'bg-lavender-accent text-white shadow-xs'
                     : 'text-ink-muted hover:text-ink hover:bg-surface-elevated'
@@ -318,7 +326,7 @@ const NoteEditorModalContent: React.FC<NoteEditorModalContentProps> = ({ note, o
               <button
                 type="button"
                 onClick={() => setIsDeleteConfirmOpen(true)}
-                className="p-2 rounded-xl text-ink-muted hover:text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer"
+                className="p-1.5 sm:p-2 rounded-xl text-ink-muted hover:text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer"
                 title="Move to Recycle Bin"
               >
                 <TrashIcon size={16} />
@@ -327,8 +335,8 @@ const NoteEditorModalContent: React.FC<NoteEditorModalContentProps> = ({ note, o
           </div>
 
           {/* SCROLLABLE EDITOR CONTENT (Unified Apple Notes single canvas) */}
-          <div className="flex-1 overflow-y-auto px-6 sm:px-12 py-6 sm:py-8 flex flex-col gap-6">
-            {/* Note Title Input (Auto-resizing to prevent text cutoff) */}
+          <div className="flex-1 overflow-y-auto px-5 sm:px-12 py-5 sm:py-8 flex flex-col gap-4 sm:gap-5">
+            {/* Note Title Input (Auto-resizing to prevent text cutoff, no harsh border) */}
             <textarea
               ref={titleInputRef}
               data-note-id={note.id}
@@ -350,13 +358,12 @@ const NoteEditorModalContent: React.FC<NoteEditorModalContentProps> = ({ note, o
                 }
               }}
               placeholder="Note Title..."
-              className="w-full bg-transparent font-extrabold text-2xl sm:text-3xl text-ink tracking-tight outline-none placeholder:text-ink-muted/50 border-b border-glass-border-subtle pb-3 resize-none leading-snug break-words"
+              className="w-full bg-transparent font-extrabold text-2xl sm:text-3xl text-ink tracking-tight outline-none placeholder:text-ink-muted/40 resize-none leading-snug break-words"
             />
 
-            {/* Customization Bar: Color Swatches & Tags inside document flow */}
-            <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-glass-border-subtle/60">
-              <div className="flex items-center gap-2.5">
-                <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">Tint:</span>
+            {/* Customization Bar: Color Swatches & Tags inside document flow (Seamless without dividing borders) */}
+            <div className="flex flex-wrap items-center justify-between gap-3 py-1">
+              <div className="flex items-center gap-2">
                 <ColorSwatchPicker
                   selectedColor={localColor}
                   onSelectColor={handleColorChange}
@@ -369,14 +376,17 @@ const NoteEditorModalContent: React.FC<NoteEditorModalContentProps> = ({ note, o
             </div>
 
             {/* Tiptap Rich Text Content Canvas */}
-            <div className="flex-1 min-h-[350px] cursor-text pb-20" onClick={() => editor?.commands.focus()}>
+            <div className="flex-1 min-h-[350px] cursor-text pb-20 pt-1" onClick={() => editor?.commands.focus()}>
               <EditorContent editor={editor} />
             </div>
           </div>
 
-          {/* DOCKED FLOATING FORMATTING TOOLBAR (Segmented Cluster Pills) */}
-          <div className="flex-shrink-0 p-3 sm:p-4 bg-surface/85 dark:bg-black/50 backdrop-blur-xl border-t border-glass-border-subtle flex items-center justify-center">
-            <div className="flex items-center gap-2 overflow-x-auto max-w-full px-2 py-1 scrollbar-none">
+          {/* DOCKED FLOATING FORMATTING TOOLBAR (Segmented Cluster Pills with Safe Area) */}
+          <div
+            style={{ paddingBottom: 'max(0.875rem, env(safe-area-inset-bottom, 0px))' }}
+            className="flex-shrink-0 p-2.5 sm:p-3 bg-black/[0.03] dark:bg-white/[0.03] backdrop-blur-xl border-t border-black/[0.06] dark:border-white/[0.08] flex items-center justify-center"
+          >
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto max-w-full px-2 py-0.5 scrollbar-none">
               {/* Cluster 1: Text Marks (Bold, Italic, Strike, Highlight) */}
               <div className="flex items-center p-0.5 rounded-xl bg-black/5 dark:bg-white/[0.04] border border-glass-border-subtle/70">
                 <button
