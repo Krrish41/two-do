@@ -85,8 +85,8 @@ export const NotesPage: React.FC = () => {
       <CollapsingHeader title="Notes" />
 
       {/* Main Page Content */}
-      <div className="flex flex-col gap-4 sm:gap-6 px-3.5 sm:px-0 pt-2 sm:pt-0">
-        {/* Header */}
+      <div className="flex flex-col gap-3.5 sm:gap-5 px-3.5 sm:px-0 pt-2 sm:pt-0">
+        {/* Header & Main Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="hidden sm:flex items-center gap-2 text-skyblue-accent font-bold text-xs uppercase tracking-wider mb-1">
@@ -99,126 +99,128 @@ export const NotesPage: React.FC = () => {
             </p>
           </div>
 
-        {/* View Mode & New Note Action */}
-        <div className="flex items-center gap-2.5">
-          {/* View Mode Toggle */}
-          <div className="relative flex items-center p-1 rounded-[18px] bg-slate-200/75 dark:bg-white/[0.05] backdrop-blur-xl border border-black/5 dark:border-white/[0.08] shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)]">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={cn(
-                'relative p-2 rounded-[14px] transition-colors focus:outline-none cursor-pointer',
-                viewMode === 'grid' ? 'text-ink font-bold' : 'text-ink-muted hover:text-ink'
-              )}
-              title="Grid View"
+          {/* Search bar + View Mode Toggle (desktop only) + New Note Button */}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex-1 sm:w-64">
+              <GlassInput
+                type="text"
+                placeholder="Search notes or #tags..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                icon={<SearchIcon size={15} />}
+              />
+            </div>
+
+            {/* View Mode Toggle - only visible on md+ (hidden on phone) */}
+            <div className="hidden md:flex relative items-center p-1 rounded-[18px] bg-slate-200/75 dark:bg-white/[0.05] backdrop-blur-xl border border-black/5 dark:border-white/[0.08] shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] dark:shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] flex-shrink-0">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={cn(
+                  'relative p-2 rounded-[14px] transition-colors focus:outline-none cursor-pointer',
+                  viewMode === 'grid' ? 'text-ink font-bold' : 'text-ink-muted hover:text-ink'
+                )}
+                title="Grid View"
+              >
+                {viewMode === 'grid' && (
+                  <motion.div
+                    layoutId="notes-viewmode-bubble"
+                    className="absolute inset-0 rounded-[14px] bg-white dark:bg-white/[0.14] backdrop-blur-md border border-white/80 dark:border-white/20 shadow-[0_2px_8px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.22)]"
+                    transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                  />
+                )}
+                <GridIcon size={16} className="relative z-10" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={cn(
+                  'relative p-2 rounded-[14px] transition-colors focus:outline-none cursor-pointer',
+                  viewMode === 'list' ? 'text-ink font-bold' : 'text-ink-muted hover:text-ink'
+                )}
+                title="List View"
+              >
+                {viewMode === 'list' && (
+                  <motion.div
+                    layoutId="notes-viewmode-bubble"
+                    className="absolute inset-0 rounded-[14px] bg-white dark:bg-white/[0.14] backdrop-blur-md border border-white/80 dark:border-white/20 shadow-[0_2px_8px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.22)]"
+                    transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                  />
+                )}
+                <ListIcon size={16} className="relative z-10" />
+              </button>
+            </div>
+
+            {/* New Note Button */}
+            <GlassButton
+              variant="primary"
+              size="md"
+              onClick={handleCreateNote}
+              className="flex items-center gap-1.5 flex-shrink-0 px-3.5 h-[42px]"
             >
-              {viewMode === 'grid' && (
-                <motion.div
-                  layoutId="notes-viewmode-bubble"
-                  className="absolute inset-0 rounded-[14px] bg-white dark:bg-white/[0.14] backdrop-blur-md border border-white/80 dark:border-white/20 shadow-[0_2px_8px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.22)]"
-                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-                />
-              )}
-              <GridIcon size={16} className="relative z-10" />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={cn(
-                'relative p-2 rounded-[14px] transition-colors focus:outline-none cursor-pointer',
-                viewMode === 'list' ? 'text-ink font-bold' : 'text-ink-muted hover:text-ink'
-              )}
-              title="List View"
-            >
-              {viewMode === 'list' && (
-                <motion.div
-                  layoutId="notes-viewmode-bubble"
-                  className="absolute inset-0 rounded-[14px] bg-white dark:bg-white/[0.14] backdrop-blur-md border border-white/80 dark:border-white/20 shadow-[0_2px_8px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.22)]"
-                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-                />
-              )}
-              <ListIcon size={16} className="relative z-10" />
-            </button>
+              <PlusIcon size={17} />
+              <span className="text-xs sm:text-sm font-semibold">New Note</span>
+            </GlassButton>
           </div>
-
-          <GlassButton
-            variant="primary"
-            size="md"
-            onClick={handleCreateNote}
-            className="flex items-center gap-2"
-          >
-            <PlusIcon size={18} />
-            <span>New Note</span>
-          </GlassButton>
         </div>
-      </div>
 
-      {/* Toolbar: Creator Filter Tabs & Search */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* Creator Tabs Filter (Full-width) */}
         <CreatorFilterTabs
           value={creatorFilter}
           onChange={setCreatorFilter}
           allLabel="All Notes"
-          layoutId="notes-creator-bubble"
+          fullWidth
+          className="w-full"
+          layoutId="notes-creator-tabs"
         />
 
-        {/* Search */}
-        <div className="w-full sm:w-64">
-          <GlassInput
-            type="text"
-            placeholder="Search notes or #tags..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            icon={<SearchIcon size={16} />}
-          />
-        </div>
-      </div>
+        {/* Unified Folders & Tags Filter Bar */}
+        <TagPillBar
+          wrap
+          prefixChildren={
+            <>
+              <button
+                type="button"
+                onClick={() => setSelectedFolderId(null)}
+                className={cn(
+                  'flex-shrink-0 h-7 px-3 rounded-full text-xs font-semibold transition-all border whitespace-nowrap cursor-pointer flex items-center justify-center',
+                  selectedFolderId === null
+                    ? 'bg-lavender-accent/25 text-lavender-accent dark:text-[#E4DBF7] border-lavender-accent/40 shadow-xs'
+                    : 'bg-surface text-ink-muted hover:text-ink border-glass-border hover:bg-surface-elevated'
+                )}
+              >
+                All Notes
+              </button>
+              {assignableFolders.map((folder) => {
+                const isSelected = selectedFolderId === folder.id
+                return (
+                  <button
+                    key={folder.id}
+                    type="button"
+                    onClick={() => setSelectedFolderId(isSelected ? null : folder.id)}
+                    className={cn(
+                      'flex-shrink-0 h-7 px-3 rounded-full text-xs font-semibold transition-all border flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer',
+                      isSelected
+                        ? 'bg-lavender-accent/25 text-lavender-accent dark:text-[#E4DBF7] border-lavender-accent/40 shadow-xs'
+                        : 'bg-surface text-ink-muted hover:text-ink border-glass-border hover:bg-surface-elevated'
+                    )}
+                  >
+                    <FolderIconRenderer icon={folder.icon} size={13} className="flex-shrink-0" />
+                    <span>{folder.name}</span>
+                  </button>
+                )
+              })}
 
-      {/* Folder Chips with + New Folder Button */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        <button
-          type="button"
-          onClick={() => setSelectedFolderId(null)}
-          className={cn(
-            'h-8 px-3.5 rounded-[16px] text-xs font-bold transition-all border whitespace-nowrap cursor-pointer flex items-center justify-center',
-            selectedFolderId === null
-              ? 'bg-lavender-accent/25 text-lavender-accent dark:text-[#E4DBF7] border-lavender-accent/40 shadow-xs'
-              : 'bg-surface text-ink-muted hover:text-ink border-glass-border hover:bg-surface-elevated'
-          )}
-        >
-          All Notes
-        </button>
-        {assignableFolders.map((folder) => {
-          const isSelected = selectedFolderId === folder.id
-          return (
-            <button
-              key={folder.id}
-              type="button"
-              onClick={() => setSelectedFolderId(isSelected ? null : folder.id)}
-              className={cn(
-                'h-8 px-3.5 rounded-[16px] text-xs font-bold transition-all border flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer',
-                isSelected
-                  ? 'bg-lavender-accent/25 text-lavender-accent dark:text-[#E4DBF7] border-lavender-accent/40 shadow-xs'
-                  : 'bg-surface text-ink-muted hover:text-ink border-glass-border hover:bg-surface-elevated'
-              )}
-            >
-              <FolderIconRenderer icon={folder.icon} size={14} className="flex-shrink-0" />
-              <span>{folder.name}</span>
-            </button>
-          )
-        })}
-
-        <button
-          type="button"
-          onClick={() => setIsFolderModalOpen(true)}
-          className="h-8 px-3 rounded-[16px] text-xs font-bold transition-all border border-dashed border-lavender-accent/40 text-lavender-accent hover:bg-lavender-accent/15 flex items-center justify-center gap-1 whitespace-nowrap cursor-pointer"
-          title="Create New Folder"
-        >
-          <PlusIcon size={13} />
-          <span>Folder</span>
-        </button>
-      </div>
-
-      {/* Tags Filter Bar */}
-      <TagPillBar className="pt-0.5" />
+              <button
+                type="button"
+                onClick={() => setIsFolderModalOpen(true)}
+                className="flex-shrink-0 h-7 px-2.5 rounded-full text-xs font-semibold transition-all border border-dashed border-lavender-accent/40 text-lavender-accent hover:bg-lavender-accent/15 flex items-center justify-center gap-1 whitespace-nowrap cursor-pointer"
+                title="Create New Folder"
+              >
+                <PlusIcon size={12} />
+                <span>Folder</span>
+              </button>
+            </>
+          }
+        />
 
       {/* Pinned Notes Section */}
       {pinnedNotes.length > 0 && (
