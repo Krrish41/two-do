@@ -272,17 +272,13 @@ export const useNoteStore = create<NoteState>((set, get) => ({
         supabase.from('note_tags').select('*'),
       ])
 
-      if (notesRes.error) throw notesRes.error
-      if (foldersRes.error) throw foldersRes.error
-      if (tagsRes.error) throw tagsRes.error
-      if (noteTagsRes.error) throw noteTagsRes.error
+      const updates: Partial<NoteState> = {}
+      if (!notesRes.error && notesRes.data) updates.notes = notesRes.data
+      if (!foldersRes.error && foldersRes.data) updates.folders = foldersRes.data
+      if (!tagsRes.error && tagsRes.data) updates.tags = tagsRes.data
+      if (!noteTagsRes.error && noteTagsRes.data) updates.noteTags = noteTagsRes.data
 
-      set({
-        notes: notesRes.data || [],
-        folders: foldersRes.data || [],
-        tags: tagsRes.data || [],
-        noteTags: noteTagsRes.data || [],
-      })
+      set(updates)
     } catch (err) {
       console.error('Failed to fetch notes data:', err)
     } finally {

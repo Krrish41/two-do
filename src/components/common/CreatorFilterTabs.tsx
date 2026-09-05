@@ -35,7 +35,7 @@ export const CreatorFilterTabs: React.FC<CreatorFilterTabsProps> = ({
               <CoupleAvatar
                 userId={authorizedUser.id}
                 displayName={authorizedUser.display_name}
-                size={16}
+                size={fullWidth ? 14 : 16}
                 className="flex-shrink-0"
               />
             ),
@@ -51,7 +51,7 @@ export const CreatorFilterTabs: React.FC<CreatorFilterTabsProps> = ({
               <CoupleAvatar
                 userId={partnerUser.id}
                 displayName={partnerUser.display_name}
-                size={16}
+                size={fullWidth ? 14 : 16}
                 className="flex-shrink-0"
               />
             ),
@@ -78,7 +78,7 @@ export const CreatorFilterTabs: React.FC<CreatorFilterTabsProps> = ({
             onClick={() => onChange(item.id)}
             className={cn(
               'relative h-8 px-2.5 sm:px-3.5 rounded-[18px] text-xs transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer focus:outline-none select-none',
-              fullWidth && 'flex-1 text-center min-w-0 px-1 sm:px-3',
+              fullWidth && 'flex-1 text-center min-w-0 px-1 sm:px-2.5 text-[11px] sm:text-xs tracking-tight',
               isSelected ? 'text-ink font-extrabold' : 'text-ink-muted hover:text-ink font-semibold'
             )}
           >
@@ -89,9 +89,9 @@ export const CreatorFilterTabs: React.FC<CreatorFilterTabsProps> = ({
                 transition={{ type: 'spring', stiffness: 500, damping: 35 }}
               />
             )}
-            <span className="relative z-10 flex items-center justify-center gap-1.5 leading-none">
+            <span className="relative z-10 flex items-center justify-center gap-1 sm:gap-1.5 leading-none min-w-0">
               {item.avatar}
-              <span>{item.label}</span>
+              <span className="whitespace-nowrap pr-0.5">{item.label}</span>
             </span>
           </button>
         )

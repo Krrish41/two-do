@@ -27,6 +27,12 @@ export const NotesPage: React.FC = () => {
   const selectedTagIds = useNoteStore((s) => s.selectedTagIds)
   const addNote = useNoteStore((s) => s.addNote)
   const setSelectedNoteId = useNoteStore((s) => s.setSelectedNoteId)
+  const fetchNotes = useNoteStore((s) => s.fetchNotes)
+
+  // Ensure notes are freshly fetched upon opening NotesPage
+  React.useEffect(() => {
+    fetchNotes()
+  }, [fetchNotes])
 
   const authorizedUser = useAuthStore((s) => s.authorizedUser)
   const partnerUser = useAuthStore((s) => s.partnerUser)
@@ -85,16 +91,16 @@ export const NotesPage: React.FC = () => {
       <CollapsingHeader title="Notes" />
 
       {/* Main Page Content */}
-      <div className="flex flex-col gap-3.5 sm:gap-5 px-3.5 sm:px-0 pt-2 sm:pt-0">
+      <div className="flex flex-col gap-2.5 sm:gap-4 px-3.5 sm:px-0 pt-1 sm:pt-0">
         {/* Header & Main Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <div className="hidden sm:flex items-center gap-2 text-skyblue-accent font-bold text-xs uppercase tracking-wider mb-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3">
+          <div className="hidden sm:block">
+            <div className="flex items-center gap-2 text-skyblue-accent font-bold text-xs uppercase tracking-wider mb-1">
               <NotesIcon size={16} />
               <span>Shared Workspace</span>
             </div>
             <h1 className="hidden md:block text-xl sm:text-3xl font-extrabold text-ink tracking-tight">Notes</h1>
-            <p className="hidden sm:block text-xs sm:text-sm text-ink-muted mt-0.5">
+            <p className="text-xs sm:text-sm text-ink-muted mt-0.5">
               Rich-text documents, meeting notes, recipes, and ideas.
             </p>
           </div>

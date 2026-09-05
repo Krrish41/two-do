@@ -68,10 +68,10 @@ export const MenuPage: React.FC = () => {
       <CollapsingHeader title="Menu" />
 
       {/* Main Page Content */}
-      <div className="flex flex-col gap-5 px-3.5 sm:px-0 pt-2 sm:pt-0">
-        {/* Menu Header */}
-        <div>
-          <h1 className="hidden md:block text-xl sm:text-2xl font-extrabold text-ink tracking-tight">Menu</h1>
+      <div className="flex flex-col gap-3.5 sm:gap-5 px-3.5 sm:px-0 pt-1 sm:pt-0">
+        {/* Menu Header (desktop only) */}
+        <div className="hidden sm:block">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-ink tracking-tight">Menu</h1>
           <p className="text-xs text-ink-muted mt-0.5">Views, folders, tags, and settings</p>
         </div>
 
@@ -318,46 +318,45 @@ export const MenuPage: React.FC = () => {
       </div>
 
       {/* 4. Account Row (Avatar, Name, Online Status, Single Mobile Theme Toggle, Sign Out) */}
-      <div className="flex flex-col gap-2 mt-2">
+      <div className="flex flex-col gap-1.5 mt-1">
         <span className="px-1 text-[11px] font-bold uppercase tracking-wider text-ink-subtle">
           Account & Preferences
         </span>
 
-        <div className="flex items-center justify-between p-4 rounded-3xl bg-surface-elevated/90 border border-glass-border shadow-xs">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center justify-between p-3 rounded-2xl bg-surface-elevated/90 border border-glass-border shadow-xs">
+          <div className="flex items-center gap-2.5 min-w-0">
             {authorizedUser && (
               <CoupleAvatar
                 userId={authorizedUser.id}
                 displayName={authorizedUser.display_name}
-                size={38}
+                size={32}
                 showOnlineBadge={true}
               />
             )}
             <div className="flex flex-col min-w-0">
-              <span className="font-bold text-sm text-ink truncate">
-                {authorizedUser?.display_name || 'Authorized User'}
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="font-bold text-xs sm:text-sm text-ink truncate">
+                  {authorizedUser?.display_name || 'Authorized User'}
+                </span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+              </div>
               <span className="text-[11px] text-ink-muted truncate">
                 {session?.user?.email || 'krrish4173@gmail.com'}
-              </span>
-              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Online in Shared Space
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             {/* The ONLY theme toggle on mobile */}
             <ThemeToggle size="sm" />
 
             <button
               type="button"
               onClick={() => setIsLogoutConfirmOpen(true)}
-              className="p-2 rounded-xl text-ink-muted hover:text-rose-500 hover:bg-rose-500/15 transition-colors border border-glass-border-subtle"
+              className="p-1.5 rounded-xl text-ink-muted hover:text-rose-500 hover:bg-rose-500/15 transition-colors border border-glass-border-subtle cursor-pointer"
               title="Sign Out"
             >
-              <LogOutIcon size={16} />
+              <LogOutIcon size={15} />
             </button>
           </div>
         </div>
