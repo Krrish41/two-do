@@ -153,6 +153,9 @@ export const TaskDetailSheet: React.FC = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [subtaskToDelete, setSubtaskToDelete] = useState<string | null>(null)
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
+  const [isFolderOpen, setIsFolderOpen] = useState(false)
+  const [isRepeatOpen, setIsRepeatOpen] = useState(false)
+  const [isDateOpen, setIsDateOpen] = useState(false)
 
   const currentTask = tasks.find((t) => t.id === selectedTaskId && t.deleted_at === null)
 
@@ -428,7 +431,7 @@ export const TaskDetailSheet: React.FC = () => {
                 </div>
 
                 {/* Quick Actions: Today Focus & Bucket List Toggle */}
-                <div className="grid grid-cols-2 gap-3 relative z-30">
+                <div className="grid grid-cols-2 gap-3 relative z-10">
                   {/* Today Focus Toggle */}
                   <button
                     type="button"
@@ -467,8 +470,11 @@ export const TaskDetailSheet: React.FC = () => {
                 </div>
 
                 {/* Due Date & Recurrence Card */}
-                <div className="p-4 rounded-2xl glass-panel-subtle grid grid-cols-2 gap-3.5 relative z-20">
-                  <div className="flex flex-col gap-1.5">
+                <div className={cn(
+                  'p-4 rounded-2xl glass-panel-subtle grid grid-cols-2 gap-3.5 relative transition-all',
+                  (isDateOpen || isRepeatOpen) ? 'z-40' : 'z-30'
+                )}>
+                  <div className={cn('flex flex-col gap-1.5 relative', isDateOpen ? 'z-50' : 'z-auto')}>
                     <label className="text-xs font-bold text-ink-muted flex items-center gap-1.5">
                       <CalendarIcon size={14} className="text-lavender-accent" />
                       Due Date
@@ -476,10 +482,11 @@ export const TaskDetailSheet: React.FC = () => {
                     <GlassDatePicker
                       value={currentTask.due_date}
                       onChange={(date) => updateTask(currentTask.id, { due_date: date })}
+                      onOpenChange={setIsDateOpen}
                     />
                   </div>
 
-                  <div className="flex flex-col gap-1.5">
+                  <div className={cn('flex flex-col gap-1.5 relative', isRepeatOpen ? 'z-50' : 'z-auto')}>
                     <label className="text-xs font-bold text-ink-muted flex items-center gap-1.5">
                       <RepeatIcon size={14} className="text-lavender-accent" />
                       Repeat
@@ -489,12 +496,16 @@ export const TaskDetailSheet: React.FC = () => {
                       value={currentTask.recurrence_rule || ''}
                       onChange={(val) => updateTask(currentTask.id, { recurrence_rule: (val as any) || null })}
                       placeholder="Never"
+                      onOpenChange={setIsRepeatOpen}
                     />
                   </div>
                 </div>
 
                 {/* Folder Selection Card */}
-                <div className="p-4 rounded-2xl glass-panel-subtle flex flex-col gap-1.5 relative z-10">
+                <div className={cn(
+                  'p-4 rounded-2xl glass-panel-subtle flex flex-col gap-1.5 relative transition-all',
+                  isFolderOpen ? 'z-40' : 'z-20'
+                )}>
                   <label className="text-xs font-bold text-ink-muted flex items-center gap-1.5">
                     <FolderIcon size={14} className="text-lavender-accent" />
                     Folder
@@ -504,6 +515,7 @@ export const TaskDetailSheet: React.FC = () => {
                     value={currentTask.folder_id || ''}
                     onChange={(val) => updateTask(currentTask.id, { folder_id: val || null })}
                     placeholder="Select folder..."
+                    onOpenChange={setIsFolderOpen}
                     actionItem={{
                       label: 'New Folder',
                       icon: <PlusIcon size={14} />,
@@ -513,7 +525,7 @@ export const TaskDetailSheet: React.FC = () => {
                 </div>
 
                 {/* High-Contrast Priority Selector */}
-                <div className="p-4 rounded-2xl glass-panel-subtle flex flex-col gap-2.5 relative z-10">
+                <div className="p-4 rounded-2xl glass-panel-subtle flex flex-col gap-2.5 relative z-0">
                   <label className="text-xs font-bold text-ink-muted flex items-center gap-1.5">
                     <FlagIcon size={14} className="text-lavender-accent" />
                     Priority Level
