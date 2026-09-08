@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   LockIcon,
@@ -18,6 +19,7 @@ export const LoginPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const signIn = useAuthStore((s) => s.signIn)
 
+  const navigate = useNavigate()
   const isFormValid = email.trim().length > 0 && password.trim().length > 0
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,6 +42,10 @@ export const LoginPage: React.FC = () => {
     setErrorMessage(null)
 
     const result = await signIn(email.trim(), password)
+    if (result.success) {
+      navigate('/today', { replace: true })
+      return
+    }
     if (result.error) {
       const lowerError = result.error.toLowerCase()
       if (lowerError.includes('too many') || lowerError.includes('rate limit')) {
@@ -159,6 +165,7 @@ export const LoginPage: React.FC = () => {
 
             {/* High-Contrast Gradient Solid Call-To-Action Button */}
             <motion.button
+              id="login-submit-button"
               type="submit"
               whileHover={!loading ? { scale: 1.02, y: -1 } : {}}
               whileTap={!loading ? { scale: 0.98 } : {}}

@@ -13,6 +13,10 @@
             isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
           }
           document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) {
+            meta.setAttribute('content', isDark ? '#150E22' : '#F5F2FC');
+          }
         } catch (e) {}
 
         // Suppress benign third-party/extension-injected errors (e.g. Chrome Soft Navigation startTime bug and contentscript EventEmitter warnings)
@@ -59,7 +63,7 @@
     <link rel="apple-touch-icon" href="./logo.svg" />
     <link rel="manifest" href="./manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <meta name="theme-color" content="#14111F" />
+    <meta name="theme-color" content="#150E22" />
     <meta name="description" content="Two-Do — Collaborative Tasks & Notes" />
     <title>Two-Do</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />

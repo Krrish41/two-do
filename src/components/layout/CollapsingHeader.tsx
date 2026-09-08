@@ -32,27 +32,36 @@ export const CollapsingHeader: React.FC<CollapsingHeaderProps> = ({
   const compactTitleOpacity = useTransform(scrollY, [24, 48], [0, 1], { clamp: true })
   const compactTitleY = useTransform(scrollY, [24, 48], [4, 0], { clamp: true })
 
-  // Header bottom padding and hairline divider
-  const headerPaddingBottom = useTransform(scrollY, [0, 48], [6, 4], { clamp: true })
-  const dividerOpacity = useTransform(scrollY, [30, 50], [0, 1], { clamp: true })
+  // Glass background overlay and hairline divider:
+  // At rest (scrollY = 0), opacity is 0 — the header sits on the exact same continuous
+  // mesh-gradient background as the page body, with zero hard color seam or tinted box.
+  // As the user scrolls, the glass backdrop blur + translucent overlay and bottom hairline
+  // smoothly fade in to provide contrast for content scrolling underneath.
+  const glassOpacity = useTransform(scrollY, [0, 48], [0, 1], { clamp: true })
+  const dividerOpacity = useTransform(scrollY, [24, 48], [0, 1], { clamp: true })
 
   return (
     <header
+      style={{
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+      }}
       className={cn(
-        'md:hidden sticky top-0 z-30 w-full select-none transform-gpu',
-        'bg-surface/85 dark:bg-[#0D0A16]/85 backdrop-blur-2xl transition-colors',
+        'md:hidden sticky top-0 z-40 w-full select-none',
         className
       )}
     >
+      {/* Translucent Glass Floating Overlay (fades in on scroll, transparent at rest) */}
       <motion.div
-        style={{ paddingBottom: headerPaddingBottom }}
-        className="px-3.5 pt-2 flex flex-col justify-center"
-      >
+        style={{ opacity: glassOpacity }}
+        className="absolute inset-0 bg-white/80 dark:bg-[#181226]/85 backdrop-blur-xl pointer-events-none"
+      />
+
+      <div className="relative px-3.5 pt-2 pb-1.5 flex flex-col justify-center">
         {/* Row 1: Logo + [Two-Do (at top) -> Page Title (scrolled)] */}
         <div className="flex items-center gap-2 h-7 min-w-0">
           <Link
             to="/today"
-            className="flex-shrink-0 inline-flex items-center focus:outline-none transition-opacity active:opacity-75"
+            className="flex-shrink-0 inline-flex items-center focus:outline-none active:opacity-75"
             title="Two-Do"
           >
             <img
@@ -104,7 +113,7 @@ export const CollapsingHeader: React.FC<CollapsingHeaderProps> = ({
             {title}
           </h1>
         </motion.div>
-      </motion.div>
+      </div>
 
       {/* Hairline glass divider - only visible when compact / scrolled */}
       <motion.div

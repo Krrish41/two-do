@@ -27,6 +27,7 @@ import {
   FolderIcon,
   GripIcon,
   CalendarIcon,
+  HeartIcon,
 } from '../icons'
 import { GlassButton } from '../glass/GlassButton'
 import { GlassDropdown } from '../glass/GlassDropdown'
@@ -300,11 +301,34 @@ export const TaskDetailSheet: React.FC = () => {
 
   const isTodayTask = Boolean(currentTask.is_my_day_date)
 
+  // Bucket list resolution & toggle
+  const bucketListFolder = folders.find(
+    (f) => f.slug === 'bucket-list' || (f.is_system && f.name === 'Bucket List')
+  )
+  const bucketListFolderId = bucketListFolder?.id || null
+
+  const isBucketTask = Boolean(
+    (bucketListFolderId && currentTask.folder_id === bucketListFolderId) ||
+    currentTask.folder_id === 'folder-bucket-list' ||
+    currentTask.title.toLowerCase().includes('bucket')
+  )
+
+  const toggleBucketList = () => {
+    if (isBucketTask) {
+      updateTask(currentTask.id, { folder_id: null })
+    } else if (bucketListFolderId) {
+      updateTask(currentTask.id, { folder_id: bucketListFolderId })
+    }
+  }
+
   // Filter out system folders (Bucket List) so it is not repeated in dropdowns
   const assignableFolders = folders.filter((f) => !f.is_system && f.slug !== 'bucket-list')
 
   const folderOptions = [
     { value: '', label: 'No Folder', icon: <FolderIcon size={14} className="text-ink-muted" /> },
+    ...(isBucketTask && bucketListFolder
+      ? [{ value: bucketListFolder.id, label: 'Bucket List (System)', icon: <FolderIconRenderer icon="💕" size={14} className="flex-shrink-0" /> }]
+      : []),
     ...assignableFolders.map((f) => ({
       value: f.id,
       label: f.name,
@@ -323,7 +347,7 @@ export const TaskDetailSheet: React.FC = () => {
     <>
       <AnimatePresence>
         {Boolean(selectedTaskId) && (
-          <div className="fixed inset-0 z-50 overflow-hidden flex items-end md:items-stretch md:justify-end">
+          <div className="fixed inset-0 z-[60] overflow-hidden flex items-end md:items-stretch md:justify-end">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -403,8 +427,9 @@ export const TaskDetailSheet: React.FC = () => {
                   />
                 </div>
 
-                {/* Quick Action: Today Focus & Custom Glass Date Picker */}
+                {/* Quick Actions: Today Focus & Bucket List Toggle */}
                 <div className="grid grid-cols-2 gap-3 relative z-30">
+                  {/* Today Focus Toggle */}
                   <button
                     type="button"
                     onClick={() => toggleMyDay(currentTask.id)}
@@ -422,36 +447,35 @@ export const TaskDetailSheet: React.FC = () => {
                     </div>
                   </button>
 
-                  <div className="p-3.5 rounded-2xl border glass-panel-subtle flex flex-col justify-center gap-1.5 text-xs relative z-30">
-                    <div className="flex items-center gap-1.5 text-ink-muted font-bold">
-                      <CalendarIcon size={14} />
-                      <span>Due Date</span>
+                  {/* Bucket List Toggle */}
+                  <button
+                    type="button"
+                    onClick={toggleBucketList}
+                    className={cn(
+                      'flex items-center gap-2.5 p-3.5 rounded-2xl border text-xs font-semibold transition-all shadow-xs text-left cursor-pointer',
+                      isBucketTask
+                        ? 'bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-rose-400 font-bold'
+                        : 'glass-panel-subtle hover:bg-surface text-ink'
+                    )}
+                  >
+                    <HeartIcon size={18} className={cn(isBucketTask ? 'text-rose-500 fill-rose-500/40' : 'text-ink-muted')} />
+                    <div>
+                      <div className="font-bold">{isBucketTask ? 'In Bucket List' : 'Add to Bucket'}</div>
+                      <div className="text-[10px] text-ink-muted font-normal">{isBucketTask ? 'Shared dream 💕' : 'Bucket list dream'}</div>
                     </div>
-                    <GlassDatePicker
-                      value={currentTask.due_date}
-                      onChange={(date) => updateTask(currentTask.id, { due_date: date })}
-                      align="right"
-                    />
-                  </div>
+                  </button>
                 </div>
 
-                {/* Folder & Recurrence Card */}
+                {/* Due Date & Recurrence Card */}
                 <div className="p-4 rounded-2xl glass-panel-subtle grid grid-cols-2 gap-3.5 relative z-20">
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-bold text-ink-muted flex items-center gap-1.5">
-                      <FolderIcon size={14} className="text-lavender-accent" />
-                      Folder
+                      <CalendarIcon size={14} className="text-lavender-accent" />
+                      Due Date
                     </label>
-                    <GlassDropdown
-                      options={folderOptions}
-                      value={currentTask.folder_id || ''}
-                      onChange={(val) => updateTask(currentTask.id, { folder_id: val || null })}
-                      placeholder="Select folder..."
-                      actionItem={{
-                        label: 'New Folder',
-                        icon: <PlusIcon size={14} />,
-                        onClick: () => setIsFolderModalOpen(true),
-                      }}
+                    <GlassDatePicker
+                      value={currentTask.due_date}
+                      onChange={(date) => updateTask(currentTask.id, { due_date: date })}
                     />
                   </div>
 
@@ -467,6 +491,25 @@ export const TaskDetailSheet: React.FC = () => {
                       placeholder="Never"
                     />
                   </div>
+                </div>
+
+                {/* Folder Selection Card */}
+                <div className="p-4 rounded-2xl glass-panel-subtle flex flex-col gap-1.5 relative z-10">
+                  <label className="text-xs font-bold text-ink-muted flex items-center gap-1.5">
+                    <FolderIcon size={14} className="text-lavender-accent" />
+                    Folder
+                  </label>
+                  <GlassDropdown
+                    options={folderOptions}
+                    value={currentTask.folder_id || ''}
+                    onChange={(val) => updateTask(currentTask.id, { folder_id: val || null })}
+                    placeholder="Select folder..."
+                    actionItem={{
+                      label: 'New Folder',
+                      icon: <PlusIcon size={14} />,
+                      onClick: () => setIsFolderModalOpen(true),
+                    }}
+                  />
                 </div>
 
                 {/* High-Contrast Priority Selector */}

@@ -44,6 +44,8 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
   const sortDirection = useFilterSortStore((s) => s.sortDirection)
   const priorityFilter = useFilterSortStore((s) => s.priorityFilter)
   const dueDateFilter = useFilterSortStore((s) => s.dueDateFilter)
+  const showBucketListInAll = useFilterSortStore((s) => s.showBucketListInAll)
+  const toggleShowBucketListInAll = useFilterSortStore((s) => s.toggleShowBucketListInAll)
 
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
 
@@ -59,6 +61,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
   const [selectedFolder, setSelectedFolder] = useState<string | null>(
     viewType === 'bucket-list' ? bucketListFolderId : folderId || null
   )
+  const [isBucketQuickAdd, setIsBucketQuickAdd] = useState(viewType === 'bucket-list')
 
   const [creatorFilter, setCreatorFilter] = useState<'all' | 'mine' | 'partner'>('all')
   const [searchQuery, setSearchQuery] = useState('')
@@ -80,16 +83,33 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
   // Root tasks excluding soft-deleted ones
   const rootTasks = useMemo(() => tasks.filter((t) => !t.parent_task_id && t.deleted_at === null), [tasks])
 
+  // Count active bucket list items for the badge/toggle
+  const bucketListCount = useMemo(() => {
+    return rootTasks.filter((t) =>
+      !t.is_completed &&
+      ((bucketListFolderId && t.folder_id === bucketListFolderId) ||
+        t.folder_id === 'folder-bucket-list' ||
+        t.title.toLowerCase().includes('bucket'))
+    ).length
+  }, [rootTasks, bucketListFolderId])
+
   const filteredAndSortedTasks = useMemo(() => {
     let result = rootTasks.filter((task) => {
+      const isBucket = Boolean(
+        (bucketListFolderId && task.folder_id === bucketListFolderId) ||
+        task.folder_id === 'folder-bucket-list' ||
+        task.title.toLowerCase().includes('bucket')
+      )
+
       // Route View Types
       if (viewType === 'important' && task.priority < 2) return false
       if (viewType === 'completed' && !task.is_completed) return false
       if (viewType === 'bucket-list') {
-        const isBucket =
-          (bucketListFolderId && task.folder_id === bucketListFolderId) ||
-          task.title.toLowerCase().includes('bucket')
         if (!isBucket) return false
+      }
+      // In 'All Tasks' view, exclude bucket list dreams by default unless user toggles it on
+      if (viewType === 'all') {
+        if (!showBucketListInAll && isBucket) return false
       }
       if (viewType === 'folder' && folderId && task.folder_id !== folderId) return false
 
@@ -129,6 +149,8 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
       let comp = 0
       if (sortField === 'title') {
         comp = a.title.localeCompare(b.title)
+      } else if (sortField === 'updated_at') {
+        comp = new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime()
       } else if (sortField === 'created_at') {
         comp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       } else {
@@ -143,6 +165,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
     viewType,
     folderId,
     bucketListFolderId,
+    showBucketListInAll,
     searchQuery,
     creatorFilter,
     priorityFilter,
@@ -167,7 +190,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
     if (!newTaskTitle.trim()) return
 
     const effectiveFolder =
-      viewType === 'bucket-list'
+      viewType === 'bucket-list' || isBucketQuickAdd
         ? bucketListFolderId
         : folderId || selectedFolder || null
 
@@ -181,6 +204,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
     setNewTaskTitle('')
     if (viewType !== 'important') setSelectedPriority(0)
     setSelectedDueDate(null)
+    if (viewType !== 'bucket-list') setIsBucketQuickAdd(false)
   }
 
 
@@ -278,13 +302,41 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
               icon={<SearchIcon size={15} />}
             />
           </div>
+          {viewType === 'all' && (
+            <button
+              type="button"
+              onClick={toggleShowBucketListInAll}
+              className={cn(
+                'flex items-center gap-1.5 px-3 h-[42px] rounded-2xl text-xs font-bold transition-all border select-none cursor-pointer flex-shrink-0',
+                showBucketListInAll
+                  ? 'bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-rose-400 shadow-xs'
+                  : 'bg-surface/80 border-glass-border text-ink-muted hover:text-ink'
+              )}
+              title={showBucketListInAll ? 'Hide Bucket List items' : 'Show Bucket List items in All Tasks'}
+            >
+              <HeartIcon size={14} className={cn(showBucketListInAll ? 'text-rose-500 fill-rose-500/40' : 'text-ink-muted')} />
+              <span className="hidden min-[380px]:inline">Bucket</span>
+              {bucketListCount > 0 && (
+                <span
+                  className={cn(
+                    'text-[10px] px-1.5 py-0.5 rounded-full font-extrabold',
+                    showBucketListInAll
+                      ? 'bg-rose-500/20 text-rose-600 dark:text-rose-300'
+                      : 'bg-surface-subtle text-ink-muted'
+                  )}
+                >
+                  {bucketListCount}
+                </span>
+              )}
+            </button>
+          )}
           <FilterSortDrawer showDueDateFilter={true} showFolderFilter={viewType === 'all'} />
         </div>
       </div>
 
       {/* Quick Add Task */}
       {viewType !== 'completed' && (
-        <div className="relative z-30 p-3 sm:p-4 rounded-2xl bg-white/[0.7] dark:bg-[#181226]/75 backdrop-blur-xl border border-white/80 dark:border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25)]">
+        <div className="relative z-10 p-3 sm:p-4 rounded-2xl bg-white/[0.7] dark:bg-[#181226]/75 backdrop-blur-xl border border-white/80 dark:border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25)]">
           <form onSubmit={handleCreateTask} className="flex flex-col gap-2.5">
             <div className="flex items-center gap-2.5">
               <div className="w-5 h-5 rounded-full border-2 border-dashed border-lavender-accent/60 flex items-center justify-center flex-shrink-0 text-lavender-accent">
@@ -293,7 +345,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
               <input
                 type="text"
                 placeholder={
-                  viewType === 'bucket-list'
+                  viewType === 'bucket-list' || isBucketQuickAdd
                     ? 'Add a new dream to the list...'
                     : 'Add a task...'
                 }
@@ -344,6 +396,24 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
                 })}
               </div>
 
+              {/* Bucket List Quick Toggle (when not already on bucket-list view) */}
+              {viewType !== 'bucket-list' && (
+                <button
+                  type="button"
+                  onClick={() => setIsBucketQuickAdd(!isBucketQuickAdd)}
+                  className={cn(
+                    'h-7 px-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-1 cursor-pointer border select-none flex-shrink-0',
+                    isBucketQuickAdd
+                      ? 'bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-rose-400 shadow-xs'
+                      : 'bg-surface/80 border-glass-border text-ink-muted hover:text-ink'
+                  )}
+                  title={isBucketQuickAdd ? 'Adding as Bucket List dream' : 'Mark as Bucket List dream'}
+                >
+                  <HeartIcon size={12} className={cn(isBucketQuickAdd ? 'text-rose-500 fill-rose-500/40' : 'text-ink-muted')} />
+                  <span>Bucket</span>
+                </button>
+              )}
+
               {/* Custom Glass Date Picker */}
               <GlassDatePicker
                 value={selectedDueDate}
@@ -353,7 +423,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
               />
 
               {/* Custom Glass Dropdown for Folder */}
-              {viewType === 'all' && (
+              {viewType === 'all' && !isBucketQuickAdd && (
                 <GlassDropdown
                   options={folderDropdownOptions}
                   value={selectedFolder || ''}

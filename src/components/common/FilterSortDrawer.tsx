@@ -7,6 +7,7 @@ import {
   FlagIcon,
   CalendarIcon,
   FolderIcon,
+  HeartIcon,
 } from '../icons'
 import { GlassButton } from '../glass/GlassButton'
 import { FolderIconRenderer } from './FolderIconRenderer'
@@ -34,19 +35,21 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
   const priorityFilter = useFilterSortStore((s) => s.priorityFilter)
   const dueDateFilter = useFilterSortStore((s) => s.dueDateFilter)
   const folderFilter = useFilterSortStore((s) => s.folderFilter)
+  const showBucketListInAll = useFilterSortStore((s) => s.showBucketListInAll)
 
   const setSortField = useFilterSortStore((s) => s.setSortField)
   const setSortDirection = useFilterSortStore((s) => s.setSortDirection)
   const setPriorityFilter = useFilterSortStore((s) => s.setPriorityFilter)
   const setDueDateFilter = useFilterSortStore((s) => s.setDueDateFilter)
   const setFolderFilter = useFilterSortStore((s) => s.setFolderFilter)
+  const toggleShowBucketListInAll = useFilterSortStore((s) => s.toggleShowBucketListInAll)
   const resetFilters = useFilterSortStore((s) => s.resetFilters)
 
   const folders = useNoteStore((s) => s.folders)
   const assignableFolders = folders.filter((f) => !f.is_system && f.slug !== 'bucket-list')
 
   const hasActiveFilters =
-    priorityFilter !== null || dueDateFilter !== 'all' || folderFilter !== null
+    priorityFilter !== null || dueDateFilter !== 'all' || folderFilter !== null || showBucketListInAll
 
   return (
     <>
@@ -68,7 +71,7 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
       {/* Drawer Dialog */}
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -280,6 +283,38 @@ export const FilterSortDrawer: React.FC<FilterSortDrawerProps> = ({
                       )
                     })}
                   </div>
+                </div>
+              )}
+
+              {/* Include Bucket List Toggle (for All Tasks view) */}
+              {showFolderFilter && (
+                <div className="flex items-center justify-between p-3.5 rounded-2xl glass-panel-subtle border border-glass-border">
+                  <div className="flex items-center gap-2.5">
+                    <div className={cn(
+                      'w-8 h-8 rounded-xl flex items-center justify-center transition-colors',
+                      showBucketListInAll ? 'bg-rose-500/20 text-rose-500' : 'bg-surface text-ink-muted'
+                    )}>
+                      <HeartIcon size={16} className={showBucketListInAll ? 'fill-rose-500/40' : ''} />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-ink">Include Bucket List</span>
+                      <span className="text-[10.5px] text-ink-muted">Show dream goals in All Tasks</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={toggleShowBucketListInAll}
+                    className={cn(
+                      'w-11 h-6 rounded-full transition-colors relative cursor-pointer',
+                      showBucketListInAll ? 'bg-rose-500' : 'bg-slate-300 dark:bg-white/20'
+                    )}
+                  >
+                    <motion.div
+                      animate={{ x: showBucketListInAll ? 22 : 2 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                      className="w-5 h-5 rounded-full bg-white shadow-xs mt-0.5"
+                    />
+                  </button>
                 </div>
               )}
 
