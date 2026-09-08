@@ -8,9 +8,11 @@ import {
   CalendarIcon,
   SunIcon,
   ListIcon,
+  HeartIcon,
 } from '../icons'
 import type { Task } from '../../lib/database.types'
 import { useTaskStore } from '../../stores/taskStore'
+import { useNoteStore } from '../../stores/noteStore'
 import { useAuthStore } from '../../stores/authStore'
 import { PriorityFlag } from './PriorityFlag'
 import { RecurrenceIcon } from './RecurrenceIcon'
@@ -32,6 +34,16 @@ export const TaskItem: React.FC<TaskItemProps> = React.memo(({
   const setSelectedTaskId = useTaskStore((s) => s.setSelectedTaskId)
   const allTasks = useTaskStore((s) => s.tasks)
   const allUsers = useAuthStore((s) => s.allUsers)
+  const folders = useNoteStore((s) => s.folders)
+
+  const bucketListFolder = folders.find(
+    (f) => f.slug === 'bucket-list' || (f.is_system && f.name === 'Bucket List')
+  )
+  const isBucketItem = Boolean(
+    (bucketListFolder && task.folder_id === bucketListFolder.id) ||
+    task.folder_id === 'folder-bucket-list' ||
+    task.title.toLowerCase().includes('bucket')
+  )
 
   const [isPendingComplete, setIsPendingComplete] = useState(false)
 
@@ -145,12 +157,19 @@ export const TaskItem: React.FC<TaskItemProps> = React.memo(({
           </div>
 
           {/* Subtext and Meta Chips */}
-          {(task.is_my_day_date || task.due_date || task.recurrence_rule || subtasks.length > 0 || creatorUser) && (
+          {(task.is_my_day_date || isBucketItem || task.due_date || task.recurrence_rule || subtasks.length > 0 || creatorUser) && (
             <div className="flex flex-wrap items-center gap-1.5 mt-1">
               {task.is_my_day_date && (
                 <span className="inline-flex items-center gap-1 text-[10.5px] font-bold text-amber-700 dark:text-amber-300 bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.5 rounded-md">
                   <SunIcon size={11} className="text-amber-500" />
                   <span>Today</span>
+                </span>
+              )}
+
+              {isBucketItem && (
+                <span className="inline-flex items-center gap-1 text-[10.5px] font-bold text-rose-600 dark:text-rose-400 bg-rose-500/15 border border-rose-500/30 px-1.5 py-0.5 rounded-md">
+                  <HeartIcon size={11} className="text-rose-500 fill-rose-500/40" />
+                  <span>Bucket List</span>
                 </span>
               )}
 

@@ -18,6 +18,10 @@ function applyTheme(theme: ThemeMode) {
   if (typeof document === 'undefined') return
   const isDark = theme === 'dark' || (theme === 'system' && getSystemIsDark())
   document.documentElement.dataset.theme = isDark ? 'dark' : 'light'
+  const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+  if (metaThemeColor) {
+    metaThemeColor.setAttribute('content', isDark ? '#150E22' : '#F5F2FC')
+  }
 }
 
 function getInitialTheme(): ThemeMode {

@@ -42,7 +42,7 @@ export const MobileNav: React.FC = () => {
 
   return (
     <nav
-      className="md:hidden fixed bottom-3.5 left-0 right-0 z-40 select-none flex justify-center pointer-events-none px-3"
+      className="md:hidden fixed bottom-3.5 left-0 right-0 z-50 select-none flex justify-center pointer-events-none px-3"
       style={{
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}

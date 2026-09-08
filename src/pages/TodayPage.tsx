@@ -8,6 +8,7 @@ import {
 import { TaskList } from '../components/tasks/TaskList'
 import { CreatorFilterTabs } from '../components/common/CreatorFilterTabs'
 import { useTaskStore } from '../stores/taskStore'
+import { useNoteStore } from '../stores/noteStore'
 import { useAuthStore } from '../stores/authStore'
 import { cn } from '../lib/utils'
 import { CollapsingHeader } from '../components/layout/CollapsingHeader'
@@ -17,6 +18,12 @@ export const TodayPage: React.FC = () => {
   const addTask = useTaskStore((s) => s.addTask)
   const authorizedUser = useAuthStore((s) => s.authorizedUser)
   const partnerUser = useAuthStore((s) => s.partnerUser)
+  const folders = useNoteStore((s) => s.folders)
+
+  const bucketListFolder = folders.find(
+    (f) => f.slug === 'bucket-list' || (f.is_system && f.name === 'Bucket List')
+  )
+  const bucketListFolderId = bucketListFolder?.id || null
 
   const [newTaskTitle, setNewTaskTitle] = useState('')
   const [selectedPriority, setSelectedPriority] = useState<number>(0)
@@ -42,12 +49,23 @@ export const TodayPage: React.FC = () => {
   const pendingTasks = useMemo(() => todayTasks.filter((t) => !t.is_completed), [todayTasks])
   const completedTasks = useMemo(() => todayTasks.filter((t) => t.is_completed), [todayTasks])
 
-  // Suggested backlog tasks for today
+  // Suggested backlog tasks for today (excluding bucket list dreams)
   const suggestedTasks = useMemo(() => {
     return tasks
-      .filter((t) => t.deleted_at === null && !t.is_completed && !t.parent_task_id && !t.is_my_day_date && t.due_date !== todayStr)
+      .filter((t) => {
+        if (t.deleted_at !== null || t.is_completed || t.parent_task_id || t.is_my_day_date || t.due_date === todayStr) {
+          return false
+        }
+        const isBucket = Boolean(
+          (bucketListFolderId && t.folder_id === bucketListFolderId) ||
+          t.folder_id === 'folder-bucket-list' ||
+          t.title.toLowerCase().includes('bucket')
+        )
+        if (isBucket) return false
+        return true
+      })
       .slice(0, 3)
-  }, [tasks, todayStr])
+  }, [tasks, todayStr, bucketListFolderId])
 
   const completionPercent =
     todayTasks.length > 0 ? Math.round((completedTasks.length / todayTasks.length) * 100) : 0
@@ -116,7 +134,7 @@ export const TodayPage: React.FC = () => {
       </div>
 
       {/* Quick Add Form */}
-      <div className="relative z-30 p-3 sm:p-4 rounded-2xl bg-white/[0.7] dark:bg-[#181226]/75 backdrop-blur-xl border border-white/80 dark:border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25)]">
+      <div className="relative z-10 p-3 sm:p-4 rounded-2xl bg-white/[0.7] dark:bg-[#181226]/75 backdrop-blur-xl border border-white/80 dark:border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25)]">
         <form onSubmit={handleCreateTask} className="flex flex-col gap-2.5">
           <div className="flex items-center gap-2.5">
             <div className="w-5 h-5 rounded-full border-2 border-dashed border-lavender-accent/60 flex items-center justify-center flex-shrink-0 text-lavender-accent">

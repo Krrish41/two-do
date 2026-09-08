@@ -10,6 +10,7 @@ interface FilterSortState {
   priorityFilter: number | null
   dueDateFilter: DueDateFilter
   folderFilter: string | null
+  showBucketListInAll: boolean
   isDrawerOpen: boolean
 
   // Actions
@@ -19,6 +20,8 @@ interface FilterSortState {
   setPriorityFilter: (priority: number | null) => void
   setDueDateFilter: (filter: DueDateFilter) => void
   setFolderFilter: (folderId: string | null) => void
+  setShowBucketListInAll: (show: boolean) => void
+  toggleShowBucketListInAll: () => void
   setIsDrawerOpen: (isOpen: boolean) => void
   resetFilters: () => void
 }
@@ -29,6 +32,7 @@ export const useFilterSortStore = create<FilterSortState>((set, get) => ({
   priorityFilter: null,
   dueDateFilter: 'all',
   folderFilter: null,
+  showBucketListInAll: false,
   isDrawerOpen: false,
 
   setSortField: (field) => set({ sortField: field }),
@@ -39,6 +43,9 @@ export const useFilterSortStore = create<FilterSortState>((set, get) => ({
   setPriorityFilter: (priority) => set({ priorityFilter: priority }),
   setDueDateFilter: (filter) => set({ dueDateFilter: filter }),
   setFolderFilter: (folderId) => set({ folderFilter: folderId }),
+  setShowBucketListInAll: (show) => set({ showBucketListInAll: show }),
+  toggleShowBucketListInAll: () =>
+    set({ showBucketListInAll: !get().showBucketListInAll }),
   setIsDrawerOpen: (isOpen) => set({ isDrawerOpen: isOpen }),
 
   resetFilters: () =>
@@ -48,5 +55,6 @@ export const useFilterSortStore = create<FilterSortState>((set, get) => ({
       priorityFilter: null,
       dueDateFilter: 'all',
       folderFilter: null,
+      showBucketListInAll: false,
     }),
 }))
