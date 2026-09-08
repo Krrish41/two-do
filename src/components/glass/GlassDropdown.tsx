@@ -19,6 +19,7 @@ export interface GlassDropdownProps<T = string> {
   className?: string
   size?: 'sm' | 'md'
   disabled?: boolean
+  onOpenChange?: (isOpen: boolean) => void
   actionItem?: {
     label: string
     icon?: React.ReactNode
@@ -35,6 +36,7 @@ export function GlassDropdown<T extends string = string>({
   className,
   size = 'sm',
   disabled = false,
+  onOpenChange,
   actionItem,
 }: GlassDropdownProps<T>) {
   const [isOpen, setIsOpen] = useState(false)
@@ -42,18 +44,42 @@ export function GlassDropdown<T extends string = string>({
 
   const selectedOption = options.find((opt) => opt.value === value)
 
-  // Close when clicking outside
+  const handleToggle = () => {
+    if (disabled) return
+    const next = !isOpen
+    setIsOpen(next)
+    onOpenChange?.(next)
+  }
+
+  const handleSelect = (val: T) => {
+    onChange(val)
+    setIsOpen(false)
+    onOpenChange?.(false)
+  }
+
+  const handleAction = () => {
+    setIsOpen(false)
+    onOpenChange?.(false)
+    actionItem?.onClick()
+  }
+
+  // Close when clicking or touching outside
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setIsOpen(false)
+        onOpenChange?.(false)
       }
     }
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('touchstart', handleClickOutside)
     }
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [isOpen])
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('touchstart', handleClickOutside)
+    }
+  }, [isOpen, onOpenChange])
 
   const sizeClasses = {
     sm: 'px-3 py-1.5 text-xs rounded-xl gap-2 min-h-[32px]',
@@ -61,12 +87,19 @@ export function GlassDropdown<T extends string = string>({
   }[size]
 
   return (
-    <div ref={dropdownRef} className={cn('relative inline-block w-full text-left select-none', className)}>
+    <div
+      ref={dropdownRef}
+      className={cn(
+        'relative inline-block w-full text-left select-none',
+        isOpen ? 'z-50' : 'z-auto',
+        className
+      )}
+    >
       {/* Trigger Button */}
       <button
         type="button"
         disabled={disabled}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
         className={cn(
           'w-full flex items-center justify-between font-semibold transition-all duration-200 border',
           'bg-surface hover:bg-surface-elevated text-ink border-glass-border shadow-xs',
@@ -114,10 +147,7 @@ export function GlassDropdown<T extends string = string>({
                 <button
                   key={opt.value}
                   type="button"
-                  onClick={() => {
-                    onChange(opt.value)
-                    setIsOpen(false)
-                  }}
+                  onClick={() => handleSelect(opt.value)}
                   className={cn(
                     'w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-semibold transition-colors text-left',
                     isSelected
@@ -138,10 +168,7 @@ export function GlassDropdown<T extends string = string>({
               <div className="pt-1 mt-1 border-t border-glass-border-subtle">
                 <button
                   type="button"
-                  onClick={() => {
-                    setIsOpen(false)
-                    actionItem.onClick()
-                  }}
+                  onClick={handleAction}
                   className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-bold text-lavender-accent hover:bg-lavender-accent/15 transition-colors text-left"
                 >
                   {actionItem.icon}

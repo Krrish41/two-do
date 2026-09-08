@@ -25,6 +25,7 @@ export interface GlassDatePickerProps {
   size?: 'sm' | 'md'
   disabled?: boolean
   align?: 'left' | 'right'
+  onOpenChange?: (isOpen: boolean) => void
 }
 
 export const GlassDatePicker: React.FC<GlassDatePickerProps> = ({
@@ -35,6 +36,7 @@ export const GlassDatePicker: React.FC<GlassDatePickerProps> = ({
   size = 'sm',
   disabled = false,
   align = 'left',
+  onOpenChange,
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [currentMonth, setCurrentMonth] = useState<Date>(
@@ -42,18 +44,30 @@ export const GlassDatePicker: React.FC<GlassDatePickerProps> = ({
   )
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Close on outside click
+  const handleToggle = () => {
+    if (disabled) return
+    const next = !isOpen
+    setIsOpen(next)
+    onOpenChange?.(next)
+  }
+
+  // Close on outside click/touch
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false)
+        onOpenChange?.(false)
       }
     }
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('touchstart', handleClickOutside)
     }
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [isOpen])
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('touchstart', handleClickOutside)
+    }
+  }, [isOpen, onOpenChange])
 
   const selectedDate = value ? parseISO(value) : null
 
@@ -79,12 +93,14 @@ export const GlassDatePicker: React.FC<GlassDatePickerProps> = ({
   const handleDateSelect = (d: Date) => {
     onChange(format(d, 'yyyy-MM-dd'))
     setIsOpen(false)
+    onOpenChange?.(false)
   }
 
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation()
     onChange(null)
     setIsOpen(false)
+    onOpenChange?.(false)
   }
 
   const formattedDisplay = selectedDate
@@ -104,7 +120,7 @@ export const GlassDatePicker: React.FC<GlassDatePickerProps> = ({
       <button
         type="button"
         disabled={disabled}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
         className={cn(
           'w-full flex items-center justify-between font-semibold transition-all duration-200 border',
           'bg-surface hover:bg-surface-elevated text-ink border-glass-border shadow-xs',

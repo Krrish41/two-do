@@ -336,7 +336,7 @@ export const TasksPage: React.FC<TasksPageProps> = ({ viewType = 'all' }) => {
 
       {/* Quick Add Task */}
       {viewType !== 'completed' && (
-        <div className="relative z-10 p-3 sm:p-4 rounded-2xl bg-white/[0.7] dark:bg-[#181226]/75 backdrop-blur-xl border border-white/80 dark:border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25)]">
+        <div className="relative z-20 p-3 sm:p-4 rounded-2xl bg-white/[0.7] dark:bg-[#181226]/75 backdrop-blur-xl border border-white/80 dark:border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25)]">
           <form onSubmit={handleCreateTask} className="flex flex-col gap-2.5">
             <div className="flex items-center gap-2.5">
               <div className="w-5 h-5 rounded-full border-2 border-dashed border-lavender-accent/60 flex items-center justify-center flex-shrink-0 text-lavender-accent">
