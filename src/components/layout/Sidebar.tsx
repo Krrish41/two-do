@@ -21,7 +21,7 @@ import { ManageTagsModal } from '../notes/ManageTagsModal'
 import { useTaskStore } from '../../stores/taskStore'
 import { useNoteStore } from '../../stores/noteStore'
 import { useAuthStore } from '../../stores/authStore'
-import { cn } from '../../lib/utils'
+import { cn, isToday } from '../../lib/utils'
 
 export interface SidebarProps {
   isOpen?: boolean
@@ -49,11 +49,9 @@ export const Sidebar: React.FC<SidebarProps> = () => {
   const [tagToDelete, setTagToDelete] = useState<{ id: string; name: string } | null>(null)
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false)
 
-  const todayStr = new Date().toISOString().split('T')[0]
-
   // Count active items
   const todayCount = tasks.filter(
-    (t) => (t.is_my_day_date === todayStr || t.due_date === todayStr) && !t.is_completed && t.deleted_at === null
+    (t) => (isToday(t.is_my_day_date) || isToday(t.due_date)) && !t.is_completed && t.deleted_at === null
   ).length
   const allTasksCount = tasks.filter((t) => !t.parent_task_id && !t.is_completed && t.deleted_at === null).length
   const importantCount = tasks.filter((t) => t.priority >= 2 && !t.is_completed && t.deleted_at === null).length

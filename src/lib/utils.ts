@@ -18,8 +18,17 @@ export function formatDate(dateString: string | null | undefined): string {
   }
 }
 
+export function getTodayDateString(): string {
+  const d = new Date()
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export function isToday(dateString: string | null | undefined): boolean {
   if (!dateString) return false
-  const today = new Date().toISOString().split('T')[0]
-  return dateString.startsWith(today)
+  const localToday = getTodayDateString()
+  const isoToday = new Date().toISOString().split('T')[0]
+  return dateString.startsWith(localToday) || dateString.startsWith(isoToday)
 }

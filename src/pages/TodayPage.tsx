@@ -10,7 +10,7 @@ import { CreatorFilterTabs } from '../components/common/CreatorFilterTabs'
 import { useTaskStore } from '../stores/taskStore'
 import { useNoteStore } from '../stores/noteStore'
 import { useAuthStore } from '../stores/authStore'
-import { cn } from '../lib/utils'
+import { cn, isToday } from '../lib/utils'
 import { CollapsingHeader } from '../components/layout/CollapsingHeader'
 
 export const TodayPage: React.FC = () => {
@@ -36,8 +36,8 @@ export const TodayPage: React.FC = () => {
     return tasks.filter((t) => {
       if (t.deleted_at !== null) return false
       if (t.parent_task_id) return false
-      const isToday = t.is_my_day_date === todayStr || t.due_date === todayStr
-      if (!isToday) return false
+      const taskIsToday = isToday(t.is_my_day_date) || isToday(t.due_date)
+      if (!taskIsToday) return false
 
       if (creatorFilter === 'mine' && t.created_by !== authorizedUser?.id) return false
       if (creatorFilter === 'partner' && t.created_by !== partnerUser?.id) return false
@@ -53,7 +53,7 @@ export const TodayPage: React.FC = () => {
   const suggestedTasks = useMemo(() => {
     return tasks
       .filter((t) => {
-        if (t.deleted_at !== null || t.is_completed || t.parent_task_id || t.is_my_day_date || t.due_date === todayStr) {
+        if (t.deleted_at !== null || t.is_completed || t.parent_task_id || isToday(t.is_my_day_date) || isToday(t.due_date)) {
           return false
         }
         const isBucket = Boolean(

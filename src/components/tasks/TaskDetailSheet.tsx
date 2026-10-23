@@ -40,7 +40,7 @@ import { useTaskStore } from '../../stores/taskStore'
 import { useAuthStore } from '../../stores/authStore'
 import { useNoteStore } from '../../stores/noteStore'
 import type { Task } from '../../lib/database.types'
-import { cn } from '../../lib/utils'
+import { cn, isToday } from '../../lib/utils'
 
 // Sortable Subtask Item with local debounced state
 const SortableSubtaskItem: React.FC<{
@@ -302,7 +302,7 @@ export const TaskDetailSheet: React.FC = () => {
     }
   }
 
-  const isTodayTask = Boolean(currentTask.is_my_day_date)
+  const isTodayTask = isToday(currentTask.is_my_day_date)
 
   // Bucket list resolution & toggle
   const bucketListFolder = folders.find(

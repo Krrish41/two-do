@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient'
 import type { Task } from '../lib/database.types'
 import { useAuthStore } from './authStore'
+import { isToday } from '../lib/utils'
 
 export type TaskFilter = 'all' | 'today' | 'important' | 'completed' | 'bucket-list' | 'assigned-to-me' | 'assigned-to-partner'
 
@@ -261,7 +262,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     if (!task) return
 
     const todayStr = new Date().toISOString().split('T')[0]
-    const nextMyDay = task.is_my_day_date ? null : todayStr
+    const nextMyDay = isToday(task.is_my_day_date) ? null : todayStr
 
     await get().updateTask(id, {
       is_my_day_date: nextMyDay,

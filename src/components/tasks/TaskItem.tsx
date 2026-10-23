@@ -17,7 +17,7 @@ import { useAuthStore } from '../../stores/authStore'
 import { PriorityFlag } from './PriorityFlag'
 import { RecurrenceIcon } from './RecurrenceIcon'
 import { CoupleAvatar } from '../common/CoupleAvatar'
-import { cn, formatDate } from '../../lib/utils'
+import { cn, formatDate, isToday } from '../../lib/utils'
 
 export interface TaskItemProps {
   task: Task
@@ -157,9 +157,9 @@ export const TaskItem: React.FC<TaskItemProps> = React.memo(({
           </div>
 
           {/* Subtext and Meta Chips */}
-          {(task.is_my_day_date || isBucketItem || task.due_date || task.recurrence_rule || subtasks.length > 0 || creatorUser) && (
+          {(isToday(task.is_my_day_date) || isBucketItem || task.due_date || task.recurrence_rule || subtasks.length > 0 || creatorUser) && (
             <div className="flex flex-wrap items-center gap-1.5 mt-1">
-              {task.is_my_day_date && (
+              {isToday(task.is_my_day_date) && (
                 <span className="inline-flex items-center gap-1 text-[10.5px] font-bold text-amber-700 dark:text-amber-300 bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.5 rounded-md">
                   <SunIcon size={11} className="text-amber-500" />
                   <span>Today</span>
