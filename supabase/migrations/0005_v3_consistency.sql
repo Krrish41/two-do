@@ -10,11 +10,5 @@ update public.folders
 set slug = 'bucket-list' 
 where is_system = true and name = 'Bucket List';
 
--- 3. Set personalized nicknames for authorized users
-update public.authorized_users 
-set display_name = 'Partner A' 
-where id = '00000000-0000-0000-0000-000000000001';
-
-update public.authorized_users 
-set display_name = 'Partner B' 
-where id = '00000000-0000-0000-0000-000000000002';
+-- 3. (Removed) Per-user nicknames are now set per deployment, e.g.:
+--    update public.authorized_users set display_name = 'Your Name' where id = '<your-auth-uid>';

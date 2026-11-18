@@ -1,4 +1,5 @@
 import React from 'react'
+import { useAuthStore } from '../../stores/authStore'
 
 export interface CoupleAvatarProps {
   userId?: string | null
@@ -15,10 +16,11 @@ export const CoupleAvatar: React.FC<CoupleAvatarProps> = ({
   className = '',
   showOnlineBadge = false,
 }) => {
-  const isVariantB =
-    (displayName && displayName.toLowerCase().includes('variant-b')) ||
-    userId === '00000000-0000-0000-0000-000000000002' ||
-    userId === 'demo-user-2'
+  // Pick the mascot from the user's stored accent colour (set per deployment in the
+  // authorized_users table) so no names or user IDs are hardcoded in the app.
+  const allUsers = useAuthStore((s) => s.allUsers)
+  const accent = allUsers.find((u) => u.id === userId)?.accent_color?.toLowerCase()
+  const isVariantB = accent === '#a7c7e7'
 
   return (
     <div
@@ -27,7 +29,7 @@ export const CoupleAvatar: React.FC<CoupleAvatarProps> = ({
       title={displayName || 'User'}
     >
       {isVariantB ? (
-        // Partner B Mascot Avatar (Sweet Rose-Pink & Sky-Blue Blob with Bow)
+        // Variant B mascot (Sweet Rose-Pink & Sky-Blue Blob with Bow)
         <svg
           viewBox="0 0 36 36"
           fill="none"
@@ -85,7 +87,7 @@ export const CoupleAvatar: React.FC<CoupleAvatarProps> = ({
           </defs>
         </svg>
       ) : (
-        // Partner A Mascot Avatar (Soft Lavender & Purple Blob with Dapper Glasses & Sparkle)
+        // Variant A mascot (Soft Lavender & Purple Blob with Dapper Glasses & Sparkle)
         <svg
           viewBox="0 0 36 36"
           fill="none"

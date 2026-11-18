@@ -193,7 +193,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({
       authorizedUser: active,
       partnerUser: other,
-      user: { id: active.id, email: `${active.display_name.toLowerCase()}@example.com` } as unknown as User,
+      user: { id: active.id, email: `demo-${index + 1}@example.com` } as unknown as User,
     })
   },
 }))

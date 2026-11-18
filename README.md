@@ -129,7 +129,7 @@ All database schemas, foreign keys, triggers, and Row Level Security (RLS) rules
 
 1. **`0001_init_schema.sql`**: Core tables (`authorized_users`, `folders`, `tags`, `tasks`, `notes`, `note_tags`).
 2. **`0002_rls_policies.sql`**: Row Level Security enforcement and `is_authorized()` security definer function.
-3. **`0003_seed_authorized_users.sql`**: Seeds the allowlist linking authorized user UUIDs.
+3. **`0003_seed_authorized_users.sql`**: Seeds the allowlist. It is a **template**: replace the two placeholder UUIDs with your own Supabase Auth user IDs (Dashboard -> Authentication -> Users) before running. Real IDs/names are deliberately not stored in this public repo.
 4. **`0004_v2_features.sql`**: Folder customizations (icons, colors) and task sorting extensions.
 5. **`0005_v3_consistency.sql`**: Foreign key cascade cleanup and note-folder data integrity.
 6. **`0006_v4_tasks_soft_delete.sql`**: Adds `deleted_at` columns and soft-deletion tracking for the Recycle Bin.
