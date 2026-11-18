@@ -1,212 +1,119 @@
-# ✨ Two-Do
+# Two-Do
 
-<div align="center">
+A private task and notes workspace for two people. Tasks and rich-text notes live side by side, each item records who created it, and the database only lets the two allow-listed accounts read or write anything.
 
-> **"Yours, mine, ours."**  
-> An ultra-refined, private collaborative workspace designed for a private duo.
+**Live:** https://krrish41.github.io/two-do/ (sign-in is restricted to the two authorised accounts, so visitors cannot log in; see [Demo mode](#demo-mode) to explore the app locally without any account.)
 
-[![Live Application](https://img.shields.io/badge/Live%20App-krrish41.github.io%2Ftwo--do-8B5CF6?style=for-the-badge&logo=githubpages&logoColor=white)](https://krrish41.github.io/two-do/)
-[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-6-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Supabase](https://img.shields.io/badge/Supabase-Realtime%20%26%20RLS-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
+| Today | All tasks | Notes |
+| :---: | :---: | :---: |
+| ![Today view](docs/screenshots/today.png) | ![Task list](docs/screenshots/tasks.png) | ![Notes](docs/screenshots/notes.png) |
 
----
+*Screenshots are taken in demo mode with generated sample data.*
 
-### 🌐 Live Application
-### **[👉 Launch Two-Do (krrish41.github.io/two-do)](https://krrish41.github.io/two-do/)**
+## Features
 
----
+**Tasks**
+- Subtasks, four priority levels, due dates, folders and tags
+- "My Day" planner and a shared "Bucket List"
+- Drag-and-drop reordering (`@dnd-kit`)
+- A recurrence rule (daily, weekly, monthly) can be set on a task and is shown with an icon
 
-</div>
+**Notes**
+- Rich-text editor (Tiptap): headings, lists, checklists, blockquotes, code, highlights
+- Colour-coded notes, nested folders, tags and pinning
 
-## 📖 Overview
+**Two-person model**
+- Every task and note records its creator; filter tabs switch between All, Partner A and Partner B
+- Per-user accent colour and avatar
+- Soft delete with a Recycle Bin (restore or permanently delete)
 
-**Two-Do** is a high-craft, end-to-end synchronized web application built specifically for a two-person team or couple. It bridges structured task management with rich-text documentation in a cohesive, Apple-inspired glassmorphic environment.
+**Other**
+- Optimistic UI updates through Zustand stores
+- Light and dark themes
+- Scheduled GitHub Action that pings the database every 3 days so a free-tier Supabase project does not pause
 
-Every interaction is designed with fluid micro-interactions, optimistic state updates, and real-time bidirectional replication so both users always stay perfectly in sync.
+## Tech stack
 
----
+| Area | Choice |
+| :--- | :--- |
+| UI | React 18, TypeScript, Vite 6 |
+| Styling and motion | Tailwind CSS 3.4, Framer Motion |
+| State | Zustand 5 (auth, tasks, notes, filters, theme stores) |
+| Routing | React Router 7 with `HashRouter` (required for static hosting on GitHub Pages) |
+| Editor and drag-and-drop | Tiptap 2, `@dnd-kit` |
+| Backend | Supabase: PostgreSQL, Auth, Row Level Security |
+| CI/CD | GitHub Actions, GitHub Pages |
 
-## ✨ Key Features
+## How access control works
 
-### 🪟 Apple-Inspired Glassmorphic Design
-- **Frosted Glass Paneling**: Layered translucent surfaces using high-fidelity blur filters, ambient border illumination, and specular highlights.
-- **Dynamic Ambient Gradient Mesh**: Soft, organic background gradients that smoothly react to light and dark theme toggling.
-- **Spring Micro-Interactions**: Fluid transitions, hover states, sheet slides, and modal entries powered by **Framer Motion**.
-- **Adaptive Typography & Themes**: Seamless switching between Dark Mode and Light Mode with curated pastel tokens.
+- All tables have Row Level Security enabled. Policies call a `SECURITY DEFINER` function, `is_authorized()`, which checks the caller's id against the `authorized_users` table.
+- An unauthenticated or non-allow-listed request receives an empty result instead of data.
+- The Supabase `anon` key is shipped in the client bundle by design; it is a public identifier and grants nothing without a matching RLS policy.
+- Recommended: also disable public sign-ups in Supabase Authentication settings.
 
-### 🎯 Intelligent Task Management
-- **My Day Planner**: Curate daily priority lists with automated date tracking and quick-add actions.
-- **Hierarchical Subtasks**: Break complex tasks into subtasks with completion tallies and checklist tracking.
-- **Drag & Drop Reordering**: Natural reordering and manual priority sorting powered by `@dnd-kit`.
-- **Recurrence Engine**: Support for recurring schedules (Daily, Weekly, Monthly) that automatically regenerate when completed.
-- **Priority & Due Date Flags**: Visual urgency flags (Urgent, High, Medium, Low) and custom glass calendar picker.
-- **Folder Categorization**: Group tasks into custom folders featuring selectable Lucide icons and accent swatches.
+## Getting started
 
-### 📝 Rich-Text Notes Studio
-- **Tiptap WYSIWYG Engine**: Full-featured rich text editing with headers, bold, italics, highlight badges, blockquotes, interactive checklists, and code snippets.
-- **Note Color Coding**: Custom pastel card backgrounds (Lavender, Rose, Mint, Sky, Butter, Peach).
-- **Nested Folder Architecture**: Organize notes into hierarchical folder trees with expand/collapse navigation.
-- **Tagging & Filtering**: Fast multi-tag pills for labeling and instant tag filtering.
-- **Pinning**: Pin critical notes to the top of your workspace for immediate access.
+### Demo mode
 
-### 👥 Duo Co-Presence & Assignment
-- **Creator & Assignee Filters**: Quickly switch between **"All"**, **"Mine"**, and **"Partner's"** items with dedicated tabs.
-- **Partner Avatars**: Visual presence indicators displaying personalized accent colors and display names.
-- **Pair Exclusivity**: Engineered specifically for two authorized users — zero noise from outside accounts.
+Without Supabase credentials the app starts in demo mode with in-memory sample data and two demo users (Partner A and Partner B). Nothing is persisted.
 
-### 🗑️ Recycle Bin & Data Safety
-- **Soft Deletes**: Deleting a task or note preserves it in the Recycle Bin with `deleted_at` metadata.
-- **Full Restoration**: Restore accidentally deleted tasks or notes with all subtasks and folder links intact.
-- **Permanent Shredding**: One-click option to permanently purge items when no longer needed.
-
-### ⚡ Real-Time Engine & Offline Resilience
-- **Postgres Changes Replication**: Listens to Supabase Realtime websocket channels for instant multi-device updates.
-- **Optimistic UI Updates**: State changes reflect instantly on screen via Zustand domain stores before server roundtrips confirm them.
-
-### ⏱️ Automated Keep-Alive System
-- Built-in GitHub Actions scheduled workflow ([`supabase-keepalive.yml`](.github/workflows/supabase-keepalive.yml)) that queries the database every 3 days to prevent Supabase Free Tier projects from auto-pausing.
-
----
-
-## 🛠️ Tech Stack & Architecture
-
-| Layer | Technology | Purpose |
-| :--- | :--- | :--- |
-| **Frontend Core** | React 18 + TypeScript + Vite | Ultra-fast build toolchain and strict type safety |
-| **Routing** | React Router 7 (`HashRouter`) | Client-side routing with static GitHub Pages hosting |
-| **State Management**| Zustand 5 | Decoupled modular domain stores (Auth, Tasks, Notes, Filters) |
-| **Styling** | Tailwind CSS 3.4 + Custom Tokens | Glassmorphism styling, CSS variables, and design tokens |
-| **Animations** | Framer Motion 12 | Spring-physics transitions and layout animations |
-| **Drag & Drop** | `@dnd-kit` (Core + Sortable) | Smooth, accessible drag-and-drop task reordering |
-| **Rich Text** | Tiptap 2 (`@tiptap/react`, StarterKit)| Structured JSON document editing and rich-text rendering |
-| **Icons & Dates** | Lucide React + `date-fns` | Clean iconography and localized date formatting |
-| **Backend / DB** | Supabase (PostgreSQL 15) | Relational database, Supabase Auth, and Realtime engine |
-| **Hosting & CI/CD** | GitHub Actions + GitHub Pages | Automated build, testing, and continuous deployment |
-
----
-
-## 📂 Project Structure
-
-```text
-two-do/
-├── .github/
-│   └── workflows/
-│       ├── deploy.yml               # Automated GitHub Pages build & deploy
-│       └── supabase-keepalive.yml   # 3-day cron ping to prevent DB auto-pause
-├── public/                          # Static assets and favicons
-├── src/
-│   ├── components/
-│   │   ├── common/                  # Shared UI (Avatars, Modals, Filter tabs)
-│   │   ├── glass/                   # Glassmorphic primitives (Button, Card, Sheet, etc.)
-│   │   ├── icons/                   # Custom icon sets
-│   │   ├── layout/                  # Shell, Sidebar, MobileNav, ThemeToggle, Mesh
-│   │   ├── notes/                   # NoteCard, NoteEditor, FolderTree, TagPicker
-│   │   └── tasks/                   # TaskList, TaskItem, TaskDetailSheet, PriorityFlag
-│   ├── constants/                   # Palette colors, priority maps, navigation items
-│   ├── hooks/                       # Custom React hooks (realtime sync, keyboard shortcuts)
-│   ├── lib/                         # Supabase client singleton & utilities
-│   ├── pages/                       # TodayPage, TasksPage, NotesPage, RecycleBin, Login, Menu
-│   ├── stores/                      # Zustand domain stores (taskStore, noteStore, authStore)
-│   ├── styles/                      # globals.css with custom Glassy CSS utilities
-│   ├── App.tsx                      # App root with providers and HashRouter routes
-│   └── main.tsx                     # React DOM entrypoint
-├── supabase/
-│   └── migrations/                  # Ordered SQL migrations for schema & security
-├── index.html                       # HTML template
-├── tailwind.config.js               # Tailored glassmorphism theme extensions
-├── tsconfig.json                    # TypeScript compiler configuration
-└── vite.config.ts                   # Vite build configuration (base: './')
-```
-
----
-
-## 🗄️ Database Setup & Migrations
-
-All database schemas, foreign keys, triggers, and Row Level Security (RLS) rules are tracked under [`supabase/migrations`](supabase/migrations). Run them in order within your Supabase SQL Editor:
-
-1. **`0001_init_schema.sql`**: Core tables (`authorized_users`, `folders`, `tags`, `tasks`, `notes`, `note_tags`).
-2. **`0002_rls_policies.sql`**: Row Level Security enforcement and `is_authorized()` security definer function.
-3. **`0003_seed_authorized_users.sql`**: Seeds the allowlist. It is a **template**: replace the two placeholder UUIDs with your own Supabase Auth user IDs (Dashboard -> Authentication -> Users) before running. Real IDs/names are deliberately not stored in this public repo.
-4. **`0004_v2_features.sql`**: Folder customizations (icons, colors) and task sorting extensions.
-5. **`0005_v3_consistency.sql`**: Foreign key cascade cleanup and note-folder data integrity.
-6. **`0006_v4_tasks_soft_delete.sql`**: Adds `deleted_at` columns and soft-deletion tracking for the Recycle Bin.
-
----
-
-## 🔒 Security Architecture
-
-> [!NOTE]
-> **Supabase Anon Key in Client Bundles**:
-> The `VITE_SUPABASE_ANON_KEY` is a public client identifier required to connect to the Supabase gateway.
-> All data authorization, isolation, and access control are strictly enforced at the PostgreSQL database level via Row Level Security (RLS).
-
-* **Strict Two-Person Allowlist**: Every query evaluates `is_authorized()` against the `authorized_users` table.
-* **No Public Registration**: Sign-ups are restricted to the pre-seeded duo allowlist.
-* **Unauthenticated Isolation**: Any unauthenticated query receives an empty result set (`[]`) without exposing data.
-
----
-
-## 🚀 Getting Started Locally
-
-### Prerequisites
-- **Node.js**: Version 18.x or 20.x+
-- **npm**: Version 9.x+
-- A [Supabase](https://supabase.com) project with migrations applied.
-
-### 1. Clone the Repository
 ```bash
 git clone https://github.com/Krrish41/two-do.git
 cd two-do
-```
-
-### 2. Install Dependencies
-```bash
 npm install
+npm run dev        # http://localhost:5173
 ```
 
-### 3. Configure Environment Variables
-Create a `.env` file in the project root:
-```env
-VITE_SUPABASE_URL=https://your-project-ref.supabase.co
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+### Run against your own Supabase project
+
+1. Create a Supabase project and two users under Authentication > Users. Copy each user's **User UID**.
+2. In the SQL editor, run the files in `supabase/migrations/` in order. Before running `0003_seed_authorized_users.sql`, replace the two placeholder UUIDs and the display names with your own.
+3. Create `.env` in the project root:
+   ```env
+   VITE_SUPABASE_URL=https://<your-project-ref>.supabase.co
+   VITE_SUPABASE_ANON_KEY=<your-anon-key>
+   ```
+4. `npm run dev`
+
+Other scripts: `npm run build` (type-check and production build into `dist/`) and `npm run preview`.
+
+### Database migrations
+
+| File | Purpose |
+| :--- | :--- |
+| `0001_init_schema.sql` | Core tables: authorized users, folders, tags, tasks, notes, note-tag links |
+| `0002_rls_policies.sql` | Row Level Security policies and the `is_authorized()` function |
+| `0003_seed_authorized_users.sql` | Allow-list seed (template: add your own user IDs) |
+| `0004_v2_features.sql` | Folder icons and colours, task sorting |
+| `0005_v3_consistency.sql` | Folder slugs and integrity fixes |
+| `0006_v4_tasks_soft_delete.sql` | `deleted_at` columns for the Recycle Bin |
+
+## Project structure
+
+```text
+.github/workflows/   deploy.yml (build and publish to Pages), supabase-keepalive.yml
+docs/screenshots/    images used in this README
+src/
+  components/        common, glass (UI primitives), icons, layout, notes, tasks
+  constants/         palette, priority and navigation constants
+  hooks/             useAuth, useRealtimeSync
+  lib/               Supabase client, generated DB types, utilities
+  pages/             Today, Tasks, Notes, RecycleBin, Login, Menu
+  stores/            Zustand stores: auth, task, note, filter/sort, theme
+supabase/migrations/ ordered SQL migrations
 ```
 
-### 4. Run Development Server
-```bash
-npm run dev
-```
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+## Deployment
 
-### 5. Build for Production
-```bash
-npm run build
-```
-The compiled static assets will be output to the `dist/` directory.
+Pushing to `main` runs `.github/workflows/deploy.yml`: install with `npm ci`, build with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` taken from repository secrets, then publish `dist/` to GitHub Pages.
 
----
+## Known limitations
 
-## 🚀 Deployment & CI/CD
+- Recurring tasks store a rule but do not yet create the next occurrence when completed.
+- A Supabase Realtime hook (`useRealtimeSync`) exists but is not currently mounted, so changes made on one device appear on another after a reload or refetch, not live.
+- No automated tests; CI only type-checks and builds.
+- No keyboard shortcuts.
 
-### Automatic GitHub Pages Deployment
-This repository includes a continuous deployment workflow in [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
+## Licence
 
-Whenever code is pushed to the `main` branch:
-1. GitHub Actions sets up Node.js.
-2. Dependencies are cleanly installed via `npm ci`.
-3. The production bundle is compiled with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` injected from **GitHub Repository Secrets**.
-4. The static `dist/` folder is deployed directly to **GitHub Pages**.
-
-### Supabase Keep-Alive Automation
-To ensure the free-tier Supabase database is never paused due to periods of inactivity:
-* [`.github/workflows/supabase-keepalive.yml`](.github/workflows/supabase-keepalive.yml) runs on a cron schedule every 3 days at 06:00 UTC.
-* It sends a lightweight read request to PostgREST, logging user database activity and keeping the database awake continuously.
-
----
-
-## 📄 License
-
-This project is privately developed for personal duo productivity.
-Feel free to reference the patterns and architecture for your own projects!
+No open-source licence is attached; all rights reserved unless one is added.
